@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
+	"github.com/ansel1/merry"
 	"strings"
 )
 
@@ -187,6 +188,7 @@ const (
 	TagNonce                                 Tag = 0x4200c8
 	TagNonceID                               Tag = 0x4200c9
 	TagNonceValue                            Tag = 0x4200ca
+	TagNone                                  Tag = 0x000000
 	TagObjectGroup                           Tag = 0x420056
 	TagObjectGroupMember                     Tag = 0x4200ac
 	TagObjectType                            Tag = 0x420057
@@ -482,6 +484,7 @@ var _TagNameToValueMap = map[string]Tag{
 	"Nonce":                                 TagNonce,
 	"NonceID":                               TagNonceID,
 	"NonceValue":                            TagNonceValue,
+	"None":                                  TagNone,
 	"ObjectGroup":                           TagObjectGroup,
 	"ObjectGroupMember":                     TagObjectGroupMember,
 	"ObjectType":                            TagObjectType,
@@ -777,6 +780,7 @@ var _TagValueToNameMap = map[Tag]string{
 	TagNonce:                                 "Nonce",
 	TagNonceID:                               "NonceID",
 	TagNonceValue:                            "NonceValue",
+	TagNone:                                  "None",
 	TagObjectGroup:                           "ObjectGroup",
 	TagObjectGroupMember:                     "ObjectGroupMember",
 	TagObjectType:                            "ObjectType",
@@ -909,14 +913,14 @@ func ParseTag(s string) (Tag, error) {
 	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
-			return 0, err
+			return TagNone, merry.Prepend(err, "invalid hex string, should be 0x[a-fA-F0-9][a-fA-F0-9]")
 		}
 		switch len(b) {
-		case 6:
+		case 3:
 			b = append([]byte{0}, b...)
-		case 8:
+		case 4:
 		default:
-			return Tag(0), fmt.Errorf("invalid byte length for tag, should be 3 bytes: %s", s)
+			return TagNone, merry.Errorf("invalid byte length for tag, should be 3 bytes: %s", s)
 		}
 
 		return Tag(binary.BigEndian.Uint32(b)), nil
@@ -924,7 +928,7 @@ func ParseTag(s string) (Tag, error) {
 	if v, ok := _TagNameToValueMap[s]; ok {
 		return v, nil
 	} else {
-		return Tag(0), fmt.Errorf("%s is not a valid Tag", s)
+		return TagNone, merry.Here(ErrTagNotRegistered).Append(s)
 	}
 }
 

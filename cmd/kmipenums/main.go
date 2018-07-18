@@ -9,7 +9,7 @@ import (
 	"os"
 	"fmt"
 	"path/filepath"
-	"github.com/gemalto/kmip"
+	"gitlab.protectv.local/regan/kmip.git"
 )
 
 type EnumDef struct {
@@ -159,6 +159,7 @@ import (
 	"strings"
 	"encoding/binary"
 	"encoding/hex"
+	"github.com/ansel1/merry"
 )
 
 // Tag
@@ -188,14 +189,14 @@ func ParseTag(s string) (Tag, error) {
 	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
-			return 0, err
+			return TagNone, merry.Prepend(err, "invalid hex string, should be 0x[a-fA-F0-9][a-fA-F0-9]")
 		}
 		switch len(b) {
-		case 6:
+		case 3:
 			b = append([]byte{0}, b...)
-		case 8:
+		case 4:
 		default:
-			return Tag(0), fmt.Errorf("invalid byte length for tag, should be 3 bytes: %s", s)
+			return TagNone, merry.Errorf("invalid byte length for tag, should be 3 bytes: %s", s)
 		}
 		
 		return Tag(binary.BigEndian.Uint32(b)), nil
@@ -203,7 +204,7 @@ func ParseTag(s string) (Tag, error) {
 	if v, ok := _TagNameToValueMap[s]; ok {
 		return v, nil
 	} else {
-		return Tag(0), fmt.Errorf("%s is not a valid Tag", s)
+		return TagNone, merry.Here(ErrTagNotRegistered).Append(s)
 	}
 }
 
@@ -281,6 +282,7 @@ func ({{.Var}} {{.Name}}) EnumValue() uint32 {
 }`
 
 var Tags = map[string]uint32{
+	"None": 0x000000,
 	"Activation Date":                          0x420001,
 	"Application Data":                         0x420002,
 	"Application Namespace":                    0x420003,

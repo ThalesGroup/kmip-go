@@ -10,8 +10,7 @@ import (
 	"fmt"
 	"strings"
 	"regexp"
-	"errors"
-)
+			)
 
 
 
@@ -150,11 +149,7 @@ func (t TTLV2) ValueStructure() TTLV2 {
 	return t.ValueRaw()
 }
 
-var ErrHeaderTruncated = errors.New("header truncated")
-var ErrValueTruncated = errors.New("value truncated")
-var ErrInvalidTag = errors.New("invalid tag")
-var ErrInvalidType = errors.New("invalid type")
-var ErrInvalidLen = errors.New("invalid length")
+
 
 func (t TTLV2) Valid() error {
 	if err := t.ValidHeader(); err != nil {

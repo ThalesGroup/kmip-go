@@ -8,7 +8,10 @@ import (
 	"time"
 	"bytes"
 	"reflect"
-	)
+	"strings"
+	"github.com/go-errors/errors"
+	"math"
+)
 
 // TODO: I'm not crazy about this approach to enums, but I don't have anything better
 // Enum values must implement this interface to get correctly encoded as KMIP enum values.
@@ -30,12 +33,14 @@ import (
 // Generally, the encoder and decoder will do their best to adapt to whichever form of the value
 // is available and allowed by the situation, otherwise it will throw an error.
 
+const kmipStructTag = "kmip"
+
 type EnumValuer interface {
 	EnumValue() uint32
 }
 
 type EnumLiteral struct {
-	IntValue uint32
+	IntValue    uint32
 	StringValue string
 }
 
@@ -51,14 +56,12 @@ func (e *EnumLiteral) MarshalText() (text []byte, err error) {
 	return []byte(e.StringValue), nil
 }
 
-
-
 func (e EnumLiteral) EnumValue() uint32 {
 	return e.IntValue
 }
 
 type Structure struct {
-	Tag Tag
+	Tag    Tag
 	Values []interface{}
 }
 
@@ -79,7 +82,7 @@ func (s Structure) MarshalTaggedValue(e *Encoder, tag Tag) error {
 }
 
 type TaggedValue struct {
-	Tag Tag
+	Tag   Tag
 	Value interface{}
 }
 
@@ -91,6 +94,7 @@ func (t TaggedValue) MarshalTaggedValue(e *Encoder, tag Tag) error {
 
 	return e.EncodeValue(tag, t.Value)
 }
+
 //
 //type Structure struct {
 //	tag Tag
@@ -122,10 +126,8 @@ func MarshalTTLV(v interface{}) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-
-
 type Encoder struct {
-	w io.Writer
+	w      io.Writer
 	format formatter
 }
 
@@ -133,7 +135,7 @@ func NewTTLVEncoder(w io.Writer) *Encoder {
 	return &Encoder{w: w}
 }
 
-type Marshaler interface{
+type Marshaler interface {
 	MarshalTaggedValue(e *Encoder, tag Tag) error
 }
 
@@ -146,7 +148,7 @@ func (e *Encoder) EncodeValue(tag Tag, v interface{}) error {
 }
 
 func (e *Encoder) Encode(v interface{}) error {
-	err := e.encode(Tag(0), v)
+	err := e.encode(TagNone, v)
 	if err != nil {
 		return err
 	}
@@ -166,33 +168,65 @@ func (e *Encoder) encode(tag Tag, v interface{}) error {
 	if e.format == nil {
 		e.format = newEncBuf()
 	}
+
+	// try non-reflection encoding first
+	err := e.encodeInterfaceValue(tag, v)
+	if err == errNoEncoder {
+		err = e.encodeReflectValue(tag, reflect.ValueOf(v))
+	}
+	return err
+}
+
+var errNoEncoder = errors.New("no non-reflect encoders")
+
+func (e *Encoder) encodeInterfaceValue(tag Tag, v interface{}) error {
+	// these are fast path encoders, which avoid reflect
+	// in as many cases as possible.
+	//
+	// This doesn't provide much performance improvement
+	// when encoding fields of a structure by reflection, but
+	// for Marshaler implementations, it can mean avoiding
+	// reflection altogether, which does provide a good boost
 	switch t := v.(type) {
 	case nil:
 		return nil
 	case Marshaler:
-		err := t.MarshalTaggedValue(e, tag)
-		if err != nil {
-			return err
-		}
+		return t.MarshalTaggedValue(e, tag)
+	case EnumValuer:
+		e.format.EncodeEnum(tag, t)
 	case int:
+		if t > math.MaxInt32 {
+			return tagError(ErrIntOverflow, tag, v)
+		}
 		e.format.EncodeInt(tag, int32(t))
 	case int8:
 		e.format.EncodeInt(tag, int32(t))
-	case uint8:
-		e.format.EncodeInt(tag, int32(t))
 	case int16:
-		e.format.EncodeInt(tag, int32(t))
-	case uint16:
 		e.format.EncodeInt(tag, int32(t))
 	case int32:
 		e.format.EncodeInt(tag, t)
+	case uint:
+		if t > math.MaxInt32 {
+			return tagError(ErrIntOverflow, tag, v)
+		}
+		e.format.EncodeInt(tag, int32(t))
+	case uint8:
+		e.format.EncodeInt(tag, int32(t))
+	case uint16:
+		e.format.EncodeInt(tag, int32(t))
 	case uint32:
+		if t > math.MaxInt32 {
+			return tagError(ErrIntOverflow, tag, v)
+		}
 		e.format.EncodeInt(tag, int32(t))
 	case bool:
 		e.format.EncodeBool(tag, t)
 	case int64:
 		e.format.EncodeLongInt(tag, t)
 	case uint64:
+		if t > math.MaxInt64 {
+			return tagError(ErrLongIntOverflow, tag, v)
+		}
 		e.format.EncodeLongInt(tag, int64(t))
 	case time.Time:
 		e.format.EncodeDateTime(tag, t)
@@ -206,20 +240,211 @@ func (e *Encoder) encode(tag Tag, v interface{}) error {
 		e.format.EncodeTextString(tag, t)
 	case []byte:
 		e.format.EncodeByteString(tag, t)
-	case EnumValuer:
-		e.format.EncodeEnum(tag, t.EnumValue())
+
 	case []interface{}:
-		// TODO: this should be in the reflect-based encoder, to handle any type of slice
 		for _, v := range t {
 			err := e.EncodeValue(tag, v)
 			if err != nil {
 				return err
 			}
 		}
+	case uintptr, float32, float64, complex64, complex128:
+		return tagError(ErrUnsupportedTypeError, tag, v).Appendf("%T", v)
 	default:
-		return merry.Errorf("can't encode type: %T", v)
+		return errNoEncoder
 	}
 	return nil
+}
+
+var byteType = reflect.TypeOf(byte(0))
+var marshalerType = reflect.TypeOf((*Marshaler)(nil)).Elem()
+var timeType = reflect.TypeOf((*time.Time)(nil)).Elem()
+var bigIntPtrType = reflect.TypeOf((*big.Int)(nil))
+var bigIntType = bigIntPtrType.Elem()
+var durationType = reflect.TypeOf(time.Nanosecond)
+var enumValuerType = reflect.TypeOf((*EnumValuer)(nil)).Elem()
+
+// indirect dives into interfaces values, and one level deep into pointers
+// returns false if value is invalid or nil
+func indirect(v reflect.Value) reflect.Value {
+	if !v.IsValid() {
+		return v
+	}
+	if v.Kind() == reflect.Interface {
+		v = v.Elem()
+	}
+	if !v.IsValid() {
+		return v
+	}
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+	return v
+}
+
+func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value) error {
+
+	v = indirect(v)
+	if !v.IsValid() {
+		return nil
+	}
+
+	typ := v.Type()
+
+	// check for implementations of Marshaler and EnumValuer
+	switch {
+	case typ.Implements(marshalerType):
+		return v.Interface().(Marshaler).MarshalTaggedValue(e, tag)
+	case typ.Implements(enumValuerType):
+		e.format.EncodeEnum(tag, v.Interface().(EnumValuer))
+		return nil
+	case v.CanAddr():
+		pv := v.Addr()
+		pvtyp := pv.Type()
+		switch {
+		case pvtyp.Implements(marshalerType):
+			return pv.Interface().(Marshaler).MarshalTaggedValue(e, tag)
+		case pvtyp.Implements(enumValuerType):
+			e.format.EncodeEnum(tag, pv.Interface().(EnumValuer))
+			return nil
+		}
+	}
+
+	switch v.Kind() {
+	case reflect.Func, reflect.Ptr, reflect.Interface, reflect.Map, reflect.Chan, reflect.Slice:
+		if v.IsNil() {
+			return nil
+		}
+	}
+
+	switch v.Kind() {
+	case reflect.Chan, reflect.Map, reflect.Func, reflect.Ptr, reflect.UnsafePointer, reflect.Uintptr, reflect.Float32,
+		reflect.Float64,
+		reflect.Complex64,
+		reflect.Complex128,
+		reflect.Interface:
+			return tagError(ErrUnsupportedTypeError, tag, v).Appendf("%s", v.Type().String())
+	}
+
+	typeInfo, err := getTypeInfo(typ)
+	if err != nil {
+		return err
+	}
+	if typeInfo.tagRequired || tag == TagNone {
+		tag = typeInfo.tag
+	}
+
+	if tag == TagNone {
+		// error, no value tag to use
+		return WithErrorContext(merry.Here(ErrNoTag),ErrorContext{Value:v})
+	}
+
+	switch typ {
+	case timeType, bigIntType, bigIntPtrType, durationType:
+		// these are some special types which are handled by the non-reflect path
+		return e.encodeInterfaceValue(tag, v.Interface())
+	}
+
+	// TODO: basic types
+	switch typ.Kind() {
+	case reflect.Struct:
+		return e.EncodeStructure(tag, func(e *Encoder) error {
+			for _, field := range typeInfo.fields {
+				fv := v.FieldByIndex(field.index)
+				// TODO: check for omitempty
+
+				// note: we're staying in reflection world here instead of
+				// converting back to an interface{} value and going through
+				// the non-reflection path again.  Calling Interface()
+				// on the reflect value would make a potentially addressable value
+				// into an unaddressable value, reducing the chances we can coerce
+				// the value into a Marshalable.
+				//
+				// tl;dr
+				// Consider a type which implements Marshaler with
+				// a pointer receiver, and a struct with a non-pointer field of that type:
+				//
+				//     type Wheel struct{}
+				//     func (*Wheel) MarshalTaggedValue(...)
+				//
+				//     type Car struct{
+				//         Wheel Wheel
+				//     }
+				//
+				// When traversing the Car struct, should the encoder invoke Wheel's
+				// Marshaler method, or not?  Technically, the type `Wheel`
+				// doesn't implement the Marshaler interface.  Only the type `*Wheel`
+				// implements it.  However, the other encoders in the SDK, like JSON
+				// and XML, will try, if possible, to get a pointer to field values like this, in
+				// order to invoke the Marshaler interface anyway.
+				//
+				// Encoders can only get a pointer to field values if the field
+				// value is `addressable`.  Addressability is explained in the docs for reflect.Value#CanAddr().
+				// Using reflection to turn a reflect.Value() back into an interface{}
+				// can make a potentially addressable value (like the field of an addressible struct)
+				// into an unaddressable value (reflect.Value#Interface{} always returns an unaddressable
+				// copy).
+				err := e.encodeReflectValue(field.tag, fv)
+				if err != nil {
+					// prepend the field name on the error context path
+					errC := GetErrorContext(err)
+					if errC != nil {
+						errC.Path = append(errC.Path, "")
+						copy(errC.Path[1:], errC.Path)
+						errC.Path[0] = field.name
+					}
+					return err
+				}
+			}
+			return nil
+		})
+
+	case reflect.String:
+		e.format.EncodeTextString(tag, v.String())
+	case reflect.Slice:
+		switch typ.Elem() {
+		case byteType:
+			// special case, encode as a ByteString
+			e.format.EncodeByteString(tag, v.Bytes())
+			return nil
+		}
+		for i := 0; i < v.Len(); i++ {
+			// TODO: just recurse into this method, once support for
+			// all types is done
+			err := e.encodeReflectValue(tag, v.Index(i))
+			if err != nil {
+				return err
+			}
+		}
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32:
+		i := v.Int()
+		if i > math.MaxInt32 {
+			return merry.Here(ErrIntOverflow).Prepend(tag.String())
+		}
+		e.format.EncodeInt(tag, int32(i))
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32:
+		u := v.Uint()
+		if u > math.MaxInt32 {
+			return merry.Here(ErrIntOverflow).Prepend(tag.String())
+		}
+		e.format.EncodeInt(tag, int32(u))
+	case reflect.Uint64:
+		u := v.Uint()
+		if u > math.MaxInt64 {
+			return merry.Here(ErrLongIntOverflow).Prepend(tag.String())
+		}
+		e.format.EncodeLongInt(tag, int64(u))
+	case reflect.Int64:
+		e.format.EncodeLongInt(tag, int64(v.Int()))
+	case reflect.Bool:
+		e.format.EncodeBool(tag, v.Bool())
+	default:
+		// all kinds should have been handled by now
+		panic(errors.New("should never get here"))
+	}
+	// TODO: arrays
+	return nil
+
 }
 
 func (e *Encoder) EncodeStructure(tag Tag, f func(e *Encoder) error) error {
@@ -362,13 +587,13 @@ func (h *encBuf) EncodeDateTime(tag Tag, t time.Time) {
 
 func (h *encBuf) EncodeInterval(tag Tag, d time.Duration) {
 	h.encodeHeader(tag, TypeInterval, lenInterval)
-	h.encodeIntVal(int32(d/time.Second))
+	h.encodeIntVal(int32(d / time.Second))
 	h.Write(h.scratch[:16])
 }
 
-func (h *encBuf) EncodeEnum(tag Tag, i uint32) {
+func (h *encBuf) EncodeEnum(tag Tag, i EnumValuer) {
 	h.encodeHeader(tag, TypeEnumeration, lenEnumeration)
-	h.encodeIntVal(int32(i))
+	h.encodeIntVal(int32(i.EnumValue()))
 	h.Write(h.scratch[:16])
 }
 
@@ -400,73 +625,106 @@ func (h *encBuf) EncodeByteString(tag Tag, b []byte) {
 	copy(h.Bytes()[start:], h.scratch[:8])
 }
 
-type fieldInfo struct {
-	index []int
-	typ reflect.Type
-	sf reflect.StructField
-	fieldTag string
-	fieldName string
-	tagName string
-	omitEmpty bool
+func getTypeInfo(typ reflect.Type) (ti typeInfo, err error) {
+	// figure out whether this type has a required or suggested kmip tag
+	// TODO: required tags support, from a subfield like xml.Name
+	ti.tag, err = parseTag(typ.Name(), false)
+	if err != nil {
+		return
+	}
+
+	if typ.Kind() == reflect.Struct {
+		ti.fields, err = getFieldsInfo(typ)
+	}
+	return
 }
 
-/*func GetFieldInfo(v interface{}) ([]fieldInfo,error) {
-	fields := map[string]fieldInfo{}
-	rv := reflect.ValueOf(v)
-	t := rv.Type()
-	for i := 0; i < t.NumField(); i++ {
-		sf := t.Field(i)
-		if sf.Anonymous {
-			// not handling anon fields at this time
-			continue
-		}
-		if !isExported(&sf) {
-			// skip unexported fields
-			continue
-		}
+var errSkip = errors.New("skip")
 
-		fieldTag := sf.Tag.Get("kmip")
-		if fieldTag == "-" {
-			// skip
-			continue
-		}
+func getFieldInfo(sf reflect.StructField) (fi fieldInfo, err error) {
 
-		fi := fieldInfo{
-			index: sf.Index,
-			typ:sf.Type,
-			fieldName:NormalizeName(sf.Name),
-			fieldTag: fieldTag,
-		}
+	if sf.Anonymous || /*unexported:*/ sf.PkgPath != "" {
+		err = errSkip
+		return
+	}
 
-		if fi.fieldTag != "" {
-			opts := strings.Split(fi.fieldTag, ",")
-			if len(opts) > 0 {
-				fi.tagName = NormalizeName(opts[0])
-			}
-			for _, opt := range opts[1:] {
-				switch opt {
-				case "omitempty":
-					fi.omitEmpty = true
+	parts := strings.Split(sf.Tag.Get(kmipStructTag), ",")
+	for i, value := range parts {
+		if i == 0 {
+			switch value {
+			case "-":
+				// skip
+				err = errSkip
+				return
+			case "":
+			default:
+				fi.tag, err = parseTag(value, true)
+				if err != nil {
+					return
 				}
 			}
-		}
-
-		// resolve a valid KMIP tag
-		if fi.tagName != "" {
-			kmipTag, err := ParseTag(fi.tagName)
-			if err != nil {
-				return nil, err
+		} else {
+			switch value {
+			case "enum":
+				fi.enum = true
+			case "omitEmpty":
+				fi.omitEmpty = true
 			}
-
-			// if the kmip tag was in the field tag, this takes precedence over a prior
-			// field where the tag was inferred from the field name
 		}
-
-
-
 	}
-}*/
 
-func isExported(sf *reflect.StructField) bool {
-	return sf.PkgPath == ""
+	if fi.tag == TagNone {
+		// try resolving the tag from the field, but this is not required.
+		// will fall back on trying to extract the tag from the value if this
+		// fails
+		fi.tag, err = parseTag(sf.Name, false)
+		if err != nil {
+			return
+		}
+	}
+
+	fi.name = sf.Name
+	fi.index = sf.Index
+	return
+}
+
+func getFieldsInfo(typ reflect.Type) (fields []fieldInfo, err error) {
+	// TODO: error fields of unsupported types, like maps
+	// TODO: error on fields with no candidate tag
+
+	for i := 0; i < typ.NumField(); i++ {
+		fi, err := getFieldInfo(typ.Field(i))
+		switch err {
+		case errSkip:
+		case nil:
+			fields = append(fields, fi)
+		default:
+			return nil, err
+		}
+	}
+	return fields, nil
+}
+
+func parseTag(tagStr string, required bool) (Tag, error) {
+	// parse tag will handle raw hex values, like 0x, or registered
+	// canonical tag names.  ignore errors
+	t, err := ParseTag(tagStr)
+	if Is(err, ErrTagNotRegistered) && required {
+		return t, err
+	}
+	return t, nil
+}
+
+type typeInfo struct {
+	tag         Tag
+	tagRequired bool
+	fields      []fieldInfo
+}
+
+type fieldInfo struct {
+	name string
+	tag       Tag
+	index     []int
+	enum      bool
+	omitEmpty bool
 }

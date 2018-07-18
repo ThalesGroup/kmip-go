@@ -4,22 +4,23 @@ import (
 	"testing"
 	"bytes"
 	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/assert"
 	"fmt"
 	"time"
 	"math/big"
-	"github.com/ansel1/merry"
+	"io"
+	"io/ioutil"
+	"reflect"
+	"math"
 )
 
 func parseBigInt(s string) *big.Int {
 	i := &big.Int{}
 	_, ok := i.SetString(s, 10)
 	if !ok {
-		panic(merry.Errorf("can't parse as big int: %v", s))
+		panic(fmt.Errorf("can't parse as big int: %v", s))
 	}
 	return i
 }
-
 
 var knownGoodSamples = []struct {
 	name string
@@ -167,37 +168,9 @@ var knownGoodSamples = []struct {
 		exp: "42 00 01 | 04 | 00 00 00 08 | FF FF FF FF FF FF FF 80",
 	},
 	{
-		v: CredentialTypeAttestation,
+		v:   CredentialTypeAttestation,
 		exp: "42 00 01 | 05 | 00 00 00 04 | 00 00 00 03 00 00 00 00",
 	},
-}
-
-func TestEncoder_EncodeValue(t *testing.T) {
-	for _, test := range knownGoodSamples {
-		t.Run(fmt.Sprintf("%T:%v", test.v, test.v), func(t *testing.T) {
-			buf := bytes.NewBuffer(nil)
-			e := NewTTLVEncoder(buf)
-			err := e.EncodeValue(TagActivationDate, test.v)
-			require.NoError(t, err)
-
-			exp := hex2bytes(test.exp)
-
-			assert.Equal(t, len(exp), buf.Len())
-			if len(exp) > 0 {
-				assert.Equal(t, exp, buf.Bytes())
-			}
-		})
-	}
-
-	t.Run("nil", func(t *testing.T) {
-		buf := bytes.NewBuffer(nil)
-		e := NewTTLVEncoder(buf)
-		err := e.EncodeValue(TagActivationDate, nil)
-		require.NoError(t, err)
-
-		require.Empty(t, buf.Bytes())
-	})
-
 }
 
 type MarhalableStruct struct{}
@@ -221,66 +194,394 @@ func (MarhalableStruct) MarshalTaggedValue(e *Encoder, tag Tag) error {
 
 }
 
+type MarshalerFunc func(e *Encoder, tag Tag) error
+
+func (f MarshalerFunc) MarshalTaggedValue(e *Encoder, tag Tag) error {
+	// TODO: workaround for encoding a nil value of type MarshalerFunc.  The non reflect
+	// path currently has no way to detect whether an interface value that implements Marshaler is actually
+	// nil.  This makes it save to call a nil MarshalerFunc
+	if f == nil {
+		return nil
+	}
+	return f(e, tag)
+}
+
+type ptrMarshaler struct{}
+
+func (*ptrMarshaler) MarshalTaggedValue(e *Encoder, tag Tag) error {
+	return e.EncodeValue(tag, 5)
+}
+
+type nonptrMarshaler struct{}
+
+func (nonptrMarshaler) MarshalTaggedValue(e *Encoder, tag Tag) error {
+	return e.EncodeValue(tag, 5)
+}
+
 func TestTTLVEncoder_Encode(t *testing.T) {
 	b, err := MarshalTTLV(MarhalableStruct{})
 	require.NoError(t, err)
 	fmt.Println(TTLV2(b))
 }
 
+func fastPathSupported(v interface{}) bool {
+	switch v.(type) {
+	case nil:
+		return true
+	case EnumValuer, Marshaler:
+		// interfaces
+		return true
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, bool, time.Time, time.Duration, big.Int, *big.Int, string, []byte, []interface{}:
+		// base types
+		return true
+	case uintptr, complex64, complex128, float32, float64:
+		// types which are not encodeable, but should be detected and rejected in the fast path
+		return true
+	}
+	return false
+}
+
+func TestEncoder_encode_unsupported(t *testing.T) {
+	type testCase struct {
+		name   string
+		v      interface{}
+		expErr error
+	}
+
+	tests := []testCase{
+		{
+			v:      map[string]string{},
+			expErr: ErrUnsupportedTypeError,
+		},
+		{
+			v:      float32(5),
+			expErr: ErrUnsupportedTypeError,
+		},
+		{
+			v:      float64(5),
+			expErr: ErrUnsupportedTypeError,
+		},
+		{
+			v:      complex64(5),
+			expErr: ErrUnsupportedTypeError,
+		},
+		{
+			v:      complex128(5),
+			expErr: ErrUnsupportedTypeError,
+		},
+		{
+			v:      uintptr(5),
+			expErr: ErrUnsupportedTypeError,
+		},
+		{
+			v:      uint32(math.MaxInt32 + 1),
+			expErr: ErrIntOverflow,
+		},
+		{
+			v:      int(math.MaxInt32 + 1),
+			expErr: ErrIntOverflow,
+		},
+		{
+			v:      uint(math.MaxInt32 + 1),
+			expErr: ErrIntOverflow,
+		},
+		{
+			v:      uint64(math.MaxInt64 + 1),
+			expErr: ErrLongIntOverflow,
+		},
+		{
+			v: struct{
+				CustomAttribute struct{
+					AttributeValue complex128
+				}
+			}{},
+			expErr: ErrUnsupportedTypeError,
+		},
+	}
+	enc := NewTTLVEncoder(bytes.NewBuffer(nil))
+	enc.format = newEncBuf()
+	for _, test := range tests {
+		testName := test.name
+		if testName == "" {
+			testName = fmt.Sprintf("%T", test.v)
+		}
+		t.Run(testName, func(t *testing.T) {
+			// test both reflect and non-reflect paths
+			err := enc.encodeReflectValue(TagCancellationResult, reflect.ValueOf(test.v))
+			require.Error(t, err)
+			t.Log(Details(err))
+			require.True(t, Is(err, test.expErr), Details(err))
+
+			err = enc.encodeInterfaceValue(TagCancellationResult, test.v)
+			require.Error(t, err)
+			if fastPathSupported(test.v) {
+				require.True(t, Is(err, test.expErr), Details(err))
+			} else {
+				require.True(t, err == errNoEncoder)
+			}
+		})
+	}
+}
+
 func TestEncoder_encode(t *testing.T) {
 
+	type AttributeValue string
+	type Attribute struct {
+		AttributeValue string
+	}
+	type MarshalableFields struct {
+		Attribute          MarshalerFunc
+		AttributeName      Marshaler
+		AttributeValue     nonptrMarshaler
+		ArchiveDate        *nonptrMarshaler
+		CancellationResult **nonptrMarshaler
+		CustomAttribute    ptrMarshaler
+		AttributeIndex     *ptrMarshaler
+		Certificate        **ptrMarshaler
+	}
+
 	type testCase struct {
-		name     string
-		tag      Tag
-		v        interface{}
-		expected []interface{}
+		name         string
+		tag          Tag
+		nodefaulttag bool
+		v            interface{}
+		expected     []interface{}
 	}
 
 	tests := []testCase{
 		// byte strings
 		{
+			name:     "byteslice",
 			v:        []byte{0x01, 0x02, 0x03},
+			expected: []interface{}{TaggedValue{Tag: TagCancellationResult, Value: []byte{0x01, 0x02, 0x03}}},
+		},
+		{
+			name:     "bytesliceptr",
+			v:        func() *[]byte { b := []byte{0x01, 0x02, 0x03}; return &b }(),
 			expected: []interface{}{TaggedValue{Tag: TagCancellationResult, Value: []byte{0x01, 0x02, 0x03}}},
 		},
 		// text strings
 		{
-			v: "red",
+			v:        "red",
 			expected: []interface{}{TaggedValue{Tag: TagCancellationResult, Value: "red"}},
+		},
+		{
+			name:     "strptr",
+			v:        func() *string { s := "red"; return &s }(),
+			expected: []interface{}{TaggedValue{Tag: TagCancellationResult, Value: "red"}},
+		},
+		{
+			name:     "zeroptr",
+			v:        func() *string { var s *string; return s }(),
+			expected: nil,
+		},
+		{
+			name:     "ptrtonil",
+			v:        func() *string { var s *string; s = nil; return s }(),
+			expected: nil,
+		},
+		{
+			name:     "zerointerface",
+			v:        func() io.Writer { var i io.Writer; return i }(),
+			expected: nil,
+		},
+		{
+			name:     "nilinterface",
+			v:        func() io.Writer { var i io.Writer; i = nil; return i }(),
+			expected: nil,
+		},
+		{
+			name:     "nilinterfaceptr",
+			v:        func() *io.Writer { var i *io.Writer; return i }(),
+			expected: nil,
 		},
 		// date time
 		{
-			v: parseTime("Friday, March 14, 2008, 11:56:40 UTC"),
+			v:        parseTime("Friday, March 14, 2008, 11:56:40 UTC"),
 			expected: []interface{}{TaggedValue{Tag: TagCancellationResult, Value: parseTime("Friday, March 14, 2008, 11:56:40 UTC")}},
+		},
+		// big int ptr
+		{
+			v:        parseBigInt("1234567890000000000000000000"),
+			expected: []interface{}{TaggedValue{Tag: TagCancellationResult, Value: parseBigInt("1234567890000000000000000000")}},
 		},
 		// big int
 		{
-			v: parseBigInt("1234567890000000000000000000"),
+			v:        func() interface{} { return *(parseBigInt("1234567890000000000000000000")) }(),
 			expected: []interface{}{TaggedValue{Tag: TagCancellationResult, Value: parseBigInt("1234567890000000000000000000")}},
 		},
 		// duration
 		{
-			v: time.Second * 10,
+			v:        time.Second * 10,
 			expected: []interface{}{TaggedValue{Tag: TagCancellationResult, Value: time.Second * 10}},
 		},
 		// boolean
 		{
-			v: true,
+			v:        true,
 			expected: []interface{}{TaggedValue{Tag: TagCancellationResult, Value: true}},
 		},
-		// enum
+		// enum value
 		{
-			name:"enum",
-			v:CredentialTypeAttestation,
-			expected: []interface{}{TaggedValue{Tag: TagCancellationResult, Value: EnumLiteral{IntValue:0x03}}},
+			name:     "enum",
+			v:        CredentialTypeAttestation,
+			expected: []interface{}{TaggedValue{Tag: TagCancellationResult, Value: EnumLiteral{IntValue: 0x03}}},
+		},
+		// slice
+		{
+			v: []interface{}{5, 6, 7},
+			expected: []interface{}{
+				TaggedValue{Tag: TagCancellationResult, Value: int32(5)},
+				TaggedValue{Tag: TagCancellationResult, Value: int32(6)},
+				TaggedValue{Tag: TagCancellationResult, Value: int32(7)},
+			},
+		},
+		// nil
+		{
+			v:        nil,
+			expected: nil,
+		},
+		// marshalable
+		{
+			name:     "marshalable",
+			v:        MarshalerFunc(func(e *Encoder, tag Tag) error { return e.EncodeValue(TagArchiveDate, 5) }),
+			expected: []interface{}{TaggedValue{Tag: TagArchiveDate, Value: int32(5)}},
+		},
+		{
+			name:     "namedtype",
+			v:        AttributeValue("blue"),
+			expected: []interface{}{TaggedValue{Tag: TagCancellationResult, Value: "blue"}},
+		},
+		{
+			name:         "namedtypenotag",
+			nodefaulttag: true,
+			v:            AttributeValue("blue"),
+			expected:     []interface{}{TaggedValue{Tag: TagAttributeValue, Value: "blue"}},
+		},
+		// struct
+		{
+			name: "struct",
+			v:    struct{ AttributeName string }{"red"},
+			expected: []interface{}{Structure{
+				Tag: TagCancellationResult,
+				Values: []interface{}{
+					TaggedValue{Tag: TagAttributeName, Value: "red"},
+				},
+			}},
+		},
+		{
+			name: "structtag",
+			v:    struct{ AttributeName string `kmip:"Attribute"` }{"red"},
+			expected: []interface{}{Structure{
+				Tag: TagCancellationResult,
+				Values: []interface{}{
+					TaggedValue{Tag: TagAttribute, Value: "red"},
+				},
+			}},
+		},
+		{
+			name: "structptr",
+			v:    &Attribute{"red"},
+			expected: []interface{}{Structure{
+				Tag: TagCancellationResult,
+				Values: []interface{}{
+					TaggedValue{Tag: TagAttributeValue, Value: "red"},
+				},
+			}},
+		},
+		{
+			name: "structtaghex",
+			v:    struct{ AttributeName string `kmip:"0x42000b"` }{"red"},
+			expected: []interface{}{Structure{
+				Tag: TagCancellationResult,
+				Values: []interface{}{
+					TaggedValue{Tag: TagAttributeValue, Value: "red"},
+				},
+			}},
+		},
+		{
+			name: "structtagskip",
+			v: struct {
+				AttributeName  string `kmip:"-"`
+				AttributeValue string
+			}{"red", "green"},
+			expected: []interface{}{Structure{
+				Tag: TagCancellationResult,
+				Values: []interface{}{
+					TaggedValue{Tag: TagAttributeValue, Value: "green"},
+				},
+			}},
+		},
+		{
+			name: "skipstructanonfield",
+			v: struct {
+				AttributeName string
+				Attribute
+			}{"red", Attribute{"green"}},
+			expected: []interface{}{Structure{
+				Tag: TagCancellationResult,
+				Values: []interface{}{
+					TaggedValue{Tag: TagAttributeName, Value: "red"},
+				},
+			}},
+		},
+		{
+			name: "skipnonexportedfields",
+			v: struct {
+				AttributeName  string
+				attributeValue string
+			}{"red", "green"},
+			expected: []interface{}{Structure{
+				Tag: TagCancellationResult,
+				Values: []interface{}{
+					TaggedValue{Tag: TagAttributeName, Value: "red"},
+				},
+			}},
+		},
+		{
+			name: "marshalerfields",
+			v: &MarshalableFields{
+				Attribute: func(e *Encoder, tag Tag) error {
+					return e.EncodeValue(tag, 5)
+				},
+				AttributeName:      &ptrMarshaler{},
+				ArchiveDate:        &nonptrMarshaler{},
+				CancellationResult: func() **nonptrMarshaler { p := &nonptrMarshaler{}; return &p }(),
+				AttributeIndex:     &ptrMarshaler{},
+				Certificate:        func() **ptrMarshaler { p := &ptrMarshaler{}; return &p }(),
+			},
+			expected: []interface{}{Structure{
+				Tag: TagCancellationResult,
+				Values: []interface{}{
+					TaggedValue{Tag: TagAttribute, Value: int32(5)},
+					TaggedValue{Tag: TagAttributeName, Value: int32(5)},
+					TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
+					TaggedValue{Tag: TagArchiveDate, Value: int32(5)},
+					TaggedValue{Tag: TagCancellationResult, Value: int32(5)},
+					TaggedValue{Tag: TagCustomAttribute, Value: int32(5)},
+					TaggedValue{Tag: TagAttributeIndex, Value: int32(5)},
+					TaggedValue{Tag: TagCertificate, Value: int32(5)},
+				},
+			}},
+		},
+		{
+			name: "nilmarshalerfields",
+			v:    &MarshalableFields{},
+			expected: []interface{}{Structure{
+				Tag: TagCancellationResult,
+				Values: []interface{}{
+					TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
+					TaggedValue{Tag: TagCustomAttribute, Value: int32(5)},
+				},
+			}},
 		},
 	}
 
 	// test cases for all the int base types
-	for _, v := range []interface{}{int8(5), uint8(5), int16(5), uint16(5), int(5), int32(5), uint32(5), byte(5), rune(5)} {
+	for _, v := range []interface{}{int8(5), uint(5), uint8(5), int16(5), uint16(5), int(5), int32(5), uint32(5), byte(5), rune(5)} {
 		tests = append(tests, testCase{
-				v:v,
-				expected: []interface{}{TaggedValue{Tag: TagCancellationResult, Value: int32(5)}},
-			})
+			v:        v,
+			expected: []interface{}{TaggedValue{Tag: TagCancellationResult, Value: int32(5)}},
+		})
 	}
 
 	// test cases for all long int base types
@@ -302,15 +603,26 @@ func TestEncoder_encode(t *testing.T) {
 			enc := NewTTLVEncoder(nil)
 			enc.format = &m
 
-			if tc.tag == 0 {
+			if tc.tag == TagNone && !tc.nodefaulttag {
 				tc.tag = TagCancellationResult
 			}
 
-			err := enc.encode(tc.tag, tc.v)
+			err := enc.encodeReflectValue(tc.tag, reflect.ValueOf(tc.v))
 			require.NoError(t, err)
 			enc.flush()
 
 			require.Equal(t, tc.expected, m.writtenValues)
+
+			m.clear()
+			err = enc.encodeInterfaceValue(tc.tag, tc.v)
+			if fastPathSupported(tc.v) {
+				require.NoError(t, err)
+				enc.flush()
+
+				require.Equal(t, tc.expected, m.writtenValues)
+			} else {
+				require.True(t, err == errNoEncoder)
+			}
 		})
 
 	}
@@ -323,4 +635,20 @@ func parseTime(s string) time.Time {
 		panic(err)
 	}
 	return v
+}
+
+func BenchmarkEncodeSlice(b *testing.B) {
+	enc := NewTTLVEncoder(ioutil.Discard)
+
+	type Attribute struct {
+		AttributeValue string
+	}
+
+	v := Attribute{"red"}
+
+	rv := reflect.ValueOf(v)
+
+	for i := 0; i < b.N; i++ {
+		enc.encodeReflectValue(TagNone, rv)
+	}
 }

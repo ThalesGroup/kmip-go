@@ -11,7 +11,7 @@ type formatter interface {
 	EncodeStructure(tag Tag, f func(formatter))
 	EncodeByteString(tag Tag, b []byte)
 	EncodeTextString(tag Tag, s string)
-	EncodeEnum(tag Tag, i uint32)
+	EncodeEnum(tag Tag, i EnumValuer)
 	EncodeInterval(tag Tag, d time.Duration)
 	EncodeDateTime(tag Tag, t time.Time)
 	EncodeLongInt(tag Tag, i int64)
@@ -33,6 +33,11 @@ type memFormat struct {
 	bufferedValues []interface{}
 }
 
+func (m *memFormat) clear() {
+	m.writtenValues = nil
+	m.bufferedValues = nil
+}
+
 func (m *memFormat) EncodeStructure(tag Tag, f func(formatter)) {
 	inner := memFormat{}
 	f(&inner)
@@ -52,8 +57,8 @@ func (m *memFormat) EncodeTextString(tag Tag, s string) {
 	m.bufferValue(tag, s)
 }
 
-func (m *memFormat) EncodeEnum(tag Tag, i uint32) {
-	m.bufferValue(tag, EnumLiteral{IntValue:i})
+func (m *memFormat) EncodeEnum(tag Tag, i EnumValuer) {
+	m.bufferValue(tag, EnumLiteral{IntValue:i.EnumValue()})
 }
 
 func (m *memFormat) EncodeInterval(tag Tag, d time.Duration) {

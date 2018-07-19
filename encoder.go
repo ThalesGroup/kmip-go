@@ -11,6 +11,7 @@ import (
 	"strings"
 	"github.com/go-errors/errors"
 	"math"
+	"encoding/hex"
 )
 
 // TODO: I'm not crazy about this approach to enums, but I don't have anything better
@@ -37,6 +38,12 @@ const kmipStructTag = "kmip"
 
 type EnumValuer interface {
 	EnumValue() uint32
+}
+
+type EnumInt uint32
+
+func (i EnumInt) EnumValue() uint32 {
+	return uint32(i)
 }
 
 type EnumLiteral struct {
@@ -285,6 +292,44 @@ func isEmptyValue(v reflect.Value) bool {
 	return false
 }
 
+func (e *Encoder) encodeReflectEnum(tag Tag, v reflect.Value) error {
+	switch v.Kind() {
+	case reflect.String:
+		s := v.String()
+		if !strings.HasPrefix(s, "0x") {
+			return tagError(ErrIntOverflow, tag, v).Append("must start with 0x")
+		}
+		s = s[2:]
+		if len(s) != 8 {
+			return tagError(ErrInvalidLen, tag, v).Append("enum values must be 4 bytes")
+		}
+		b, err := hex.DecodeString(s)
+		if err != nil {
+			return tagError(ErrInvalidHexString, tag, v).Append(err.Error())
+		}
+
+		u := binary.BigEndian.Uint32(b)
+		e.format.EncodeEnum(tag, EnumInt(u))
+		return nil
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		i := v.Uint()
+		if i > math.MaxUint32 {
+			return tagError(ErrIntOverflow, tag, v)
+		}
+		e.format.EncodeEnum(tag, EnumInt(i))
+		return nil
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		i := v.Int()
+		if i > math.MaxUint32 {
+			return tagError(ErrIntOverflow, tag, v)
+		}
+		e.format.EncodeEnum(tag, EnumInt(i))
+		return nil
+	default:
+		return tagError(ErrUnsupportedEnumTypeError, tag, v)
+	}
+}
+
 func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags) error {
 
 	v = indirect(v)
@@ -357,6 +402,10 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 		return tagError(ErrNoTag, TagNone, v)
 	}
 
+	if flags&fEnum != 0 {
+		return e.encodeReflectEnum(tag, v)
+	}
+
 	switch typ {
 	case timeType, bigIntType, bigIntPtrType, durationType:
 		// these are some special types which are handled by the non-reflect path
@@ -416,7 +465,6 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 			}
 			return nil
 		})
-
 	case reflect.String:
 		e.format.EncodeTextString(tag, v.String())
 	case reflect.Slice:

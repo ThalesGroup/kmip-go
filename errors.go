@@ -75,6 +75,8 @@ var ErrTagNotRegistered= errors.New("tag name not registered")
 var ErrIntOverflow= fmt.Errorf("value exceeds max int value %d", math.MaxInt32)
 var ErrLongIntOverflow= fmt.Errorf("value exceeds max long int value %d", math.MaxInt64)
 var ErrUnsupportedTypeError = errors.New("unsupported type")
+var ErrUnsupportedEnumTypeError = errors.New("unsupported type for enums, must be string, or int types")
+var ErrInvalidHexString = errors.New("invalid hex string")
 
 type errKey int
 const (

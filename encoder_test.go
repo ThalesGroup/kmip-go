@@ -1131,6 +1131,47 @@ func TestEncoder_encode(t *testing.T) {
 			}},
 		},
 		{
+			name: "enumtag",
+			v: struct {
+				Comment string `kmip:",enum"`
+				Int     int    `kmip:"Comment,enum"`
+				Int8    int8   `kmip:"Comment,enum"`
+				Int16   int16  `kmip:"Comment,enum"`
+				Int32   int32  `kmip:"Comment,enum"`
+				Int64   int64  `kmip:"Comment,enum"`
+				Uint    uint   `kmip:"Comment,enum"`
+				Uint8   uint8  `kmip:"Comment,enum"`
+				Uint16  uint16 `kmip:"Comment,enum"`
+				Uint32  uint32 `kmip:"Comment,enum"`
+				Uint64  uint64 `kmip:"Comment,enum"`
+			}{
+				Comment: "0x00000001",
+				Int:     2,
+				Int8: 3,
+				Int16: 4,
+				Int32: 5,
+				Int64: 6,
+				Uint: 7,
+				Uint8:8,
+				Uint16:9,
+				Uint32:10,
+				Uint64:11,
+			},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagComment, Value: EnumLiteral{IntValue: 1}},
+				TaggedValue{Tag: TagComment, Value: EnumLiteral{IntValue: 2}},
+				TaggedValue{Tag: TagComment, Value: EnumLiteral{IntValue: 3}},
+				TaggedValue{Tag: TagComment, Value: EnumLiteral{IntValue: 4}},
+				TaggedValue{Tag: TagComment, Value: EnumLiteral{IntValue: 5}},
+				TaggedValue{Tag: TagComment, Value: EnumLiteral{IntValue: 6}},
+				TaggedValue{Tag: TagComment, Value: EnumLiteral{IntValue: 7}},
+				TaggedValue{Tag: TagComment, Value: EnumLiteral{IntValue: 8}},
+				TaggedValue{Tag: TagComment, Value: EnumLiteral{IntValue: 9}},
+				TaggedValue{Tag: TagComment, Value: EnumLiteral{IntValue: 10}},
+				TaggedValue{Tag: TagComment, Value: EnumLiteral{IntValue: 11}},
+			}},
+		},
+		{
 			v: func() interface{} {
 				c := Complex{
 					Attribute: []attr{
@@ -1181,7 +1222,7 @@ func TestEncoder_encode(t *testing.T) {
 						TaggedValue{Tag: TagCertificateLength, Value: EnumLiteral{IntValue: 10}},
 					}},
 				}},
-				TaggedValue{Tag: TagBlockCipherMode, Value: 5},
+				TaggedValue{Tag: TagBlockCipherMode, Value: int32(5)},
 			}},
 		},
 	}
@@ -1219,7 +1260,7 @@ func TestEncoder_encode(t *testing.T) {
 			}
 
 			err := enc.encodeReflectValue(tag, reflect.ValueOf(tc.v), 0)
-			require.NoError(t, err)
+			require.NoError(t, err, Details(err))
 			enc.flush()
 
 			switch {

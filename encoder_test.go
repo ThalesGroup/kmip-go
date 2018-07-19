@@ -290,12 +290,19 @@ func TestEncoder_encode_unsupported(t *testing.T) {
 			expErr: ErrLongIntOverflow,
 		},
 		{
-			v: struct{
-				CustomAttribute struct{
+			v: struct {
+				CustomAttribute struct {
 					AttributeValue complex128
 				}
 			}{},
 			expErr: ErrUnsupportedTypeError,
+		},
+		{
+			name: "unsupportedtypeignoresomitempty",
+			v: struct{
+				Attribute complex128 `kmip:",omitempty"`
+			}{},
+			expErr:ErrUnsupportedTypeError,
 		},
 	}
 	enc := NewTTLVEncoder(bytes.NewBuffer(nil))
@@ -307,7 +314,7 @@ func TestEncoder_encode_unsupported(t *testing.T) {
 		}
 		t.Run(testName, func(t *testing.T) {
 			// test both reflect and non-reflect paths
-			err := enc.encodeReflectValue(TagCancellationResult, reflect.ValueOf(test.v))
+			err := enc.encodeReflectValue(TagCancellationResult, reflect.ValueOf(test.v), 0)
 			require.Error(t, err)
 			t.Log(Details(err))
 			require.True(t, Is(err, test.expErr), Details(err))
@@ -321,6 +328,66 @@ func TestEncoder_encode_unsupported(t *testing.T) {
 			}
 		})
 	}
+}
+
+type Marshalablefloat32 float32
+
+func (Marshalablefloat32) MarshalTaggedValue(e *Encoder, tag Tag) error {
+	return e.EncodeValue(tag, 5)
+}
+
+type Marshalablefloat32Ptr float32
+
+func (*Marshalablefloat32Ptr) MarshalTaggedValue(e *Encoder, tag Tag) error {
+	return e.EncodeValue(tag, 5)
+}
+
+type Marshalablefloat64 float64
+
+func (Marshalablefloat64) MarshalTaggedValue(e *Encoder, tag Tag) error {
+	return e.EncodeValue(tag, 5)
+}
+
+type Marshalablefloat64Ptr float64
+
+func (*Marshalablefloat64Ptr) MarshalTaggedValue(e *Encoder, tag Tag) error {
+	return e.EncodeValue(tag, 5)
+}
+
+type MarshalableMap map[string]string
+
+func (MarshalableMap) MarshalTaggedValue(e *Encoder, tag Tag) error {
+	return e.EncodeValue(tag, 5)
+}
+
+type MarshalableMapPtr map[string]string
+
+func (*MarshalableMapPtr) MarshalTaggedValue(e *Encoder, tag Tag) error {
+	return e.EncodeValue(tag, 5)
+}
+
+type MarshalableSlice []string
+
+func (MarshalableSlice) MarshalTaggedValue(e *Encoder, tag Tag) error {
+	return e.EncodeValue(tag, 5)
+}
+
+type MarshalableSlicePtr []string
+
+func (*MarshalableSlicePtr) MarshalTaggedValue(e *Encoder, tag Tag) error {
+	return e.EncodeValue(tag, 5)
+}
+
+type MarshalableBool bool
+
+func (MarshalableBool) MarshalTaggedValue(e *Encoder, tag Tag) error {
+	return e.EncodeValue(tag, 5)
+}
+
+type MarshalableBoolPtr bool
+
+func (*MarshalableBoolPtr) MarshalTaggedValue(e *Encoder, tag Tag) error {
+	return e.EncodeValue(tag, 5)
 }
 
 func TestEncoder_encode(t *testing.T) {
@@ -340,12 +407,35 @@ func TestEncoder_encode(t *testing.T) {
 		Certificate        **ptrMarshaler
 	}
 
+	type attr struct {
+		AttributeName  string
+		Value          interface{} `kmip:"AttributeValue"`
+		AttributeIndex int         `kmip:",omitempty"`
+	}
+	type cert struct {
+		CertificateIdentifier string
+		CertificateIssuer     struct {
+			CertificateIssuerAlternativeName string
+			CertificateIssuerC               *string
+			CertificateIssuerEmail           uint32 `kmip:",enum"`
+			CertificateIssuerEmail2          string `kmip:"CertificateIssuerEmail,enum"`
+			CertificateIssuerUID             uint32 `kmip:",omitempty,enum"`
+			CertificateIssuerUID2            uint32 `kmip:"CertificateIssuerUID,omitempty,enum"`
+			Len                              int    `kmip:"CertificateLength,omitempty,enum"`
+		}
+	}
+	type Complex struct {
+		Attribute   []attr
+		Certificate *cert
+		BlockCipherMode nonptrMarshaler
+	}
+
 	type testCase struct {
 		name         string
 		tag          Tag
-		nodefaulttag bool
+		noDefaultTag bool
 		v            interface{}
-		expected     []interface{}
+		expected     interface{}
 	}
 
 	tests := []testCase{
@@ -353,22 +443,27 @@ func TestEncoder_encode(t *testing.T) {
 		{
 			name:     "byteslice",
 			v:        []byte{0x01, 0x02, 0x03},
-			expected: []interface{}{TaggedValue{Tag: TagCancellationResult, Value: []byte{0x01, 0x02, 0x03}}},
+			expected: TaggedValue{Tag: TagCancellationResult, Value: []byte{0x01, 0x02, 0x03}},
 		},
 		{
 			name:     "bytesliceptr",
 			v:        func() *[]byte { b := []byte{0x01, 0x02, 0x03}; return &b }(),
-			expected: []interface{}{TaggedValue{Tag: TagCancellationResult, Value: []byte{0x01, 0x02, 0x03}}},
+			expected: TaggedValue{Tag: TagCancellationResult, Value: []byte{0x01, 0x02, 0x03}},
 		},
 		// text strings
 		{
 			v:        "red",
-			expected: []interface{}{TaggedValue{Tag: TagCancellationResult, Value: "red"}},
+			expected: TaggedValue{Tag: TagCancellationResult, Value: "red"},
+		},
+		{
+			name:"array",
+			v: [1]string{"red"},
+			expected: TaggedValue{Tag: TagCancellationResult, Value: "red"},
 		},
 		{
 			name:     "strptr",
 			v:        func() *string { s := "red"; return &s }(),
-			expected: []interface{}{TaggedValue{Tag: TagCancellationResult, Value: "red"}},
+			expected: TaggedValue{Tag: TagCancellationResult, Value: "red"},
 		},
 		{
 			name:     "zeroptr",
@@ -398,33 +493,33 @@ func TestEncoder_encode(t *testing.T) {
 		// date time
 		{
 			v:        parseTime("Friday, March 14, 2008, 11:56:40 UTC"),
-			expected: []interface{}{TaggedValue{Tag: TagCancellationResult, Value: parseTime("Friday, March 14, 2008, 11:56:40 UTC")}},
+			expected: TaggedValue{Tag: TagCancellationResult, Value: parseTime("Friday, March 14, 2008, 11:56:40 UTC")},
 		},
 		// big int ptr
 		{
 			v:        parseBigInt("1234567890000000000000000000"),
-			expected: []interface{}{TaggedValue{Tag: TagCancellationResult, Value: parseBigInt("1234567890000000000000000000")}},
+			expected: TaggedValue{Tag: TagCancellationResult, Value: parseBigInt("1234567890000000000000000000")},
 		},
 		// big int
 		{
 			v:        func() interface{} { return *(parseBigInt("1234567890000000000000000000")) }(),
-			expected: []interface{}{TaggedValue{Tag: TagCancellationResult, Value: parseBigInt("1234567890000000000000000000")}},
+			expected: TaggedValue{Tag: TagCancellationResult, Value: parseBigInt("1234567890000000000000000000")},
 		},
 		// duration
 		{
 			v:        time.Second * 10,
-			expected: []interface{}{TaggedValue{Tag: TagCancellationResult, Value: time.Second * 10}},
+			expected: TaggedValue{Tag: TagCancellationResult, Value: time.Second * 10},
 		},
 		// boolean
 		{
 			v:        true,
-			expected: []interface{}{TaggedValue{Tag: TagCancellationResult, Value: true}},
+			expected: TaggedValue{Tag: TagCancellationResult, Value: true},
 		},
 		// enum value
 		{
 			name:     "enum",
 			v:        CredentialTypeAttestation,
-			expected: []interface{}{TaggedValue{Tag: TagCancellationResult, Value: EnumLiteral{IntValue: 0x03}}},
+			expected: TaggedValue{Tag: TagCancellationResult, Value: EnumLiteral{IntValue: 0x03}},
 		},
 		// slice
 		{
@@ -433,6 +528,14 @@ func TestEncoder_encode(t *testing.T) {
 				TaggedValue{Tag: TagCancellationResult, Value: int32(5)},
 				TaggedValue{Tag: TagCancellationResult, Value: int32(6)},
 				TaggedValue{Tag: TagCancellationResult, Value: int32(7)},
+			},
+		},
+		{
+			v: []string{"red", "green", "blue"},
+			expected: []interface{}{
+				TaggedValue{Tag: TagCancellationResult, Value: "red"},
+				TaggedValue{Tag: TagCancellationResult, Value: "green"},
+				TaggedValue{Tag: TagCancellationResult, Value: "blue"},
 			},
 		},
 		// nil
@@ -444,59 +547,59 @@ func TestEncoder_encode(t *testing.T) {
 		{
 			name:     "marshalable",
 			v:        MarshalerFunc(func(e *Encoder, tag Tag) error { return e.EncodeValue(TagArchiveDate, 5) }),
-			expected: []interface{}{TaggedValue{Tag: TagArchiveDate, Value: int32(5)}},
+			expected: TaggedValue{Tag: TagArchiveDate, Value: int32(5)},
 		},
 		{
 			name:     "namedtype",
 			v:        AttributeValue("blue"),
-			expected: []interface{}{TaggedValue{Tag: TagCancellationResult, Value: "blue"}},
+			expected: TaggedValue{Tag: TagCancellationResult, Value: "blue"},
 		},
 		{
 			name:         "namedtypenotag",
-			nodefaulttag: true,
+			noDefaultTag: true,
 			v:            AttributeValue("blue"),
-			expected:     []interface{}{TaggedValue{Tag: TagAttributeValue, Value: "blue"}},
+			expected:     TaggedValue{Tag: TagAttributeValue, Value: "blue"},
 		},
 		// struct
 		{
 			name: "struct",
 			v:    struct{ AttributeName string }{"red"},
-			expected: []interface{}{Structure{
+			expected: Structure{
 				Tag: TagCancellationResult,
 				Values: []interface{}{
 					TaggedValue{Tag: TagAttributeName, Value: "red"},
 				},
-			}},
+			},
 		},
 		{
 			name: "structtag",
 			v:    struct{ AttributeName string `kmip:"Attribute"` }{"red"},
-			expected: []interface{}{Structure{
+			expected: Structure{
 				Tag: TagCancellationResult,
 				Values: []interface{}{
 					TaggedValue{Tag: TagAttribute, Value: "red"},
 				},
-			}},
+			},
 		},
 		{
 			name: "structptr",
 			v:    &Attribute{"red"},
-			expected: []interface{}{Structure{
+			expected: Structure{
 				Tag: TagCancellationResult,
 				Values: []interface{}{
 					TaggedValue{Tag: TagAttributeValue, Value: "red"},
 				},
-			}},
+			},
 		},
 		{
 			name: "structtaghex",
 			v:    struct{ AttributeName string `kmip:"0x42000b"` }{"red"},
-			expected: []interface{}{Structure{
+			expected: Structure{
 				Tag: TagCancellationResult,
 				Values: []interface{}{
 					TaggedValue{Tag: TagAttributeValue, Value: "red"},
 				},
-			}},
+			},
 		},
 		{
 			name: "structtagskip",
@@ -504,12 +607,12 @@ func TestEncoder_encode(t *testing.T) {
 				AttributeName  string `kmip:"-"`
 				AttributeValue string
 			}{"red", "green"},
-			expected: []interface{}{Structure{
+			expected: Structure{
 				Tag: TagCancellationResult,
 				Values: []interface{}{
 					TaggedValue{Tag: TagAttributeValue, Value: "green"},
 				},
-			}},
+			},
 		},
 		{
 			name: "skipstructanonfield",
@@ -517,12 +620,12 @@ func TestEncoder_encode(t *testing.T) {
 				AttributeName string
 				Attribute
 			}{"red", Attribute{"green"}},
-			expected: []interface{}{Structure{
+			expected: Structure{
 				Tag: TagCancellationResult,
 				Values: []interface{}{
 					TaggedValue{Tag: TagAttributeName, Value: "red"},
 				},
-			}},
+			},
 		},
 		{
 			name: "skipnonexportedfields",
@@ -530,12 +633,12 @@ func TestEncoder_encode(t *testing.T) {
 				AttributeName  string
 				attributeValue string
 			}{"red", "green"},
-			expected: []interface{}{Structure{
+			expected: Structure{
 				Tag: TagCancellationResult,
 				Values: []interface{}{
 					TaggedValue{Tag: TagAttributeName, Value: "red"},
 				},
-			}},
+			},
 		},
 		{
 			name: "marshalerfields",
@@ -549,7 +652,7 @@ func TestEncoder_encode(t *testing.T) {
 				AttributeIndex:     &ptrMarshaler{},
 				Certificate:        func() **ptrMarshaler { p := &ptrMarshaler{}; return &p }(),
 			},
-			expected: []interface{}{Structure{
+			expected: Structure{
 				Tag: TagCancellationResult,
 				Values: []interface{}{
 					TaggedValue{Tag: TagAttribute, Value: int32(5)},
@@ -561,17 +664,456 @@ func TestEncoder_encode(t *testing.T) {
 					TaggedValue{Tag: TagAttributeIndex, Value: int32(5)},
 					TaggedValue{Tag: TagCertificate, Value: int32(5)},
 				},
-			}},
+			},
 		},
 		{
 			name: "nilmarshalerfields",
 			v:    &MarshalableFields{},
-			expected: []interface{}{Structure{
+			expected: Structure{
 				Tag: TagCancellationResult,
 				Values: []interface{}{
 					TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
 					TaggedValue{Tag: TagCustomAttribute, Value: int32(5)},
 				},
+			},
+		},
+		{
+			name:     "invalidnamedtypemarshaler",
+			v:        Marshalablefloat32(7),
+			expected: TaggedValue{Tag:TagCancellationResult, Value:int32(5)},
+		},
+		{
+			name: "tagfromtype",
+			v: struct {
+				Color AttributeValue
+			}{"red"},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagAttributeValue, Value: "red"},
+			},
+			},
+		},
+		{
+			name: "tagfromfieldname",
+			v: struct {
+				AttributeValue string
+			}{"red"},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagAttributeValue, Value: "red"},
+			},
+			},
+		},
+		{
+			name: "tagfromfieldtag",
+			v: struct {
+				Color string `kmip:"ArchiveDate"`
+			}{"red"},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagArchiveDate, Value: "red"},
+			},
+			},
+		},
+		{
+			name: "fieldtagoverridesfieldname",
+			v: struct {
+				AttributeValue string `kmip:"ArchiveDate"`
+			}{"red"},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagArchiveDate, Value: "red"},
+			},
+			},
+		},
+		{
+			name: "fieldtagoverridestype",
+			v: struct {
+				Color AttributeValue `kmip:"ArchiveDate"`
+			}{"red"},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagArchiveDate, Value: "red"},
+			},
+			},
+		},
+		{
+			name: "fieldnameoverridestype",
+			v: struct {
+				ArchiveDate AttributeValue
+			}{"red"},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagArchiveDate, Value: "red"},
+			},
+			},
+		},
+		{
+			name:"omitempty",
+			v: struct {
+				Attribute string
+				AttributeValue string `kmip:",omitempty"`
+				ArchiveDate string `kmip:",omitempty"`
+			}{
+				AttributeValue:"blue",
+			},
+			expected:Structure{Tag:TagCancellationResult, Values:[]interface{}{
+				TaggedValue{Tag:TagAttribute, Value:""},
+				TaggedValue{Tag:TagAttributeValue, Value:"blue"},
+			}},
+		},
+		{
+			name: "omitemptyint",
+			v: struct {
+				Attribute      int
+				AttributeValue int `kmip:",omitempty"`
+				ArchiveDate    int `kmip:",omitempty"`
+			}{
+				AttributeValue: 6,
+			},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagAttribute, Value: int32(0)},
+				TaggedValue{Tag: TagAttributeValue, Value: int32(6)},
+			}},
+		},
+		{
+			name: "omitemptyint8",
+			v: struct {
+				Attribute      int8
+				AttributeValue int8 `kmip:",omitempty"`
+				ArchiveDate    int8 `kmip:",omitempty"`
+			}{
+				AttributeValue: 6,
+			},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagAttribute, Value: int32(0)},
+				TaggedValue{Tag: TagAttributeValue, Value: int32(6)},
+			}},
+		},
+		{
+			name: "omitemptyint16",
+			v: struct {
+				Attribute      int16
+				AttributeValue int16 `kmip:",omitempty"`
+				ArchiveDate    int16 `kmip:",omitempty"`
+			}{
+				AttributeValue: 6,
+			},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagAttribute, Value: int32(0)},
+				TaggedValue{Tag: TagAttributeValue, Value: int32(6)},
+			}},
+		},
+		{
+			name: "omitemptyint32",
+			v: struct {
+				Attribute      int32
+				AttributeValue int32 `kmip:",omitempty"`
+				ArchiveDate    int32 `kmip:",omitempty"`
+			}{
+				AttributeValue: 6,
+			},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagAttribute, Value: int32(0)},
+				TaggedValue{Tag: TagAttributeValue, Value: int32(6)},
+			}},
+		},
+		{
+			name: "omitemptyint64",
+			v: struct {
+				Attribute      int64
+				AttributeValue int64 `kmip:",omitempty"`
+				ArchiveDate    int64 `kmip:",omitempty"`
+			}{
+				AttributeValue: 6,
+			},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagAttribute, Value: int64(0)},
+				TaggedValue{Tag: TagAttributeValue, Value: int64(6)},
+			}},
+		},
+		{
+			name: "omitemptyuint",
+			v: struct {
+				Attribute      uint
+				AttributeValue uint `kmip:",omitempty"`
+				ArchiveDate    uint `kmip:",omitempty"`
+			}{
+				AttributeValue: 6,
+			},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagAttribute, Value: int32(0)},
+				TaggedValue{Tag: TagAttributeValue, Value: int32(6)},
+			}},
+		},
+		{
+			name: "omitemptyuint8",
+			v: struct {
+				Attribute      uint8
+				AttributeValue uint8 `kmip:",omitempty"`
+				ArchiveDate    uint8 `kmip:",omitempty"`
+			}{
+				AttributeValue: 6,
+			},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagAttribute, Value: int32(0)},
+				TaggedValue{Tag: TagAttributeValue, Value: int32(6)},
+			}},
+		},
+		{
+			name: "omitemptyuint16",
+			v: struct {
+				Attribute      uint16
+				AttributeValue uint16 `kmip:",omitempty"`
+				ArchiveDate    uint16 `kmip:",omitempty"`
+			}{
+				AttributeValue: 6,
+			},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagAttribute, Value: int32(0)},
+				TaggedValue{Tag: TagAttributeValue, Value: int32(6)},
+			}},
+		},
+		{
+			name: "omitemptyuint32",
+			v: struct {
+				Attribute      uint32
+				AttributeValue uint32 `kmip:",omitempty"`
+				ArchiveDate    uint32 `kmip:",omitempty"`
+			}{
+				AttributeValue: 6,
+			},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagAttribute, Value: int32(0)},
+				TaggedValue{Tag: TagAttributeValue, Value: int32(6)},
+			}},
+		},
+		{
+			name: "omitemptyuint64",
+			v: struct {
+				Attribute      uint64
+				AttributeValue uint64 `kmip:",omitempty"`
+				ArchiveDate    uint64 `kmip:",omitempty"`
+			}{
+				AttributeValue: 6,
+			},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagAttribute, Value: int64(0)},
+				TaggedValue{Tag: TagAttributeValue, Value: int64(6)},
+			}},
+		},
+		{
+			name: "omitemptybool",
+			v: struct {
+				Attribute      bool
+				AttributeValue bool `kmip:",omitempty"`
+				ArchiveDate    bool `kmip:",omitempty"`
+			}{
+				AttributeValue: true,
+			},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagAttribute, Value: false},
+				TaggedValue{Tag: TagAttributeValue, Value: true},
+			}},
+		},
+		{
+			name: "omitemptyfloat32",
+			v: struct {
+				Attribute      Marshalablefloat32
+				AttributeValue Marshalablefloat32 `kmip:",omitempty"`
+				ArchiveDate    Marshalablefloat32 `kmip:",omitempty"`
+			}{
+				AttributeValue: Marshalablefloat32(6),
+			},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagAttribute, Value: int32(5)},
+				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
+			}},
+		},
+		{
+			name: "omitemptyfloat32ptr",
+			v: &struct {
+				Attribute      Marshalablefloat32Ptr
+				AttributeValue Marshalablefloat32Ptr `kmip:",omitempty"`
+				ArchiveDate    Marshalablefloat32Ptr `kmip:",omitempty"`
+			}{
+				AttributeValue: Marshalablefloat32Ptr(7),
+			},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagAttribute, Value: int32(5)},
+				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
+			}},
+		},
+		{
+			name: "omitemptyfloat64",
+			v: &struct {
+				Attribute      Marshalablefloat64
+				AttributeValue Marshalablefloat64 `kmip:",omitempty"`
+				ArchiveDate    Marshalablefloat64 `kmip:",omitempty"`
+			}{
+				AttributeValue: Marshalablefloat64(7),
+			},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagAttribute, Value: int32(5)},
+				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
+			}},
+		},
+		{
+			name: "omitemptyfloat64ptr",
+			v: &struct {
+				Attribute      Marshalablefloat64Ptr
+				AttributeValue Marshalablefloat64Ptr `kmip:",omitempty"`
+				ArchiveDate    Marshalablefloat64Ptr `kmip:",omitempty"`
+			}{
+				AttributeValue: Marshalablefloat64Ptr(7),
+			},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagAttribute, Value: int32(5)},
+				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
+			}},
+		},
+		{
+			name: "omitemptymap",
+			v: &struct {
+				AttributeIndex MarshalableMap
+				Attribute      MarshalableMap
+				AttributeValue MarshalableMap `kmip:",omitempty"`
+				ArchiveDate    MarshalableMap `kmip:",omitempty"`
+			}{
+				Attribute:MarshalableMap{},
+				AttributeValue: MarshalableMap{"color":"red"},
+				ArchiveDate:MarshalableMap{},
+			},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagAttribute, Value: int32(5)},
+				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
+			}},
+		},
+		{
+			name: "omitemptymapptr",
+			v: &struct {
+				AttributeIndex      MarshalableMapPtr
+				Attribute      MarshalableMapPtr
+				AttributeValue MarshalableMapPtr `kmip:",omitempty"`
+				ArchiveDate    MarshalableMapPtr `kmip:",omitempty"`
+			}{
+				Attribute:MarshalableMapPtr{},
+				AttributeValue: MarshalableMapPtr{"color":"red"},
+				ArchiveDate:MarshalableMapPtr{},
+			},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagAttribute, Value: int32(5)},
+				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
+			}},
+		},
+		{
+			name: "omitemptyslice",
+			v: &struct {
+				AttributeIndex      MarshalableSlice
+				Attribute      MarshalableSlice
+				AttributeValue MarshalableSlice `kmip:",omitempty"`
+				ArchiveDate    MarshalableSlice `kmip:",omitempty"`
+			}{
+				Attribute:MarshalableSlice{},
+				AttributeValue: MarshalableSlice{"color"},
+				ArchiveDate:MarshalableSlice{},
+			},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagAttribute, Value: int32(5)},
+				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
+			}},
+		},
+		{
+			name: "omitemptysliceptr",
+			v: &struct {
+				AttributeIndex      MarshalableSlicePtr
+				Attribute      MarshalableSlicePtr
+				AttributeValue MarshalableSlicePtr `kmip:",omitempty"`
+				ArchiveDate    MarshalableSlicePtr `kmip:",omitempty"`
+			}{
+				Attribute:MarshalableSlicePtr{},
+				AttributeValue: MarshalableSlicePtr{"color"},
+				ArchiveDate:MarshalableSlicePtr{},
+			},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagAttribute, Value: int32(5)},
+				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
+			}},
+		},
+		{
+			name: "omitemptybool",
+			v: &struct {
+				Attribute      MarshalableBool
+				AttributeValue MarshalableBool `kmip:",omitempty"`
+				ArchiveDate    MarshalableBool `kmip:",omitempty"`
+			}{
+				AttributeValue: MarshalableBool(true),
+			},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagAttribute, Value: int32(5)},
+				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
+			}},
+		},
+		{
+			name: "omitemptyboolptr",
+			v: &struct {
+				Attribute      MarshalableBoolPtr
+				AttributeValue MarshalableBoolPtr `kmip:",omitempty"`
+				ArchiveDate    MarshalableBoolPtr `kmip:",omitempty"`
+			}{
+				AttributeValue: MarshalableBoolPtr(true),
+			},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagAttribute, Value: int32(5)},
+				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
+			}},
+		},
+		{
+			v: func() interface{} {
+				c := Complex{
+					Attribute: []attr{
+						{
+							AttributeName: "color",
+							Value:         "red",
+						},
+						{
+							AttributeName:  "size",
+							Value:          5,
+							AttributeIndex: 1,
+						},
+					},
+					Certificate: &cert{
+						CertificateIdentifier: "blue",
+					},
+				}
+				c.Certificate.CertificateIssuer.Len = 4
+				c.Certificate.CertificateIssuer.CertificateIssuerAlternativeName = "rick"
+				s := "bob"
+				c.Certificate.CertificateIssuer.CertificateIssuerC = &s
+				c.Certificate.CertificateIssuer.CertificateIssuerEmail = 0
+				c.Certificate.CertificateIssuer.CertificateIssuerEmail2 = "0x00000002"
+				c.Certificate.CertificateIssuer.CertificateIssuerUID = 3
+				c.Certificate.CertificateIssuer.CertificateIssuerUID2 = 0
+				c.Certificate.CertificateIssuer.Len = 10
+
+				return c
+			}(),
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				Structure{Tag: TagAttribute, Values: []interface{}{
+					TaggedValue{Tag: TagAttributeName, Value: "color"},
+					TaggedValue{Tag: TagAttributeValue, Value: "red"},
+				}},
+				Structure{Tag: TagAttribute, Values: []interface{}{
+					TaggedValue{Tag: TagAttributeName, Value: "size"},
+					TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
+					TaggedValue{Tag: TagAttributeIndex, Value: int32(1)},
+				}},
+				Structure{Tag: TagCertificate, Values: []interface{}{
+					TaggedValue{Tag: TagCertificateIdentifier, Value:"blue"},
+					Structure{Tag: TagCertificateIssuer, Values:[]interface{}{
+						TaggedValue{Tag: TagCertificateIssuerAlternativeName, Value: "rick"},
+						TaggedValue{Tag: TagCertificateIssuerC, Value: "bob"},
+						TaggedValue{Tag: TagCertificateIssuerEmail, Value: EnumLiteral{IntValue:0}},
+						TaggedValue{Tag: TagCertificateIssuerEmail, Value: EnumLiteral{IntValue: 2}},
+						TaggedValue{Tag: TagCertificateIssuerUID, Value: EnumLiteral{IntValue: 3}},
+						TaggedValue{Tag: TagCertificateLength, Value: EnumLiteral{IntValue: 10}},
+					}},
+				}},
+				TaggedValue{Tag:TagBlockCipherMode, Value:5},
 			}},
 		},
 	}
@@ -603,23 +1145,38 @@ func TestEncoder_encode(t *testing.T) {
 			enc := NewTTLVEncoder(nil)
 			enc.format = &m
 
-			if tc.tag == TagNone && !tc.nodefaulttag {
-				tc.tag = TagCancellationResult
+			tag := tc.tag
+			if tc.tag == TagNone && !tc.noDefaultTag {
+				tag = TagCancellationResult
 			}
 
-			err := enc.encodeReflectValue(tc.tag, reflect.ValueOf(tc.v))
+			err := enc.encodeReflectValue(tag, reflect.ValueOf(tc.v), 0)
 			require.NoError(t, err)
 			enc.flush()
 
-			require.Equal(t, tc.expected, m.writtenValues)
+			switch {
+			case tc.expected == nil:
+				require.Empty(t, m.writtenValues)
+			case reflect.ValueOf(tc.expected).Kind() == reflect.Slice:
+				require.Equal(t, tc.expected, m.writtenValues)
+			default:
+				require.Equal(t, []interface{}{tc.expected}, m.writtenValues)
+			}
 
 			m.clear()
-			err = enc.encodeInterfaceValue(tc.tag, tc.v)
+			err = enc.encodeInterfaceValue(tag, tc.v)
 			if fastPathSupported(tc.v) {
 				require.NoError(t, err)
 				enc.flush()
 
-				require.Equal(t, tc.expected, m.writtenValues)
+				switch {
+				case tc.expected == nil:
+					require.Empty(t, m.writtenValues)
+				case reflect.ValueOf(tc.expected).Kind() == reflect.Slice:
+					require.Equal(t, tc.expected, m.writtenValues)
+				default:
+					require.Equal(t, []interface{}{tc.expected}, m.writtenValues)
+				}
 			} else {
 				require.True(t, err == errNoEncoder)
 			}
@@ -649,6 +1206,6 @@ func BenchmarkEncodeSlice(b *testing.B) {
 	rv := reflect.ValueOf(v)
 
 	for i := 0; i < b.N; i++ {
-		enc.encodeReflectValue(TagNone, rv)
+		enc.encodeReflectValue(TagNone, rv, 0)
 	}
 }

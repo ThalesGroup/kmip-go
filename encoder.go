@@ -95,28 +95,6 @@ func (t TaggedValue) MarshalTaggedValue(e *Encoder, tag Tag) error {
 	return e.EncodeValue(tag, t.Value)
 }
 
-//
-//type Structure struct {
-//	tag Tag
-//	values []interface{}
-//}
-//
-//func (s *Structure) MarshalTaggedValue(e Encoder, tag Tag) error {
-//	// if tag is set, override the suggested tag
-//	if s.tag != 0 {
-//		tag = s.tag
-//	}
-//
-//	defer e.EncodeStructure(tag)()
-//	for _, value := range s.values {
-//		err := e.Encode(value)
-//		if err != nil {
-//			return err
-//		}
-//	}
-//	return nil
-//}
-
 func MarshalTTLV(v interface{}) ([]byte, error) {
 	buf := bytes.NewBuffer(nil)
 	err := NewTTLVEncoder(buf).Encode(v)
@@ -172,7 +150,7 @@ func (e *Encoder) encode(tag Tag, v interface{}) error {
 	// try non-reflection encoding first
 	err := e.encodeInterfaceValue(tag, v)
 	if err == errNoEncoder {
-		err = e.encodeReflectValue(tag, reflect.ValueOf(v))
+		err = e.encodeReflectValue(tag, reflect.ValueOf(v), 0)
 	}
 	return err
 }
@@ -264,8 +242,9 @@ var bigIntType = bigIntPtrType.Elem()
 var durationType = reflect.TypeOf(time.Nanosecond)
 var enumValuerType = reflect.TypeOf((*EnumValuer)(nil)).Elem()
 
+var invalidValue = reflect.Value{}
 // indirect dives into interfaces values, and one level deep into pointers
-// returns false if value is invalid or nil
+// returns an invalid value if the resolved value is nil or invalid
 func indirect(v reflect.Value) reflect.Value {
 	if !v.IsValid() {
 		return v
@@ -279,10 +258,34 @@ func indirect(v reflect.Value) reflect.Value {
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
 	}
+	switch v.Kind() {
+	case reflect.Func, reflect.Slice,reflect.Map,reflect.Chan,reflect.Ptr,reflect.Interface:
+		if v.IsNil() {
+			return invalidValue
+		}
+	}
 	return v
 }
 
-func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value) error {
+func isEmptyValue(v reflect.Value) bool {
+	switch v.Kind() {
+	case reflect.Array, reflect.Map, reflect.Slice, reflect.String:
+		return v.Len() == 0
+	case reflect.Bool:
+		return !v.Bool()
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return v.Int() == 0
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return v.Uint() == 0
+	case reflect.Float32, reflect.Float64:
+		return v.Float() == 0
+	case reflect.Interface, reflect.Ptr:
+		return v.IsNil()
+	}
+	return false
+}
+
+func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags) error {
 
 	v = indirect(v)
 	if !v.IsValid() {
@@ -292,10 +295,22 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value) error {
 	typ := v.Type()
 
 	// check for implementations of Marshaler and EnumValuer
+	// need to check for empty values in each branch: if a type implements
+	// Marshaler, but is empty && omitempty, it should be skipped.  But
+	// if a type doesn't implement Marshaler, then I want it to hit
+	// the filter on Kind() first, to return unsupported type errors, before
+	// checking for empty.  In other words, if the type doesn't implement
+	// marshaler, I want to error on invalid types *before* doing the isEmpty logic.
 	switch {
 	case typ.Implements(marshalerType):
+		if flags&fOmitEmpty != 0 && isEmptyValue(v) {
+			return nil
+		}
 		return v.Interface().(Marshaler).MarshalTaggedValue(e, tag)
 	case typ.Implements(enumValuerType):
+		if flags&fOmitEmpty != 0 && isEmptyValue(v) {
+			return nil
+		}
 		e.format.EncodeEnum(tag, v.Interface().(EnumValuer))
 		return nil
 	case v.CanAddr():
@@ -303,16 +318,15 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value) error {
 		pvtyp := pv.Type()
 		switch {
 		case pvtyp.Implements(marshalerType):
+			if flags&fOmitEmpty != 0 && isEmptyValue(v) {
+				return nil
+			}
 			return pv.Interface().(Marshaler).MarshalTaggedValue(e, tag)
 		case pvtyp.Implements(enumValuerType):
+			if flags&fOmitEmpty != 0 && isEmptyValue(v) {
+				return nil
+			}
 			e.format.EncodeEnum(tag, pv.Interface().(EnumValuer))
-			return nil
-		}
-	}
-
-	switch v.Kind() {
-	case reflect.Func, reflect.Ptr, reflect.Interface, reflect.Map, reflect.Chan, reflect.Slice:
-		if v.IsNil() {
 			return nil
 		}
 	}
@@ -326,6 +340,10 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value) error {
 			return tagError(ErrUnsupportedTypeError, tag, v).Appendf("%s", v.Type().String())
 	}
 
+	if flags&fOmitEmpty != 0 && isEmptyValue(v) {
+		return nil
+	}
+
 	typeInfo, err := getTypeInfo(typ)
 	if err != nil {
 		return err
@@ -336,7 +354,7 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value) error {
 
 	if tag == TagNone {
 		// error, no value tag to use
-		return WithErrorContext(merry.Here(ErrNoTag),ErrorContext{Value:v})
+		return tagError(ErrNoTag, TagNone, v)
 	}
 
 	switch typ {
@@ -384,7 +402,7 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value) error {
 				// can make a potentially addressable value (like the field of an addressible struct)
 				// into an unaddressable value (reflect.Value#Interface{} always returns an unaddressable
 				// copy).
-				err := e.encodeReflectValue(field.tag, fv)
+				err := e.encodeReflectValue(field.tag, fv, field.flags)
 				if err != nil {
 					// prepend the field name on the error context path
 					errC := GetErrorContext(err)
@@ -408,10 +426,12 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value) error {
 			e.format.EncodeByteString(tag, v.Bytes())
 			return nil
 		}
+		fallthrough
+	case reflect.Array:
 		for i := 0; i < v.Len(); i++ {
-			// TODO: just recurse into this method, once support for
-			// all types is done
-			err := e.encodeReflectValue(tag, v.Index(i))
+			// turn off the omit empty flag.  applies at the field level,
+			// not to each member of the slice
+			err := e.encodeReflectValue(tag, v.Index(i), flags&^fOmitEmpty)
 			if err != nil {
 				return err
 			}
@@ -666,9 +686,9 @@ func getFieldInfo(sf reflect.StructField) (fi fieldInfo, err error) {
 		} else {
 			switch value {
 			case "enum":
-				fi.enum = true
-			case "omitEmpty":
-				fi.omitEmpty = true
+				fi.flags = fi.flags | fEnum
+			case "omitempty":
+				fi.flags = fi.flags | fOmitEmpty
 			}
 		}
 	}
@@ -721,10 +741,18 @@ type typeInfo struct {
 	fields      []fieldInfo
 }
 
+type fieldFlags int
+
+const (
+	fOmitEmpty fieldFlags = 1 << iota
+	fEnum
+)
+
 type fieldInfo struct {
 	name string
 	tag       Tag
 	index     []int
+	flags fieldFlags
 	enum      bool
 	omitEmpty bool
 }

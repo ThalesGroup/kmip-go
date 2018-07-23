@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"strings"
 	"regexp"
-			)
+	)
 
 
 
@@ -24,9 +24,9 @@ const lenLongInt = 8
 const lenBool = 8
 const lenHeader = lenTag + 1 + lenLen // tag + type + len
 
-type TTLV2 []byte
+type TTLV []byte
 
-func (t TTLV2) Tag() Tag {
+func (t TTLV) Tag() Tag {
 	// don't panic if header is truncated
 	if len(t) < 3 {
 		return Tag(0)
@@ -34,7 +34,7 @@ func (t TTLV2) Tag() Tag {
 	return Tag(uint32(t[2]) | uint32(t[1])<<8 | uint32(t[0])<<16)
 }
 
-func (t TTLV2) Type() Type {
+func (t TTLV) Type() Type {
 	// don't panic if header is truncated
 	if len(t) < 4 {
 		return Type(0)
@@ -42,7 +42,7 @@ func (t TTLV2) Type() Type {
 	return Type(t[3])
 }
 
-func (t TTLV2) Len() int {
+func (t TTLV) Len() int {
 	// don't panic if header is truncated
 	if len(t) < lenHeader {
 		return 0
@@ -50,7 +50,7 @@ func (t TTLV2) Len() int {
 	return int(binary.BigEndian.Uint32(t[4:8]))
 }
 
-func (t TTLV2) FullLen() int {
+func (t TTLV) FullLen() int {
 	switch t.Type() {
 	case TypeInterval, TypeDateTime, TypeBoolean, TypeEnumeration, TypeLongInteger, TypeInteger:
 		return lenHeader + 8
@@ -66,7 +66,7 @@ func (t TTLV2) FullLen() int {
 	panic(fmt.Sprintf("invalid type: %x", byte(t.Type())))
 }
 
-func (t TTLV2) ValueRaw() []byte {
+func (t TTLV) ValueRaw() []byte {
 	// don't panic if the value is truncated
 	l := t.Len()
 	if l == 0 {
@@ -78,7 +78,7 @@ func (t TTLV2) ValueRaw() []byte {
 	return t[lenHeader : lenHeader+l]
 }
 
-func (t TTLV2) Value() interface{} {
+func (t TTLV) Value() interface{} {
 	switch t.Type() {
 	case TypeInterval:
 		return t.ValueInterval()
@@ -104,54 +104,54 @@ func (t TTLV2) Value() interface{} {
 	panic(fmt.Sprintf("invalid type: %x", byte(t.Type())))
 }
 
-func (t TTLV2) ValueInteger() int {
+func (t TTLV) ValueInteger() int {
 	return int(binary.BigEndian.Uint32(t.ValueRaw()))
 }
 
-func (t TTLV2) ValueLongInteger() int64 {
+func (t TTLV) ValueLongInteger() int64 {
 	return int64(binary.BigEndian.Uint64(t.ValueRaw()))
 }
 
-func (t TTLV2) ValueBigInteger() *big.Int {
+func (t TTLV) ValueBigInteger() *big.Int {
 	i := new(big.Int)
 	unmarshalBigInt(i, unpadBigInt(t.ValueRaw()))
 	return i
 }
 
-func (t TTLV2) ValueEnumeration() uint32 {
+func (t TTLV) ValueEnumeration() uint32 {
 	return binary.BigEndian.Uint32(t.ValueRaw())
 }
 
-func (t TTLV2) ValueBoolean() bool {
+func (t TTLV) ValueBoolean() bool {
 	return t.ValueRaw()[7] != 0
 }
 
-func (t TTLV2) ValueTextString() string {
+func (t TTLV) ValueTextString() string {
 	// conveniently, KMIP strings are UTF-8 encoded, as are
 	// golang strings
 	return string(t.ValueRaw())
 }
 
-func (t TTLV2) ValueByteString() []byte {
+func (t TTLV) ValueByteString() []byte {
 	return t.ValueRaw()
 }
 
-func (t TTLV2) ValueDateTime() time.Time {
+func (t TTLV) ValueDateTime() time.Time {
 	i := t.ValueLongInteger()
 	return time.Unix(i, 0).UTC()
 }
 
-func (t TTLV2) ValueInterval() time.Duration {
+func (t TTLV) ValueInterval() time.Duration {
 	return time.Duration(binary.BigEndian.Uint32(t.ValueRaw())) * time.Second
 }
 
-func (t TTLV2) ValueStructure() TTLV2 {
+func (t TTLV) ValueStructure() TTLV {
 	return t.ValueRaw()
 }
 
 
 
-func (t TTLV2) Valid() error {
+func (t TTLV) Valid() error {
 	if err := t.ValidHeader(); err != nil {
 		return err
 	}
@@ -163,14 +163,17 @@ func (t TTLV2) Valid() error {
 	return nil
 }
 
-func (t TTLV2) ValidHeader() error {
-	if l := len(t); l < lenHeader {
-		return ErrHeaderTruncated
-	}
+func (t TTLV) validTag() bool {
 	switch t[0] {
 	case 0x42, 0x54: // valid
-	default:
-		return ErrInvalidTag
+	return true
+	}
+	return false
+}
+
+func (t TTLV) ValidHeader() error {
+	if l := len(t); l < lenHeader {
+		return ErrHeaderTruncated
 	}
 
 	switch t.Type() {
@@ -191,11 +194,14 @@ func (t TTLV2) ValidHeader() error {
 	default:
 		return ErrInvalidType
 	}
+	if !t.validTag() {
+		return ErrInvalidTag
+	}
 	return nil
 
 }
 
-func (t TTLV2) Next() TTLV2 {
+func (t TTLV) Next() TTLV {
 	if t.Valid() != nil {
 		return nil
 	}
@@ -206,37 +212,34 @@ func (t TTLV2) Next() TTLV2 {
 	return n
 }
 
-func (t TTLV2) String() string {
+func (t TTLV) String() string {
 	buf := bytes.NewBuffer(nil)
 	Print(buf, "", t)
 	return buf.String()
 }
 
-func Print(w io.Writer, indent string, t TTLV2) (err error){
-	err = t.ValidHeader()
-
-	if err == ErrHeaderTruncated {
-		// print the err, and as much of the truncated header as we have
-		fmt.Fprintf(w, "%s%s: %#x", indent, err.Error(), []byte(t))
-		return
-	}
+func Print(w io.Writer, indent string, t TTLV) (err error){
 
 	tag := t.Tag()
 	typ := t.Type()
 	l := t.Len()
+
 	fmt.Fprintf(w, "%s%v (%s/%d):", indent, tag, typ.String(), l)
 
-	if err != nil {
-		// Something was wrong with the header.  Print the err and return
-		fmt.Fprintf(w, " %v", err)
-		return
+	if err = t.Valid(); err != nil {
+		fmt.Fprintf(w, " (%s)", err.Error())
+		switch err {
+		case ErrHeaderTruncated:
+			// print the err, and as much of the truncated header as we have
+			fmt.Fprintf(w, " %#x", []byte(t))
+			return
+		case ErrInvalidLen, ErrValueTruncated:
+			// Something is wrong with the value.  Print the error, and the value
+			fmt.Fprintf(w, " %#x", t.ValueRaw())
+			return
+		}
 	}
 
-	if err = t.Valid(); err != nil {
-		// Something is wrong with the value.  Print the error, and the value
-		fmt.Fprintf(w, "%s%s: %#x", indent, err.Error(), t.ValueRaw())
-		return
-	}
 	switch typ {
 	case TypeByteString:
 		fmt.Fprintf(w, " %#x", t.ValueByteString())
@@ -263,7 +266,7 @@ type Reader struct {
 }
 
 
-func (r *Reader) Read() (TTLV2, error) {
+func (r *Reader) Read() (TTLV, error) {
 	// TODO: if a full value can't be read, this just errors, but it should probably try to keep reading
 	// but then, do I need timeouts or something?
 
@@ -281,7 +284,7 @@ func (r *Reader) Read() (TTLV2, error) {
 		return nil, merry.New("not enough bytes for a full encBuf")
 	}
 
-	t := TTLV2(buf.Bytes()[:lenHeader])
+	t := TTLV(buf.Bytes()[:lenHeader])
 	if err := t.ValidHeader(); err != nil {
 		return t, err
 	}
@@ -307,7 +310,7 @@ func (r *Reader) Read() (TTLV2, error) {
 	if n + lenHeader != l {
 		return nil, merry.New("value truncated")
 	}
-	return TTLV2(buf.Bytes()[:l]), err
+	return TTLV(buf.Bytes()[:l]), err
 }
 
 var one = big.NewInt(1)

@@ -2,12 +2,12 @@ package kmip
 
 import (
 	"github.com/ansel1/merry"
-	"fmt"
-	"math"
+		"math"
 	"reflect"
+		"strings"
 	"errors"
-	"strings"
-	)
+	"fmt"
+)
 
 func Is(err error, originals ...error) bool {
 	return merry.Is(err, originals...)
@@ -131,26 +131,17 @@ func GetErrorContext(err error) *ErrorContext {
 	return v.(*ErrorContext)
 }
 
-func tagError(err error, tag Tag, v interface{}) merry.Error {
-	var merr merry.Error
-
-	switch m := err.(type) {
-	case nil:
-		return nil
-	case merry.Error:
-		// optimization: only capture the stack once, since its expensive
-		merr = m.WithStackSkipping(1)
-	default:
-		merr = merry.WrapSkipping(err, 1)
-	}
-
-	if tag != TagNone || v != nil {
-		merr = merr.WithValue(errorCtx, &ErrorContext{Tag: tag, Value: v})
-	}
+func tagErrorSkipping(err error, tag Tag, v interface{}, skip int) merry.Error {
+	merr := merry.HereSkipping(err, 1+skip)
+	merr = merr.WithValue(errorCtx, &ErrorContext{Tag: tag, Value: v})
 
 	if tag != TagNone {
 		merr = merr.Prepend(tag.String())
 	}
 
 	return merr
+}
+
+func tagError(err error, tag Tag, v interface{}) merry.Error {
+	return tagErrorSkipping(err, tag, v, 1)
 }

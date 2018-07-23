@@ -99,7 +99,7 @@ func TestDecoding(t *testing.T) {
 		t.Run("", func(t *testing.T) {
 
 			b := hex2bytes(tc.bs)
-			tt := TTLV2(b)
+			tt := TTLV(b)
 			assert.NoError(t, tt.Valid())
 			assert.Equal(t, tc.typ, tt.Type())
 			assert.Equal(t, tc.exp, tt.Value())
@@ -109,11 +109,11 @@ func TestDecoding(t *testing.T) {
 
 	// structure
 	b := hex2bytes("42 00 20 | 01 | 00 00 00 20 | 42 00 04 | 05 | 00 00 00 04 | 00 00 00 FE 00 00 00 00 | 42 00 05 | 02 | 00 00 00 04 | 00 00 00 FF 00 00 00 00")
-	tt := TTLV2(b)
+	tt := TTLV(b)
 	assert.NoError(t, tt.Valid())
 	assert.Equal(t, TypeStructure, tt.Type())
 	exp := hex2bytes("42 00 04 | 05 | 00 00 00 04 | 00 00 00 FE 00 00 00 00 | 42 00 05 | 02 | 00 00 00 04 | 00 00 00 FF 00 00 00 00")
-	assert.Equal(t, TTLV2(exp), tt.Value())
+	assert.Equal(t, TTLV(exp), tt.Value())
 	print(os.Stdout, "", tt)
 	fmt.Println("")
 	//fmt.Println(Print(tt))
@@ -122,7 +122,7 @@ func TestDecoding(t *testing.T) {
 		t.Run(fmt.Sprintf("%T:%v", test.v, test.v), func(t *testing.T) {
 			b := hex2bytes(test.exp)
 			fmt.Println(b)
-			tt := TTLV2(b)
+			tt := TTLV(b)
 			assert.NoError(t, tt.Valid())
 
 			tagBytes := make([]byte, 4)

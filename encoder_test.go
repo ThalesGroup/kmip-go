@@ -221,7 +221,7 @@ func (nonptrMarshaler) MarshalTaggedValue(e *Encoder, tag Tag) error {
 func TestTTLVEncoder_Encode(t *testing.T) {
 	b, err := MarshalTTLV(MarhalableStruct{})
 	require.NoError(t, err)
-	fmt.Println(TTLV2(b))
+	fmt.Println(TTLV(b))
 }
 
 func fastPathSupported(v interface{}) bool {

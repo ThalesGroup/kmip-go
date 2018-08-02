@@ -120,6 +120,7 @@ var knownGoodSamples = []struct {
 		v:   parseBigInt("72057594037927935"),
 	},
 	{
+		name: "bigintzero",
 		exp: "42 00 01 | 04 | 00 00 00 08 | 00 00 00 00 00 00 00 00",
 		v:   parseBigInt("0"),
 	},
@@ -226,9 +227,7 @@ func TestTTLVEncoder_Encode(t *testing.T) {
 
 func fastPathSupported(v interface{}) bool {
 	switch v.(type) {
-	case nil:
-		return true
-	case EnumValuer, Marshaler:
+	case EnumValuer:
 		// interfaces
 		return true
 	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, bool, time.Time, time.Duration, big.Int, *big.Int, string, []byte, []interface{}:

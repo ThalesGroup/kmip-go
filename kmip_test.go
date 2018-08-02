@@ -12,6 +12,7 @@ import (
 	"os"
 	"encoding/binary"
 	"bytes"
+		"github.com/davecgh/go-spew/spew"
 )
 
 var sample= `
@@ -50,7 +51,7 @@ func TestDecoding(t *testing.T) {
 	}{
 		{
 			bs:  "42 00 20 | 02 | 00 00 00 04 | 00 00 00 08 00 00 00 00",
-			exp: int32(8),
+			exp: int(8),
 			typ: TypeInteger,
 		},
 		{
@@ -119,7 +120,11 @@ func TestDecoding(t *testing.T) {
 	//fmt.Println(Print(tt))
 
 	for _, test := range knownGoodSamples {
-		t.Run(fmt.Sprintf("%T:%v", test.v, test.v), func(t *testing.T) {
+		name := test.name
+		if name == "" {
+			name = fmt.Sprintf("%T:%v", test.v, test.v)
+		}
+		t.Run(name, func(t *testing.T) {
 			b := hex2bytes(test.exp)
 			fmt.Println(b)
 			tt := TTLV(b)
@@ -137,7 +142,25 @@ func TestDecoding(t *testing.T) {
 
 			assert.Equal(t, len(b), tt.FullLen())
 
-			assert.Equal(t, test.v, tt.Value())
+			// allow permitting type conversions, not exact equality
+			// also handle special case of non-pointer big.Ints, which
+			// will be decoded as *big.Int.
+
+			switch v := test.v.(type) {
+			case big.Int:
+				if assert.IsType(t, &v, tt.Value()) {
+					assert.True(t, tt.Value().(*big.Int).Cmp(&v)==0)
+				}
+			case *big.Int:
+				if assert.IsType(t, v, tt.Value()) {
+					assert.True(t, tt.Value().(*big.Int).Cmp(v) == 0)
+				}
+			default:
+				t.Log(spew.Sprintln(test.v))
+				t.Log(spew.Sprintln(tt.Value()))
+				assert.EqualValues(t, test.v, tt.Value())
+			}
+
 			fmt.Println(tt.String())
 		})
 	}

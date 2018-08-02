@@ -154,8 +154,22 @@ func (e *Encoder) encode(tag Tag, v interface{}) error {
 		e.format = newEncBuf()
 	}
 
+	switch t := v.(type) {
+	case nil:
+		return nil
+	case Marshaler:
+		return t.MarshalTaggedValue(e, tag)
+	}
+
+	// if no tag is specified, we need to use the reflect path to see if we can infer it
+	if !tag.valid() {
+		return e.encodeReflectValue(tag, reflect.ValueOf(v), 0)
+	}
+
 	// try non-reflection encoding first
 	err := e.encodeInterfaceValue(tag, v)
+
+	// fallback on reflection encoding
 	if err == errNoEncoder {
 		err = e.encodeReflectValue(tag, reflect.ValueOf(v), 0)
 	}
@@ -172,11 +186,8 @@ func (e *Encoder) encodeInterfaceValue(tag Tag, v interface{}) error {
 	// when encoding fields of a structure by reflection, but
 	// for Marshaler implementations, it can mean avoiding
 	// reflection altogether, which does provide a good boost
+
 	switch t := v.(type) {
-	case nil:
-		return nil
-	case Marshaler:
-		return t.MarshalTaggedValue(e, tag)
 	case EnumValuer:
 		e.format.EncodeEnum(tag, t)
 	case int:
@@ -397,9 +408,9 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 		tag = typeInfo.tag
 	}
 
-	if tag == TagNone {
+	if !tag.valid() {
 		// error, no value tag to use
-		return tagError(ErrNoTag, TagNone, v)
+		return tagError(ErrInvalidTag, tag, v)
 	}
 
 	if flags&fEnum != 0 {
@@ -516,6 +527,9 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 }
 
 func (e *Encoder) EncodeStructure(tag Tag, f func(e *Encoder) error) error {
+	if !tag.valid() {
+		return tagError(ErrInvalidTag, tag, nil)
+	}
 	if e.format == nil {
 		e.format = newEncBuf()
 	}
@@ -696,10 +710,7 @@ func (h *encBuf) EncodeByteString(tag Tag, b []byte) {
 func getTypeInfo(typ reflect.Type) (ti typeInfo, err error) {
 	// figure out whether this type has a required or suggested kmip tag
 	// TODO: required tags support, from a subfield like xml.Name
-	ti.tag, err = parseTag(typ.Name(), false)
-	if err != nil {
-		return
-	}
+	ti.tag, _ = ParseTag(typ.Name())
 
 	if typ.Kind() == reflect.Struct {
 		ti.fields, err = getFieldsInfo(typ)
@@ -726,9 +737,12 @@ func getFieldInfo(sf reflect.StructField) (fi fieldInfo, err error) {
 				return
 			case "":
 			default:
-				fi.tag, err = parseTag(value, true)
+				fi.tag, err = ParseTag(value)
 				if err != nil {
 					return
+				}
+				if !fi.tag.valid() {
+					return fi, tagError(ErrInvalidTag, fi.tag, nil).Appendf("struct field tag is not valid KMIP tag: %s", value)
 				}
 			}
 		} else {
@@ -745,9 +759,17 @@ func getFieldInfo(sf reflect.StructField) (fi fieldInfo, err error) {
 		// try resolving the tag from the field, but this is not required.
 		// will fall back on trying to extract the tag from the value if this
 		// fails
-		fi.tag, err = parseTag(sf.Name, false)
-		if err != nil {
-			return
+		fi.tag, _ = ParseTag(sf.Name)
+	}
+
+	if fi.tag == TagNone {
+		// finally, try to use the type of the field
+		fieldType := sf.Type
+		if fieldType.Kind() == reflect.Slice {
+			fieldType = fieldType.Elem()
+		}
+		if fn := fieldType.Name(); fn != "" {
+			fi.tag, _ = ParseTag(fieldType.Name())
 		}
 	}
 
@@ -771,16 +793,6 @@ func getFieldsInfo(typ reflect.Type) (fields []fieldInfo, err error) {
 		}
 	}
 	return fields, nil
-}
-
-func parseTag(tagStr string, required bool) (Tag, error) {
-	// parse tag will handle raw hex values, like 0x, or registered
-	// canonical tag names.  ignore errors
-	t, err := ParseTag(tagStr)
-	if Is(err, ErrTagNotRegistered) && required {
-		return t, err
-	}
-	return t, nil
 }
 
 type typeInfo struct {

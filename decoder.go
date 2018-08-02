@@ -55,8 +55,6 @@ func unmarshal(val reflect.Value, ttlv TTLV) error {
 			return err
 		}
 		return nil
-	case reflect.Struct:
-		// decode structure
 	}
 
 	typeMismatchErr := func() error {
@@ -66,7 +64,7 @@ func unmarshal(val reflect.Value, ttlv TTLV) error {
 
 	switch ttlv.Type() {
 	case TypeStructure:
-		return unmarshalStructure()
+		return unmarshalStructure(ttlv, val)
 	case TypeInterval:
 		if val.Kind() != reflect.Int64 {
 			return typeMismatchErr()
@@ -147,6 +145,31 @@ func unmarshal(val reflect.Value, ttlv TTLV) error {
 
 }
 
-func unmarshalStructure() error { return nil }
+func unmarshalStructure(ttlv TTLV, val reflect.Value) error {
 
-func unmarshalEnumeration() error { return nil }
+	if ttlv.Type() != TypeStructure {
+		return tagError(ErrInvalidType, ttlv.Tag(), val).Append("kmip structure values must unmarshal into a struct")
+	}
+
+	ti, err := getTypeInfo(val.Type())
+	if err != nil {
+		return err
+	}
+
+	matched := make([]bool,len(ti.fields))
+
+	Next:
+	for n := ttlv.ValueStructure(); n != nil; n = n.Next() {
+		for i, field := range ti.fields {
+			if field.tag == n.Tag() && !matched[i]{
+				err := unmarshal(val.FieldByIndex(field.index), n)
+				if err != nil {
+					return err
+				}
+				matched[i] = true
+				continue Next
+			}
+		}
+	}
+	return nil
+}

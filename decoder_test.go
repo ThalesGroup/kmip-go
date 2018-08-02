@@ -8,16 +8,20 @@ import (
 	"fmt"
 	"math"
 	"math/big"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestUnmarshal(t *testing.T) {
 
-	tests := []struct {
-		name              string
-		in, ptr, expected interface{}
-		err               error
-		skipSliceOfTest bool
-	}{
+	type unmarshalTest struct {
+		name                   string
+		in, ptr, expected      interface{}
+		err                    error
+		skipSliceOfTest        bool
+		skipExactRoundtripTest bool
+	}
+
+	tests := []unmarshalTest{
 		{
 			in:  true,
 			ptr: new(bool),
@@ -45,7 +49,7 @@ func TestUnmarshal(t *testing.T) {
 		},
 		{
 			name: "intoverflow",
-			in:   math.MaxInt8+1,
+			in:   math.MaxInt8 + 1,
 			ptr:  new(int8),
 			err:  ErrIntOverflow,
 		},
@@ -70,10 +74,10 @@ func TestUnmarshal(t *testing.T) {
 			expected: uint(5),
 		},
 		{
-			in:       5,
-			ptr:      new(uint8),
-			expected: uint8(5),
-			skipSliceOfTest:true, // []uint8 is an alias for []byte, which is handled differently
+			in:              5,
+			ptr:             new(uint8),
+			expected:        uint8(5),
+			skipSliceOfTest: true, // []uint8 is an alias for []byte, which is handled differently
 		},
 		{
 			in:       5,
@@ -86,49 +90,114 @@ func TestUnmarshal(t *testing.T) {
 			expected: uint32(5),
 		},
 		{
-			in:       5,
-			ptr:      new(uint64),
+			in:  5,
+			ptr: new(uint64),
 			err: ErrUnsupportedTypeError,
 		},
 		{
-			name:"uintoverflow",
-			in:  math.MaxUint8 + 1,
-			ptr: new(uint8),
-			err: ErrIntOverflow,
-		},
-		{
-			in: int64(5),
-			ptr:new(int64),
+			name: "uintoverflow",
+			in:   math.MaxUint8 + 1,
+			ptr:  new(uint8),
+			err:  ErrIntOverflow,
 		},
 		{
 			in:  int64(5),
-			ptr: new(uint64),
-			expected:uint64(5),
+			ptr: new(int64),
 		},
 		{
-			in:       []byte{0x01, 0x02, 0x03},
-			ptr:      new([]byte),
+			in:       int64(5),
+			ptr:      new(uint64),
+			expected: uint64(5),
 		},
 		{
-			in: big.NewInt(5),
-			ptr: new(big.Int),
+			in:  []byte{0x01, 0x02, 0x03},
+			ptr: new([]byte),
+		},
+		{
+			in:       big.NewInt(5),
+			ptr:      new(big.Int),
 			expected: *(big.NewInt(5)),
 		},
 		{
-			in: CredentialTypeAttestation,
+			in:  CredentialTypeAttestation,
 			ptr: new(CredentialType),
 		},
 		{
-			in:  CredentialTypeAttestation,
-			ptr: new(uint),
-			expected:uint(CredentialTypeAttestation),
+			in:                     CredentialTypeAttestation,
+			ptr:                    new(uint),
+			expected:               uint(CredentialTypeAttestation),
+			skipExactRoundtripTest: true,
 		},
 		{
-			in:       CredentialTypeAttestation,
-			ptr:      new(int64),
-			expected: int64(CredentialTypeAttestation),
+			in:                     CredentialTypeAttestation,
+			ptr:                    new(int64),
+			expected:               int64(CredentialTypeAttestation),
+			skipExactRoundtripTest: true,
 		},
 	}
+
+	type A struct {
+		Comment string
+	}
+	tests = append(tests,
+		unmarshalTest{
+			name: "simplestruct",
+			in: Structure{Tag: TagBatchCount, Values: []interface{}{
+				TaggedValue{Tag: TagComment, Value: "red"},
+			}},
+			ptr:      new(A),
+			expected: A{Comment: "red"},
+		},
+	)
+
+	type B struct {
+		S string `kmip:"Comment"`
+	}
+
+	tests = append(tests,
+		unmarshalTest{
+			name: "fieldtag",
+			in: Structure{Tag: TagBatchCount, Values: []interface{}{
+				TaggedValue{Tag: TagComment, Value: "red"},
+			}},
+			ptr:      new(B),
+			expected: B{S: "red"},
+		},
+	)
+
+	type C struct {
+		S1 string `kmip:"Comment"`
+		S2 string `kmip:"Comment"`
+	}
+
+	tests = append(tests,
+		unmarshalTest{
+			name: "duplicates",
+			in: Structure{Tag: TagBatchCount, Values: []interface{}{
+				TaggedValue{Tag: TagComment, Value: "red"},
+				TaggedValue{Tag: TagComment, Value: "blue"},
+			}},
+			ptr:      new(C),
+			expected: C{S1: "red", S2: "blue"},
+		},
+	)
+
+	type D struct {
+		Comment string
+		BatchCount string
+	}
+
+	tests = append(tests,
+		unmarshalTest{
+			name: "multifields",
+			in: Structure{Tag: TagBatchCount, Values: []interface{}{
+				TaggedValue{Tag: TagComment, Value: "red"},
+				TaggedValue{Tag: TagBatchCount, Value: "blue"},
+			}},
+			ptr:      new(D),
+			expected: D{Comment: "red", BatchCount:"blue"},
+		},
+	)
 
 	for _, test := range tests {
 		if test.name == "" {
@@ -139,9 +208,9 @@ func TestUnmarshal(t *testing.T) {
 			tv := test.in
 
 			switch ttv := tv.(type) {
-			case TaggedValue, Structure, Marshaler:
+			case Marshaler:
 			default:
-				tv = TaggedValue{Value: ttv}
+				tv = TaggedValue{Tag: TagBatchCount, Value: ttv}
 			}
 
 			b, err := MarshalTTLV(tv)
@@ -183,14 +252,12 @@ func TestUnmarshal(t *testing.T) {
 			}
 
 			t.Run("roundtrip", func(t *testing.T) {
-				bb, err := MarshalTTLV(TaggedValue{Value: v.Elem().Interface()})
+				bb, err := MarshalTTLV(TaggedValue{Tag: TagBatchCount, Value: v.Elem().Interface()})
 				require.NoError(t, err)
 
-				// TODO: need to understand what the policy is on roundtrips
-				// you can unmarshal into something that would re-marshal
-				// into a different TTLV.  JSON seems to allow for this,
-				// with the "golden" flag on test cases.
-				require.Equal(t, TTLV(b).String(), TTLV(bb).String())
+				if !test.skipExactRoundtripTest {
+					assert.Equal(t, TTLV(b).String(), TTLV(bb).String())
+				}
 
 				t.Log(TTLV(bb).String())
 
@@ -198,20 +265,10 @@ func TestUnmarshal(t *testing.T) {
 				err = Unmarshal(bb, vv.Interface())
 				require.NoError(t, err)
 
-				require.Equal(t, v.Elem().Interface(), vv.Elem().Interface())
+				assert.Equal(t, v.Elem().Interface(), vv.Elem().Interface())
 			})
 		})
 
 	}
-
-	var b bool
-
-	ttlv, err := MarshalTTLV(TaggedValue{Value: true})
-	require.NoError(t, err)
-
-	err = Unmarshal(ttlv, &b)
-	require.NoError(t, err)
-
-	require.True(t, b)
 
 }

@@ -1,8 +1,8 @@
 package kmip
 
 import (
-	"reflect"
 	"github.com/ansel1/merry"
+	"reflect"
 )
 
 func Unmarshal(b []byte, v interface{}) error {
@@ -156,17 +156,22 @@ func unmarshalStructure(ttlv TTLV, val reflect.Value) error {
 		return err
 	}
 
-	matched := make([]bool,len(ti.fields))
+	// keep track of which fields we've already matched up with a TTLV
+	// values.  Since TTLV values can appear more than once, we want to
+	// match them up with subsequent fields.
+	matched := make([]bool, len(ti.fields))
 
-	Next:
+Next:
 	for n := ttlv.ValueStructure(); n != nil; n = n.Next() {
 		for i, field := range ti.fields {
-			if field.tag == n.Tag() && !matched[i]{
+			if field.tag == n.Tag() && !matched[i] {
 				err := unmarshal(val.FieldByIndex(field.index), n)
 				if err != nil {
 					return err
 				}
-				matched[i] = true
+				if !field.slice {
+					matched[i] = true
+				}
 				continue Next
 			}
 		}

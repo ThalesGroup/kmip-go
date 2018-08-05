@@ -1,17 +1,17 @@
 package kmip
 
 import (
-	"io"
-	"encoding/binary"
-	"github.com/ansel1/merry"
-	"math/big"
-	"time"
 	"bytes"
+	"encoding/binary"
+	"encoding/hex"
+	"github.com/ansel1/merry"
+	"github.com/go-errors/errors"
+	"io"
+	"math"
+	"math/big"
 	"reflect"
 	"strings"
-	"github.com/go-errors/errors"
-	"math"
-	"encoding/hex"
+	"time"
 )
 
 // TODO: I'm not crazy about this approach to enums, but I don't have anything better
@@ -261,6 +261,7 @@ var durationType = reflect.TypeOf(time.Nanosecond)
 var enumValuerType = reflect.TypeOf((*EnumValuer)(nil)).Elem()
 
 var invalidValue = reflect.Value{}
+
 // indirect dives into interfaces values, and one level deep into pointers
 // returns an invalid value if the resolved value is nil or invalid
 func indirect(v reflect.Value) reflect.Value {
@@ -277,7 +278,7 @@ func indirect(v reflect.Value) reflect.Value {
 		v = v.Elem()
 	}
 	switch v.Kind() {
-	case reflect.Func, reflect.Slice,reflect.Map,reflect.Chan,reflect.Ptr,reflect.Interface:
+	case reflect.Func, reflect.Slice, reflect.Map, reflect.Chan, reflect.Ptr, reflect.Interface:
 		if v.IsNil() {
 			return invalidValue
 		}
@@ -393,7 +394,7 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 		reflect.Complex64,
 		reflect.Complex128,
 		reflect.Interface:
-			return tagError(ErrUnsupportedTypeError, tag, v).Appendf("%s", v.Type().String())
+		return tagError(ErrUnsupportedTypeError, tag, v).Appendf("%s", v.Type().String())
 	}
 
 	if flags&fOmitEmpty != 0 && isEmptyValue(v) {
@@ -711,6 +712,7 @@ func getTypeInfo(typ reflect.Type) (ti typeInfo, err error) {
 	// figure out whether this type has a required or suggested kmip tag
 	// TODO: required tags support, from a subfield like xml.Name
 	ti.tag, _ = ParseTag(typ.Name())
+	ti.name = typ.Name()
 
 	if typ.Kind() == reflect.Struct {
 		ti.fields, err = getFieldsInfo(typ)
@@ -722,11 +724,13 @@ var errSkip = errors.New("skip")
 
 func getFieldInfo(sf reflect.StructField) (fi fieldInfo, err error) {
 
+	// skip anonymous and unexported fields
 	if sf.Anonymous || /*unexported:*/ sf.PkgPath != "" {
 		err = errSkip
 		return
 	}
 
+	// handle field tags
 	parts := strings.Split(sf.Tag.Get(kmipStructTag), ",")
 	for i, value := range parts {
 		if i == 0 {
@@ -755,32 +759,48 @@ func getFieldInfo(sf reflect.StructField) (fi fieldInfo, err error) {
 		}
 	}
 
+	// extract type info for the field.  The KMIP tag
+	// for this field is derived from either the field name,
+	// the field tags, or the field type.
+	fi.ti, err = getTypeInfo(sf.Type)
+	if err != nil {
+		return
+	}
+
+	// order of precedence for field tag:
+	// 1. explicit field tag (which must match the type's tag if required)
+	// 2. field name
+	// 3. field type
+
+	// if the field type requires a tag, which doesn't match the tag
+	// encoded in the field tag, throw an error
+	if fi.ti.tagRequired && fi.tag != TagNone && fi.ti.tag != fi.tag {
+		return fi, tagError(ErrInvalidTag, fi.tag, nil).WithMessagef(`field "%s" with tag "%s" conflicts type "%s"'s tag "%s"`, fi.name, fi.tag, fi.ti.name, fi.ti.tag)
+	}
+
 	if fi.tag == TagNone {
-		// try resolving the tag from the field, but this is not required.
+		// try resolving the tag from the field name, but this is not required.
 		// will fall back on trying to extract the tag from the value if this
 		// fails
 		fi.tag, _ = ParseTag(sf.Name)
 	}
 
 	if fi.tag == TagNone {
-		// finally, try to use the type of the field
-		fieldType := sf.Type
-		if fieldType.Kind() == reflect.Slice {
-			fieldType = fieldType.Elem()
-		}
-		if fn := fieldType.Name(); fn != "" {
-			fi.tag, _ = ParseTag(fieldType.Name())
-		}
+		fi.tag = fi.ti.tag
+	}
+
+	if fi.tag == TagNone {
+		return fi, tagError(ErrNoTag, TagNone, nil).Appendf(`unable to infer tag for field "%s"`, fi.name)
 	}
 
 	fi.name = sf.Name
 	fi.index = sf.Index
+	fi.slice = sf.Type.Kind() == reflect.Slice
 	return
 }
 
 func getFieldsInfo(typ reflect.Type) (fields []fieldInfo, err error) {
 	// TODO: error fields of unsupported types, like maps
-	// TODO: error on fields with no candidate tag
 
 	for i := 0; i < typ.NumField(); i++ {
 		fi, err := getFieldInfo(typ.Field(i))
@@ -792,12 +812,23 @@ func getFieldsInfo(typ reflect.Type) (fields []fieldInfo, err error) {
 			return nil, err
 		}
 	}
+
+	// verify that multiple fields don't have the same tag
+	names := map[Tag]string{}
+	for _, f := range fields {
+		if fname, ok := names[f.tag]; ok {
+			return fields, tagError(ErrTagConflict, f.tag, nil).WithMessagef(`field "%s" with tag "%s" conflicts with field "%s" with tag "%s"`, fname, f.tag, f.name, f.tag)
+		}
+		names[f.tag] = f.name
+	}
+
 	return fields, nil
 }
 
 type typeInfo struct {
 	tag         Tag
 	tagRequired bool
+	name        string
 	fields      []fieldInfo
 }
 
@@ -809,10 +840,12 @@ const (
 )
 
 type fieldInfo struct {
-	name string
+	name      string
 	tag       Tag
 	index     []int
-	flags fieldFlags
+	flags     fieldFlags
 	enum      bool
 	omitEmpty bool
+	slice     bool
+	ti        typeInfo
 }

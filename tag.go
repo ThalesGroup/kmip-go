@@ -1,11 +1,11 @@
 package kmip
 
 import (
-	"fmt"
-	"strings"
-	"encoding/hex"
-	"github.com/ansel1/merry"
 	"encoding/binary"
+	"encoding/hex"
+	"fmt"
+	"github.com/ansel1/merry"
+	"strings"
 )
 
 func (t Tag) String() string {
@@ -53,7 +53,6 @@ var minStandardTag uint32 = 0x00420000
 var maxStandardTag uint32 = 0x00430000
 var minCustomTag uint32 = 0x00540000
 var maxCustomTag uint32 = 0x00550000
-
 
 func (t Tag) valid() bool {
 	switch {

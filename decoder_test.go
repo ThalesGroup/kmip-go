@@ -1,14 +1,14 @@
 package kmip
 
 import (
-	"testing"
-	"github.com/stretchr/testify/require"
-	"reflect"
-	"time"
 	"fmt"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"math"
 	"math/big"
-	"github.com/stretchr/testify/assert"
+	"reflect"
+	"testing"
+	"time"
 )
 
 func TestUnmarshal(t *testing.T) {
@@ -165,25 +165,8 @@ func TestUnmarshal(t *testing.T) {
 		},
 	)
 
-	type C struct {
-		S1 string `kmip:"Comment"`
-		S2 string `kmip:"Comment"`
-	}
-
-	tests = append(tests,
-		unmarshalTest{
-			name: "duplicates",
-			in: Structure{Tag: TagBatchCount, Values: []interface{}{
-				TaggedValue{Tag: TagComment, Value: "red"},
-				TaggedValue{Tag: TagComment, Value: "blue"},
-			}},
-			ptr:      new(C),
-			expected: C{S1: "red", S2: "blue"},
-		},
-	)
-
 	type D struct {
-		Comment string
+		Comment    string
 		BatchCount string
 	}
 
@@ -195,7 +178,62 @@ func TestUnmarshal(t *testing.T) {
 				TaggedValue{Tag: TagBatchCount, Value: "blue"},
 			}},
 			ptr:      new(D),
-			expected: D{Comment: "red", BatchCount:"blue"},
+			expected: D{Comment: "red", BatchCount: "blue"},
+		},
+	)
+
+	type E struct {
+		Comment    string
+		BatchCount A
+	}
+
+	tests = append(tests,
+		unmarshalTest{
+			name: "nested",
+			in: Structure{Tag: TagBatchCount, Values: []interface{}{
+				TaggedValue{Tag: TagComment, Value: "red"},
+				Structure{Tag: TagBatchCount, Values: []interface{}{
+					TaggedValue{Tag: TagComment, Value: "blue"},
+				}},
+			}},
+			ptr:      new(E),
+			expected: E{Comment: "red", BatchCount: A{Comment: "blue"}},
+		},
+	)
+
+	type F struct {
+		Comment    string
+		BatchCount *A
+	}
+
+	tests = append(tests,
+		unmarshalTest{
+			name: "nestedptr",
+			in: Structure{Tag: TagBatchCount, Values: []interface{}{
+				TaggedValue{Tag: TagComment, Value: "red"},
+				Structure{Tag: TagBatchCount, Values: []interface{}{
+					TaggedValue{Tag: TagComment, Value: "blue"},
+				}},
+			}},
+			ptr:      new(F),
+			expected: F{Comment: "red", BatchCount: &A{Comment: "blue"}},
+		},
+	)
+
+	type G struct {
+		Comment []string
+	}
+
+	tests = append(tests,
+		unmarshalTest{
+			name: "slice",
+			in: Structure{Tag: TagBatchCount, Values: []interface{}{
+				TaggedValue{Tag: TagComment, Value: "red"},
+				TaggedValue{Tag: TagComment, Value: "blue"},
+				TaggedValue{Tag: TagComment, Value: "green"},
+			}},
+			ptr:      new(G),
+			expected: G{Comment: []string{"red", "blue", "green"}},
 		},
 	)
 

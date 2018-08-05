@@ -1,21 +1,20 @@
 package kmip
 
 import (
-	"testing"
-	"math/big"
-	"github.com/stretchr/testify/assert"
-	"fmt"
-	"encoding/hex"
-	"strings"
-	"github.com/stretchr/testify/require"
-	"time"
-	"os"
-	"encoding/binary"
 	"bytes"
-		"github.com/davecgh/go-spew/spew"
+	"encoding/binary"
+	"encoding/hex"
+	"fmt"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"math/big"
+	"strings"
+	"testing"
+	"time"
 )
 
-var sample= `
+var sample = `
 420078 | 01 | 00000118 
 	420077 | 01 | 00000048 
 		420069 | 01 | 00000020 
@@ -32,7 +31,7 @@ func TestPrint(t *testing.T) {
 	r := Reader{r: bytes.NewReader(hex2bytes(sample))}
 	ttlv, err := r.Read()
 	require.NoError(t, err)
-	fmt.Println(ttlv.String())
+	t.Log(ttlv.String())
 }
 
 func TestDecoding(t *testing.T) {
@@ -55,42 +54,42 @@ func TestDecoding(t *testing.T) {
 			typ: TypeInteger,
 		},
 		{
-			bs: "42 00 20 | 03 | 00 00 00 08 | 01 B6 9B 4B A5 74 92 00",
+			bs:  "42 00 20 | 03 | 00 00 00 08 | 01 B6 9B 4B A5 74 92 00",
 			exp: int64(123456789000000000),
 			typ: TypeLongInteger,
 		},
 		{
-			bs: "42 00 20 | 04 | 00 00 00 10 | 00 00 00 00 03 FD 35 EB 6B C2 DF 46 18 08 00 00",
+			bs:  "42 00 20 | 04 | 00 00 00 10 | 00 00 00 00 03 FD 35 EB 6B C2 DF 46 18 08 00 00",
 			exp: bi,
 			typ: TypeBigInteger,
 		},
 		{
-			bs: "42 00 20 | 05 | 00 00 00 04 | 00 00 00 FF 00 00 00 00",
+			bs:  "42 00 20 | 05 | 00 00 00 04 | 00 00 00 FF 00 00 00 00",
 			exp: uint32(255),
 			typ: TypeEnumeration,
 		},
 		{
-			bs: "42 00 20 | 06 | 00 00 00 08 | 00 00 00 00 00 00 00 01",
+			bs:  "42 00 20 | 06 | 00 00 00 08 | 00 00 00 00 00 00 00 01",
 			exp: true,
 			typ: TypeBoolean,
 		},
 		{
-			bs: "42 00 20 | 07 | 00 00 00 0B | 48 65 6C 6C 6F 20 57 6F 72 6C 64 00 00 00 00 00",
+			bs:  "42 00 20 | 07 | 00 00 00 0B | 48 65 6C 6C 6F 20 57 6F 72 6C 64 00 00 00 00 00",
 			exp: "Hello World",
 			typ: TypeTextString,
 		},
 		{
-			bs: "42 00 20 | 08 | 00 00 00 03 | 01 02 03 00 00 00 00 00",
+			bs:  "42 00 20 | 08 | 00 00 00 03 | 01 02 03 00 00 00 00 00",
 			exp: []byte{0x01, 0x02, 0x03},
 			typ: TypeByteString,
 		},
 		{
-			bs: "42 00 20 | 09 | 00 00 00 08 | 00 00 00 00 47 DA 67 F8",
-			exp:dt,
+			bs:  "42 00 20 | 09 | 00 00 00 08 | 00 00 00 00 47 DA 67 F8",
+			exp: dt,
 			typ: TypeDateTime,
 		},
 		{
-			bs: "42 00 20 | 0A | 00 00 00 04 | 00 0D 2F 00 00 00 00 00",
+			bs:  "42 00 20 | 0A | 00 00 00 04 | 00 0D 2F 00 00 00 00 00",
 			exp: 10 * 24 * time.Hour,
 			typ: TypeInterval,
 		},
@@ -104,7 +103,6 @@ func TestDecoding(t *testing.T) {
 			assert.NoError(t, tt.Valid())
 			assert.Equal(t, tc.typ, tt.Type())
 			assert.Equal(t, tc.exp, tt.Value())
-			fmt.Println(tt.String())
 		})
 	}
 
@@ -115,9 +113,6 @@ func TestDecoding(t *testing.T) {
 	assert.Equal(t, TypeStructure, tt.Type())
 	exp := hex2bytes("42 00 04 | 05 | 00 00 00 04 | 00 00 00 FE 00 00 00 00 | 42 00 05 | 02 | 00 00 00 04 | 00 00 00 FF 00 00 00 00")
 	assert.Equal(t, TTLV(exp), tt.Value())
-	print(os.Stdout, "", tt)
-	fmt.Println("")
-	//fmt.Println(Print(tt))
 
 	for _, test := range knownGoodSamples {
 		name := test.name
@@ -126,13 +121,10 @@ func TestDecoding(t *testing.T) {
 		}
 		t.Run(name, func(t *testing.T) {
 			b := hex2bytes(test.exp)
-			fmt.Println(b)
 			tt := TTLV(b)
 			assert.NoError(t, tt.Valid())
 
 			tagBytes := make([]byte, 4)
-			fmt.Println("len:", len(tagBytes))
-			fmt.Println("cap:", cap(tagBytes))
 			copy(tagBytes[1:], b[:3])
 			assert.Equal(t, Tag(binary.BigEndian.Uint32(tagBytes)), tt.Tag())
 
@@ -149,7 +141,7 @@ func TestDecoding(t *testing.T) {
 			switch v := test.v.(type) {
 			case big.Int:
 				if assert.IsType(t, &v, tt.Value()) {
-					assert.True(t, tt.Value().(*big.Int).Cmp(&v)==0)
+					assert.True(t, tt.Value().(*big.Int).Cmp(&v) == 0)
 				}
 			case *big.Int:
 				if assert.IsType(t, v, tt.Value()) {
@@ -161,7 +153,6 @@ func TestDecoding(t *testing.T) {
 				assert.EqualValues(t, test.v, tt.Value())
 			}
 
-			fmt.Println(tt.String())
 		})
 	}
 }
@@ -189,22 +180,22 @@ func hex2bytes(s string) []byte {
 }
 
 func TestNormalizeNames(t *testing.T) {
-	tests := map[string]string {
-		"Structure":"Structure",
-		"Date-Time":"DateTime",
-		"Byte String":"ByteString",
-		"Batch Error Continuation Option":"BatchErrorContinuationOption",
-		"CRT Coefficient":"CRTCoefficient",
-		"J":"J",
-		"Private Key Template-Attribute":"PrivateKeyTemplateAttribute",
-		"EC Public Key Type X9.62 Compressed Prime":"ECPublicKeyTypeX9_62CompressedPrime",
-		"PKCS#8":"PKCS_8",
-		"Encrypt then MAC/sign":"EncryptThenMACSign",
-		"P-384":"P_384",
-		"MD2 with RSA Encryption (PKCS#1 v1.5)":"MD2WithRSAEncryptionPKCS_1V1_5",
-		"Num42bers in first word":"Num42bersInFirstWord",
-		"Polynomial Sharing GF (2^16)":"PolynomialSharingGF2_16",
-		"3DES":"DES3",
+	tests := map[string]string{
+		"Structure":                       "Structure",
+		"Date-Time":                       "DateTime",
+		"Byte String":                     "ByteString",
+		"Batch Error Continuation Option": "BatchErrorContinuationOption",
+		"CRT Coefficient":                 "CRTCoefficient",
+		"J":                               "J",
+		"Private Key Template-Attribute":            "PrivateKeyTemplateAttribute",
+		"EC Public Key Type X9.62 Compressed Prime": "ECPublicKeyTypeX9_62CompressedPrime",
+		"PKCS#8":                "PKCS_8",
+		"Encrypt then MAC/sign": "EncryptThenMACSign",
+		"P-384":                 "P_384",
+		"MD2 with RSA Encryption (PKCS#1 v1.5)": "MD2WithRSAEncryptionPKCS_1V1_5",
+		"Num42bers in first word":               "Num42bersInFirstWord",
+		"Polynomial Sharing GF (2^16)":          "PolynomialSharingGF2_16",
+		"3DES": "DES3",
 	}
 
 	for input, output := range tests {
@@ -213,6 +204,3 @@ func TestNormalizeNames(t *testing.T) {
 		})
 	}
 }
-
-
-

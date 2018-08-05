@@ -1,9 +1,9 @@
 package kmip
 
 import (
-	"time"
-	"math/big"
 	"io"
+	"math/big"
+	"time"
 )
 
 type formatter interface {
@@ -23,13 +23,14 @@ type formatter interface {
 type noWriteFormat struct {
 	formatter
 }
+
 func (noWriteFormat) WriteTo(w io.Writer) (n int64, err error) {
 	// don't flush
 	return 0, nil
 }
 
 type memFormat struct {
-	writtenValues []interface{}
+	writtenValues  []interface{}
 	bufferedValues []interface{}
 }
 
@@ -42,7 +43,7 @@ func (m *memFormat) EncodeStructure(tag Tag, f func(formatter)) {
 	inner := memFormat{}
 	f(&inner)
 	inner.WriteTo(nil)
-	m.bufferedValues = append(m.bufferedValues, Structure{Tag:tag, Values:inner.writtenValues})
+	m.bufferedValues = append(m.bufferedValues, Structure{Tag: tag, Values: inner.writtenValues})
 }
 
 func (m *memFormat) bufferValue(tag Tag, v interface{}) {
@@ -58,7 +59,7 @@ func (m *memFormat) EncodeTextString(tag Tag, s string) {
 }
 
 func (m *memFormat) EncodeEnum(tag Tag, i EnumValuer) {
-	m.bufferValue(tag, EnumLiteral{IntValue:i.EnumValue()})
+	m.bufferValue(tag, EnumLiteral{IntValue: i.EnumValue()})
 }
 
 func (m *memFormat) EncodeInterval(tag Tag, d time.Duration) {

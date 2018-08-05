@@ -1,12 +1,12 @@
 package kmip
 
 import (
-	"github.com/ansel1/merry"
-		"math"
-	"reflect"
-		"strings"
 	"errors"
 	"fmt"
+	"github.com/ansel1/merry"
+	"math"
+	"reflect"
+	"strings"
 )
 
 func Is(err error, originals ...error) bool {
@@ -65,27 +65,29 @@ func Details(err error) string {
 	return b.String()
 }
 
-var ErrHeaderTruncated= errors.New("header truncated")
-var ErrValueTruncated= errors.New("value truncated")
-var ErrInvalidTag= errors.New("invalid tag")
-var ErrInvalidType= errors.New("invalid type")
-var ErrInvalidLen= errors.New("invalid length")
-var ErrNoTag= errors.New("no tag")
-var ErrIntOverflow= fmt.Errorf("value exceeds max int value %d", math.MaxInt32)
-var ErrLongIntOverflow= fmt.Errorf("value exceeds max long int value %d", math.MaxInt64)
+var ErrHeaderTruncated = errors.New("header truncated")
+var ErrValueTruncated = errors.New("value truncated")
+var ErrInvalidTag = errors.New("invalid tag")
+var ErrTagConflict = errors.New("")
+var ErrInvalidType = errors.New("invalid type")
+var ErrInvalidLen = errors.New("invalid length")
+var ErrNoTag = errors.New("no tag")
+var ErrIntOverflow = fmt.Errorf("value exceeds max int value %d", math.MaxInt32)
+var ErrLongIntOverflow = fmt.Errorf("value exceeds max long int value %d", math.MaxInt64)
 var ErrUnsupportedTypeError = errors.New("unsupported type")
 var ErrUnsupportedEnumTypeError = errors.New("unsupported type for enums, must be string, or int types")
 var ErrInvalidHexString = errors.New("invalid hex string")
 
 type errKey int
+
 const (
 	errorCtx errKey = iota
 )
 
 type ErrorContext struct {
-	Tag Tag
+	Tag   Tag
 	Value interface{}
-	Path []string
+	Path  []string
 }
 
 func (ctx *ErrorContext) String() string {

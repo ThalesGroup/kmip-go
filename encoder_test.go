@@ -1,16 +1,16 @@
 package kmip
 
 import (
-	"testing"
 	"bytes"
-	"github.com/stretchr/testify/require"
 	"fmt"
-	"time"
-	"math/big"
+	"github.com/stretchr/testify/require"
 	"io"
 	"io/ioutil"
-	"reflect"
 	"math"
+	"math/big"
+	"reflect"
+	"testing"
+	"time"
 )
 
 func parseBigInt(s string) *big.Int {
@@ -121,8 +121,8 @@ var knownGoodSamples = []struct {
 	},
 	{
 		name: "bigintzero",
-		exp: "42 00 01 | 04 | 00 00 00 08 | 00 00 00 00 00 00 00 00",
-		v:   parseBigInt("0"),
+		exp:  "42 00 01 | 04 | 00 00 00 08 | 00 00 00 00 00 00 00 00",
+		v:    parseBigInt("0"),
 	},
 	{
 		v:   parseBigInt("-1042342234234123423435647768234"),
@@ -220,9 +220,8 @@ func (nonptrMarshaler) MarshalTaggedValue(e *Encoder, tag Tag) error {
 }
 
 func TestTTLVEncoder_Encode(t *testing.T) {
-	b, err := MarshalTTLV(MarhalableStruct{})
+	_, err := MarshalTTLV(MarhalableStruct{})
 	require.NoError(t, err)
-	fmt.Println(TTLV(b))
 }
 
 func fastPathSupported(v interface{}) bool {
@@ -453,9 +452,9 @@ func TestEncoder_encode(t *testing.T) {
 			CertificateIssuerAlternativeName string
 			CertificateIssuerC               *string
 			CertificateIssuerEmail           uint32 `kmip:",enum"`
-			CertificateIssuerEmail2          string `kmip:"CertificateIssuerEmail,enum"`
+			CN                               string `kmip:"CertificateIssuerCN,enum"`
 			CertificateIssuerUID             uint32 `kmip:",omitempty,enum"`
-			CertificateIssuerUID2            uint32 `kmip:"CertificateIssuerUID,omitempty,enum"`
+			DC                               uint32 `kmip:"CertificateIssuerDC,omitempty,enum"`
 			Len                              int    `kmip:"CertificateLength,omitempty,enum"`
 		}
 	}
@@ -608,7 +607,9 @@ func TestEncoder_encode(t *testing.T) {
 		},
 		{
 			name: "structtag",
-			v:    struct{ AttributeName string `kmip:"Attribute"` }{"red"},
+			v: struct {
+				AttributeName string `kmip:"Attribute"`
+			}{"red"},
 			expected: Structure{
 				Tag: TagCancellationResult,
 				Values: []interface{}{
@@ -628,7 +629,9 @@ func TestEncoder_encode(t *testing.T) {
 		},
 		{
 			name: "structtaghex",
-			v:    struct{ AttributeName string `kmip:"0x42000b"` }{"red"},
+			v: struct {
+				AttributeName string `kmip:"0x42000b"`
+			}{"red"},
 			expected: Structure{
 				Tag: TagCancellationResult,
 				Values: []interface{}{
@@ -1133,41 +1136,41 @@ func TestEncoder_encode(t *testing.T) {
 			name: "enumtag",
 			v: struct {
 				Comment string `kmip:",enum"`
-				Int     int    `kmip:"Comment,enum"`
-				Int8    int8   `kmip:"Comment,enum"`
-				Int16   int16  `kmip:"Comment,enum"`
-				Int32   int32  `kmip:"Comment,enum"`
-				Int64   int64  `kmip:"Comment,enum"`
-				Uint    uint   `kmip:"Comment,enum"`
-				Uint8   uint8  `kmip:"Comment,enum"`
-				Uint16  uint16 `kmip:"Comment,enum"`
-				Uint32  uint32 `kmip:"Comment,enum"`
-				Uint64  uint64 `kmip:"Comment,enum"`
+				Int     int    `kmip:"CommonTemplateAttribute,enum"`
+				Int8    int8   `kmip:"CompromiseDate,enum"`
+				Int16   int16  `kmip:"CompromiseOccurrenceDate,enum"`
+				Int32   int32  `kmip:"ContactInformation,enum"`
+				Int64   int64  `kmip:"CorrelationValue,enum"`
+				Uint    uint   `kmip:"CounterLength,enum"`
+				Uint8   uint8  `kmip:"Credential,enum"`
+				Uint16  uint16 `kmip:"CredentialType,enum"`
+				Uint32  uint32 `kmip:"CredentialValue,enum"`
+				Uint64  uint64 `kmip:"CriticalityIndicator,enum"`
 			}{
 				Comment: "0x00000001",
 				Int:     2,
-				Int8: 3,
-				Int16: 4,
-				Int32: 5,
-				Int64: 6,
-				Uint: 7,
-				Uint8:8,
-				Uint16:9,
-				Uint32:10,
-				Uint64:11,
+				Int8:    3,
+				Int16:   4,
+				Int32:   5,
+				Int64:   6,
+				Uint:    7,
+				Uint8:   8,
+				Uint16:  9,
+				Uint32:  10,
+				Uint64:  11,
 			},
 			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
 				TaggedValue{Tag: TagComment, Value: EnumLiteral{IntValue: 1}},
-				TaggedValue{Tag: TagComment, Value: EnumLiteral{IntValue: 2}},
-				TaggedValue{Tag: TagComment, Value: EnumLiteral{IntValue: 3}},
-				TaggedValue{Tag: TagComment, Value: EnumLiteral{IntValue: 4}},
-				TaggedValue{Tag: TagComment, Value: EnumLiteral{IntValue: 5}},
-				TaggedValue{Tag: TagComment, Value: EnumLiteral{IntValue: 6}},
-				TaggedValue{Tag: TagComment, Value: EnumLiteral{IntValue: 7}},
-				TaggedValue{Tag: TagComment, Value: EnumLiteral{IntValue: 8}},
-				TaggedValue{Tag: TagComment, Value: EnumLiteral{IntValue: 9}},
-				TaggedValue{Tag: TagComment, Value: EnumLiteral{IntValue: 10}},
-				TaggedValue{Tag: TagComment, Value: EnumLiteral{IntValue: 11}},
+				TaggedValue{Tag: TagCommonTemplateAttribute, Value: EnumLiteral{IntValue: 2}},
+				TaggedValue{Tag: TagCompromiseDate, Value: EnumLiteral{IntValue: 3}},
+				TaggedValue{Tag: TagCompromiseOccurrenceDate, Value: EnumLiteral{IntValue: 4}},
+				TaggedValue{Tag: TagContactInformation, Value: EnumLiteral{IntValue: 5}},
+				TaggedValue{Tag: TagCorrelationValue, Value: EnumLiteral{IntValue: 6}},
+				TaggedValue{Tag: TagCounterLength, Value: EnumLiteral{IntValue: 7}},
+				TaggedValue{Tag: TagCredential, Value: EnumLiteral{IntValue: 8}},
+				TaggedValue{Tag: TagCredentialType, Value: EnumLiteral{IntValue: 9}},
+				TaggedValue{Tag: TagCredentialValue, Value: EnumLiteral{IntValue: 10}},
+				TaggedValue{Tag: TagCriticalityIndicator, Value: EnumLiteral{IntValue: 11}},
 			}},
 		},
 		{
@@ -1193,9 +1196,9 @@ func TestEncoder_encode(t *testing.T) {
 				s := "bob"
 				c.Certificate.CertificateIssuer.CertificateIssuerC = &s
 				c.Certificate.CertificateIssuer.CertificateIssuerEmail = 0
-				c.Certificate.CertificateIssuer.CertificateIssuerEmail2 = "0x00000002"
+				c.Certificate.CertificateIssuer.CN = "0x00000002"
 				c.Certificate.CertificateIssuer.CertificateIssuerUID = 3
-				c.Certificate.CertificateIssuer.CertificateIssuerUID2 = 0
+				c.Certificate.CertificateIssuer.DC = 0
 				c.Certificate.CertificateIssuer.Len = 10
 
 				return c
@@ -1216,7 +1219,7 @@ func TestEncoder_encode(t *testing.T) {
 						TaggedValue{Tag: TagCertificateIssuerAlternativeName, Value: "rick"},
 						TaggedValue{Tag: TagCertificateIssuerC, Value: "bob"},
 						TaggedValue{Tag: TagCertificateIssuerEmail, Value: EnumLiteral{IntValue: 0}},
-						TaggedValue{Tag: TagCertificateIssuerEmail, Value: EnumLiteral{IntValue: 2}},
+						TaggedValue{Tag: TagCertificateIssuerCN, Value: EnumLiteral{IntValue: 2}},
 						TaggedValue{Tag: TagCertificateIssuerUID, Value: EnumLiteral{IntValue: 3}},
 						TaggedValue{Tag: TagCertificateLength, Value: EnumLiteral{IntValue: 10}},
 					}},

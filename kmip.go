@@ -1,18 +1,16 @@
 package kmip
 
 import (
-	"encoding/binary"
-	"math/big"
-	"time"
 	"bytes"
-	"io"
-	"github.com/ansel1/merry"
+	"encoding/binary"
 	"fmt"
-	"strings"
+	"github.com/ansel1/merry"
+	"io"
+	"math/big"
 	"regexp"
-	)
-
-
+	"strings"
+	"time"
+)
 
 const lenTag = 3
 const lenLen = 4
@@ -149,8 +147,6 @@ func (t TTLV) ValueStructure() TTLV {
 	return t.ValueRaw()
 }
 
-
-
 func (t TTLV) Valid() error {
 	if err := t.ValidHeader(); err != nil {
 		return err
@@ -166,7 +162,7 @@ func (t TTLV) Valid() error {
 func (t TTLV) validTag() bool {
 	switch t[0] {
 	case 0x42, 0x54: // valid
-	return true
+		return true
 	}
 	return false
 }
@@ -218,7 +214,7 @@ func (t TTLV) String() string {
 	return buf.String()
 }
 
-func Print(w io.Writer, indent string, t TTLV) (err error){
+func Print(w io.Writer, indent string, t TTLV) (err error) {
 
 	tag := t.Tag()
 	typ := t.Type()
@@ -265,14 +261,13 @@ type Reader struct {
 	r io.Reader
 }
 
-
 func (r *Reader) Read() (TTLV, error) {
 	// TODO: if a full value can't be read, this just errors, but it should probably try to keep reading
 	// but then, do I need timeouts or something?
 
 	// TODO: re-use buffers
 	// pre-allocate buffer large enough to hold most base types
-	buf := bytes.NewBuffer(make([]byte, lenHeader + 8))
+	buf := bytes.NewBuffer(make([]byte, lenHeader+8))
 	n, err := r.r.Read(buf.Bytes()[:lenHeader])
 	switch err {
 	case nil, io.EOF:
@@ -307,7 +302,7 @@ func (r *Reader) Read() (TTLV, error) {
 		return nil, merry.Prepend(err, "reading value")
 	}
 
-	if n + lenHeader != l {
+	if n+lenHeader != l {
 		return nil, merry.New("value truncated")
 	}
 	return TTLV(buf.Bytes()[:l]), err

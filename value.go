@@ -19,9 +19,8 @@ struct {
 	Cust int32   `tag:"TagName" type:"ByteString"`
 	NoType int // tag from name, then infer length and type from tag info?
 }
- */
+*/
 
+func writeInteger(w io.Writer, tag Tag, i int32) {
 
- func writeInteger(w io.Writer, tag Tag, i int32) {
-
- }
+}

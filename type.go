@@ -1,9 +1,9 @@
 package kmip
 
 import (
+	"encoding/hex"
 	"fmt"
 	"strings"
-	"encoding/hex"
 )
 
 type Type byte

@@ -91,8 +91,8 @@ func (e *Encoder) encodeInterfaceValue(tag Tag, v interface{}) error {
 	// reflection altogether, which does provide a good boost
 
 	switch t := v.(type) {
-	case EnumValuer:
-		e.encodeEnum(tag, t)
+	case MarshalerEnum:
+		e.encodeEnum2(tag, t.MarshalTTLVEnum())
 	case int:
 		if t > math.MaxInt32 {
 			return tagError(ErrIntOverflow, tag, v)
@@ -161,7 +161,7 @@ var timeType = reflect.TypeOf((*time.Time)(nil)).Elem()
 var bigIntPtrType = reflect.TypeOf((*big.Int)(nil))
 var bigIntType = bigIntPtrType.Elem()
 var durationType = reflect.TypeOf(time.Nanosecond)
-var enumValuerType = reflect.TypeOf((*EnumValuer)(nil)).Elem()
+var marshalerEnumType = reflect.TypeOf((*MarshalerEnum)(nil)).Elem()
 
 var invalidValue = reflect.Value{}
 
@@ -224,21 +224,21 @@ func (e *Encoder) encodeReflectEnum(tag Tag, v reflect.Value) error {
 		}
 
 		u := binary.BigEndian.Uint32(b)
-		e.encodeEnum(tag, EnumInt(u))
+		e.encodeEnum2(tag, u)
 		return nil
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		i := v.Uint()
 		if i > math.MaxUint32 {
 			return tagError(ErrIntOverflow, tag, v)
 		}
-		e.encodeEnum(tag, EnumInt(i))
+		e.encodeEnum2(tag, uint32(i))
 		return nil
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		i := v.Int()
 		if i > math.MaxUint32 {
 			return tagError(ErrIntOverflow, tag, v)
 		}
-		e.encodeEnum(tag, EnumInt(i))
+		e.encodeEnum2(tag, uint32(i))
 		return nil
 	default:
 		return tagError(ErrUnsupportedEnumTypeError, tag, v)
@@ -267,11 +267,11 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 			return nil
 		}
 		return v.Interface().(Marshaler).MarshalTaggedValue(e, tag)
-	case typ.Implements(enumValuerType):
+	case typ.Implements(marshalerEnumType):
 		if flags&fOmitEmpty != 0 && isEmptyValue(v) {
 			return nil
 		}
-		e.encodeEnum(tag, v.Interface().(EnumValuer))
+		e.encodeEnum2(tag, v.Interface().(MarshalerEnum).MarshalTTLVEnum())
 		return nil
 	case v.CanAddr():
 		pv := v.Addr()
@@ -282,11 +282,11 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 				return nil
 			}
 			return pv.Interface().(Marshaler).MarshalTaggedValue(e, tag)
-		case pvtyp.Implements(enumValuerType):
+		case pvtyp.Implements(marshalerEnumType):
 			if flags&fOmitEmpty != 0 && isEmptyValue(v) {
 				return nil
 			}
-			e.encodeEnum(tag, pv.Interface().(EnumValuer))
+			e.encodeEnum2(tag, pv.Interface().(MarshalerEnum).MarshalTTLVEnum())
 			return nil
 		}
 	}
@@ -568,9 +568,13 @@ func (h *encBuf) encodeInterval(tag Tag, d time.Duration) {
 	h.Write(h.scratch[:16])
 }
 
-func (h *encBuf) encodeEnum(tag Tag, i EnumValuer) {
+func (h *encBuf) encodeEnum2(tag Tag, i uint32) {
 	h.encodeHeader(tag, TypeEnumeration, lenEnumeration)
-	h.encodeIntVal(int32(i.EnumValue()))
+	binary.BigEndian.PutUint32(h.scratch[8:12], i)
+	// pad extra bytes
+	for i := 12; i < 16; i++ {
+		h.scratch[i] = 0
+	}
 	h.Write(h.scratch[:16])
 }
 

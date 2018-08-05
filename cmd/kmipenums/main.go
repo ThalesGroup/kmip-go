@@ -240,6 +240,10 @@ func ({{.Var}} *{{.Name}}) UnmarshalText(text []byte) (err error) {
 
 func ({{.Var}} {{.Name}}) EnumValue() uint32 {
 	return uint32({{.Var}})
+}
+
+func ({{.Var}} {{.Name}}) MarshalTTLVEnum() uint32 {
+	return uint32({{.Var}})
 }`
 
 var Tags = map[string]uint32{

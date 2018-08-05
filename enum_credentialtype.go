@@ -66,3 +66,7 @@ func (c *CredentialType) UnmarshalText(text []byte) (err error) {
 func (c CredentialType) EnumValue() uint32 {
 	return uint32(c)
 }
+
+func (c CredentialType) MarshalTTLVEnum() uint32 {
+	return uint32(c)
+}

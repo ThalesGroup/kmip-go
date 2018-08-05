@@ -174,9 +174,9 @@ var knownGoodSamples = []struct {
 	},
 }
 
-type MarhalableStruct struct{}
+type MarshalableStruct struct{}
 
-func (MarhalableStruct) MarshalTaggedValue(e *Encoder, tag Tag) error {
+func (MarshalableStruct) MarshalTaggedValue(e *Encoder, tag Tag) error {
 	return e.EncodeStructure(TagBatchCount, func(e *Encoder) error {
 		e.EncodeValue(TagActivationDate, 4)
 		e.EncodeValue(TagAlternativeName, 5)
@@ -219,8 +219,8 @@ func (nonptrMarshaler) MarshalTaggedValue(e *Encoder, tag Tag) error {
 	return e.EncodeValue(tag, 5)
 }
 
-func TestTTLVEncoder_Encode(t *testing.T) {
-	_, err := MarshalTTLV(MarhalableStruct{})
+func TestEncoder_Encode(t *testing.T) {
+	_, err := Marshal(MarshalableStruct{})
 	require.NoError(t, err)
 }
 
@@ -239,7 +239,7 @@ func fastPathSupported(v interface{}) bool {
 	return false
 }
 
-func TestEncoder_encode_unsupported(t *testing.T) {
+func TestEncoder_encode_errors(t *testing.T) {
 	type testCase struct {
 		name   string
 		v      interface{}
@@ -303,8 +303,7 @@ func TestEncoder_encode_unsupported(t *testing.T) {
 			expErr: ErrUnsupportedTypeError,
 		},
 	}
-	enc := NewTTLVEncoder(bytes.NewBuffer(nil))
-	enc.format = newEncBuf()
+	enc := NewEncoder(bytes.NewBuffer(nil))
 	for _, test := range tests {
 		testName := test.name
 		if testName == "" {
@@ -424,7 +423,7 @@ func (*EnumValuerSlicePtr) EnumValue() uint32 {
 	return 5
 }
 
-func TestEncoder_encode(t *testing.T) {
+func TestEncoder_EncodeValue(t *testing.T) {
 
 	type AttributeValue string
 	type Attribute struct {
@@ -557,7 +556,8 @@ func TestEncoder_encode(t *testing.T) {
 		},
 		// slice
 		{
-			v: []interface{}{5, 6, 7},
+			name: "slice",
+			v:    []interface{}{5, 6, 7},
 			expected: []interface{}{
 				TaggedValue{Tag: TagCancellationResult, Value: int32(5)},
 				TaggedValue{Tag: TagCancellationResult, Value: int32(6)},
@@ -1252,45 +1252,24 @@ func TestEncoder_encode(t *testing.T) {
 			testName = fmt.Sprintf("%T", tc.v)
 		}
 		t.Run(testName, func(t *testing.T) {
-			m := memFormat{}
-			enc := NewTTLVEncoder(nil)
-			enc.format = &m
+			buf := bytes.NewBuffer(nil)
+			enc := NewEncoder(buf)
 
 			tag := tc.tag
 			if tc.tag == TagNone && !tc.noDefaultTag {
 				tag = TagCancellationResult
 			}
 
-			err := enc.encodeReflectValue(tag, reflect.ValueOf(tc.v), 0)
+			err := enc.EncodeValue(tag, tc.v)
+
 			require.NoError(t, err, Details(err))
-			enc.flush()
 
-			switch {
-			case tc.expected == nil:
-				require.Empty(t, m.writtenValues)
-			case reflect.ValueOf(tc.expected).Kind() == reflect.Slice:
-				require.Equal(t, tc.expected, m.writtenValues)
-			default:
-				require.Equal(t, []interface{}{tc.expected}, m.writtenValues)
-			}
+			buf2 := bytes.NewBuffer(nil)
+			enc2 := NewEncoder(buf2)
+			err = enc2.EncodeValue(tag, tc.expected)
+			require.NoError(t, err, Details(err))
 
-			m.clear()
-			err = enc.encodeInterfaceValue(tag, tc.v)
-			if fastPathSupported(tc.v) {
-				require.NoError(t, err)
-				enc.flush()
-
-				switch {
-				case tc.expected == nil:
-					require.Empty(t, m.writtenValues)
-				case reflect.ValueOf(tc.expected).Kind() == reflect.Slice:
-					require.Equal(t, tc.expected, m.writtenValues)
-				default:
-					require.Equal(t, []interface{}{tc.expected}, m.writtenValues)
-				}
-			} else {
-				require.True(t, err == errNoEncoder)
-			}
+			require.Equal(t, TTLV(buf2.Bytes()), TTLV(buf.Bytes()))
 		})
 
 	}
@@ -1306,7 +1285,7 @@ func parseTime(s string) time.Time {
 }
 
 func BenchmarkEncodeSlice(b *testing.B) {
-	enc := NewTTLVEncoder(ioutil.Discard)
+	enc := NewEncoder(ioutil.Discard)
 
 	type Attribute struct {
 		AttributeValue string

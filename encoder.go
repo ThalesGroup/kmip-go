@@ -14,109 +14,15 @@ import (
 	"time"
 )
 
-// TODO: I'm not crazy about this approach to enums, but I don't have anything better
-// Enum values must implement this interface to get correctly encoded as KMIP enum values.
-// I don't currently have any other way to distinguish enum values from plain integers.
-// All the other base KMIP types map pretty well to base golang types, but this is the
-// exception.
-//
-// EnumValues must have an int value to be correctly encoded to TTLV format, which is why this
-// interface only focuses on the int value.  If the encoder requires the int value, and it is
-// 0, an error will be thrown.  Enum values also have canonical string values,
-// and the xml and json formats allow them to be used instead of the int values.  If the enum value
-// implements encoding.TextMarshaler, then the encoder will call that to obtain the string value.
-// If the enum value implements encoding.TextUnmarshaler, the decoder will use that the unmarshal
-// the string value.  If the decoder is trying to decode the string value, but the value its
-// unmarshaling into doesn't implement encoding.TextUnmarshaler, an error will be thrown.
-//
-// TODO: still more to define here about the behavior when the string value is a hex string
-//
-// Generally, the encoder and decoder will do their best to adapt to whichever form of the value
-// is available and allowed by the situation, otherwise it will throw an error.
-
 const kmipStructTag = "kmip"
 
-type EnumValuer interface {
-	EnumValue() uint32
-}
-
-type EnumInt uint32
-
-func (i EnumInt) EnumValue() uint32 {
-	return uint32(i)
-}
-
-type EnumLiteral struct {
-	IntValue    uint32
-	StringValue string
-}
-
-func (e *EnumLiteral) UnmarshalText(text []byte) error {
-	if e == nil {
-		*e = EnumLiteral{}
-	}
-	e.StringValue = string(text)
-	return nil
-}
-
-func (e *EnumLiteral) MarshalText() (text []byte, err error) {
-	return []byte(e.StringValue), nil
-}
-
-func (e EnumLiteral) EnumValue() uint32 {
-	return e.IntValue
-}
-
-type Structure struct {
-	Tag    Tag
-	Values []interface{}
-}
-
-func (s Structure) MarshalTaggedValue(e *Encoder, tag Tag) error {
-	if s.Tag != 0 {
-		tag = s.Tag
-	}
-
-	return e.EncodeStructure(tag, func(encoder *Encoder) error {
-		for _, v := range s.Values {
-			err := encoder.Encode(v)
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-}
-
-type TaggedValue struct {
-	Tag   Tag
-	Value interface{}
-}
-
-func (t TaggedValue) MarshalTaggedValue(e *Encoder, tag Tag) error {
-	// if tag is set, override the suggested tag
-	if t.Tag != 0 {
-		tag = t.Tag
-	}
-
-	return e.EncodeValue(tag, t.Value)
-}
-
-func MarshalTTLV(v interface{}) ([]byte, error) {
-	buf := bytes.NewBuffer(nil)
-	err := NewTTLVEncoder(buf).Encode(v)
-	if err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
-}
-
 type Encoder struct {
-	w      io.Writer
-	format formatter
+	structDepth int
+	w           io.Writer
+	encBuf
 }
 
-func NewTTLVEncoder(w io.Writer) *Encoder {
+func NewEncoder(w io.Writer) *Encoder {
 	return &Encoder{w: w}
 }
 
@@ -142,17 +48,14 @@ func (e *Encoder) Encode(v interface{}) error {
 }
 
 func (e *Encoder) flush() error {
-	if e.format != nil {
-		_, err := e.format.WriteTo(e.w)
-		return err
+	if e.structDepth > 0 {
+		return nil
 	}
-	return nil
+	_, err := e.WriteTo(e.w)
+	return err
 }
 
 func (e *Encoder) encode(tag Tag, v interface{}) error {
-	if e.format == nil {
-		e.format = newEncBuf()
-	}
 
 	switch t := v.(type) {
 	case nil:
@@ -189,53 +92,53 @@ func (e *Encoder) encodeInterfaceValue(tag Tag, v interface{}) error {
 
 	switch t := v.(type) {
 	case EnumValuer:
-		e.format.EncodeEnum(tag, t)
+		e.encodeEnum(tag, t)
 	case int:
 		if t > math.MaxInt32 {
 			return tagError(ErrIntOverflow, tag, v)
 		}
-		e.format.EncodeInt(tag, int32(t))
+		e.encodeInt(tag, int32(t))
 	case int8:
-		e.format.EncodeInt(tag, int32(t))
+		e.encodeInt(tag, int32(t))
 	case int16:
-		e.format.EncodeInt(tag, int32(t))
+		e.encodeInt(tag, int32(t))
 	case int32:
-		e.format.EncodeInt(tag, t)
+		e.encodeInt(tag, t)
 	case uint:
 		if t > math.MaxInt32 {
 			return tagError(ErrIntOverflow, tag, v)
 		}
-		e.format.EncodeInt(tag, int32(t))
+		e.encodeInt(tag, int32(t))
 	case uint8:
-		e.format.EncodeInt(tag, int32(t))
+		e.encodeInt(tag, int32(t))
 	case uint16:
-		e.format.EncodeInt(tag, int32(t))
+		e.encodeInt(tag, int32(t))
 	case uint32:
 		if t > math.MaxInt32 {
 			return tagError(ErrIntOverflow, tag, v)
 		}
-		e.format.EncodeInt(tag, int32(t))
+		e.encodeInt(tag, int32(t))
 	case bool:
-		e.format.EncodeBool(tag, t)
+		e.encodeBool(tag, t)
 	case int64:
-		e.format.EncodeLongInt(tag, t)
+		e.encodeLongInt(tag, t)
 	case uint64:
 		if t > math.MaxInt64 {
 			return tagError(ErrLongIntOverflow, tag, v)
 		}
-		e.format.EncodeLongInt(tag, int64(t))
+		e.encodeLongInt(tag, int64(t))
 	case time.Time:
-		e.format.EncodeDateTime(tag, t)
+		e.encodeDateTime(tag, t)
 	case time.Duration:
-		e.format.EncodeInterval(tag, t)
+		e.encodeInterval(tag, t)
 	case big.Int:
-		e.format.EncodeBigInt(tag, &t)
+		e.encodeBigInt(tag, &t)
 	case *big.Int:
-		e.format.EncodeBigInt(tag, t)
+		e.encodeBigInt(tag, t)
 	case string:
-		e.format.EncodeTextString(tag, t)
+		e.encodeTextString(tag, t)
 	case []byte:
-		e.format.EncodeByteString(tag, t)
+		e.encodeByteString(tag, t)
 
 	case []interface{}:
 		for _, v := range t {
@@ -321,21 +224,21 @@ func (e *Encoder) encodeReflectEnum(tag Tag, v reflect.Value) error {
 		}
 
 		u := binary.BigEndian.Uint32(b)
-		e.format.EncodeEnum(tag, EnumInt(u))
+		e.encodeEnum(tag, EnumInt(u))
 		return nil
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		i := v.Uint()
 		if i > math.MaxUint32 {
 			return tagError(ErrIntOverflow, tag, v)
 		}
-		e.format.EncodeEnum(tag, EnumInt(i))
+		e.encodeEnum(tag, EnumInt(i))
 		return nil
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		i := v.Int()
 		if i > math.MaxUint32 {
 			return tagError(ErrIntOverflow, tag, v)
 		}
-		e.format.EncodeEnum(tag, EnumInt(i))
+		e.encodeEnum(tag, EnumInt(i))
 		return nil
 	default:
 		return tagError(ErrUnsupportedEnumTypeError, tag, v)
@@ -368,7 +271,7 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 		if flags&fOmitEmpty != 0 && isEmptyValue(v) {
 			return nil
 		}
-		e.format.EncodeEnum(tag, v.Interface().(EnumValuer))
+		e.encodeEnum(tag, v.Interface().(EnumValuer))
 		return nil
 	case v.CanAddr():
 		pv := v.Addr()
@@ -383,7 +286,7 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 			if flags&fOmitEmpty != 0 && isEmptyValue(v) {
 				return nil
 			}
-			e.format.EncodeEnum(tag, pv.Interface().(EnumValuer))
+			e.encodeEnum(tag, pv.Interface().(EnumValuer))
 			return nil
 		}
 	}
@@ -478,12 +381,12 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 			return nil
 		})
 	case reflect.String:
-		e.format.EncodeTextString(tag, v.String())
+		e.encodeTextString(tag, v.String())
 	case reflect.Slice:
 		switch typ.Elem() {
 		case byteType:
 			// special case, encode as a ByteString
-			e.format.EncodeByteString(tag, v.Bytes())
+			e.encodeByteString(tag, v.Bytes())
 			return nil
 		}
 		fallthrough
@@ -501,23 +404,23 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 		if i > math.MaxInt32 {
 			return merry.Here(ErrIntOverflow).Prepend(tag.String())
 		}
-		e.format.EncodeInt(tag, int32(i))
+		e.encodeInt(tag, int32(i))
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32:
 		u := v.Uint()
 		if u > math.MaxInt32 {
 			return merry.Here(ErrIntOverflow).Prepend(tag.String())
 		}
-		e.format.EncodeInt(tag, int32(u))
+		e.encodeInt(tag, int32(u))
 	case reflect.Uint64:
 		u := v.Uint()
 		if u > math.MaxInt64 {
 			return merry.Here(ErrLongIntOverflow).Prepend(tag.String())
 		}
-		e.format.EncodeLongInt(tag, int64(u))
+		e.encodeLongInt(tag, int64(u))
 	case reflect.Int64:
-		e.format.EncodeLongInt(tag, int64(v.Int()))
+		e.encodeLongInt(tag, int64(v.Int()))
 	case reflect.Bool:
-		e.format.EncodeBool(tag, v.Bool())
+		e.encodeBool(tag, v.Bool())
 	default:
 		// all kinds should have been handled by now
 		panic(errors.New("should never get here"))
@@ -531,44 +434,35 @@ func (e *Encoder) EncodeStructure(tag Tag, f func(e *Encoder) error) error {
 	if !tag.valid() {
 		return tagError(ErrInvalidTag, tag, nil)
 	}
-	if e.format == nil {
-		e.format = newEncBuf()
-	}
-	parentFormat := e.format
-	defer func() {
-		e.format = parentFormat
-	}()
-	var err error
-	e.format.EncodeStructure(tag, func(childFormat formatter) {
-		// don't flush to buffer while building the body of the struct
-		e.format = noWriteFormat{childFormat}
-		err = f(e)
-	})
+
+	e.structDepth++
+	i := e.startStruct(tag)
+	err := f(e)
+	e.endStruct(i)
+	e.structDepth--
 	if err != nil {
 		return err
 	}
 	return e.flush()
 }
 
-// encBuf is a scratch space for the encoder.  Must be at least 16 long, to hold
-// 8 byte header + up to 8 byte values
+// encBuf encodes basic KMIP types into TTLV
 type encBuf struct {
 	bytes.Buffer
 	// enough to hold an entire TTLV for most base types
 	scratch [16]byte
 }
 
-func (h *encBuf) EncodeStructure(tag Tag, f func(formatter)) {
+func (h *encBuf) startStruct(tag Tag) int {
 	h.encodeHeader(tag, TypeStructure, 0)
 	i := h.Len()
 	h.Write(h.scratch[:8])
-	f(h)
-	binary.BigEndian.PutUint32(h.scratch[:4], uint32(h.Len()-lenHeader-i))
-	copy(h.Bytes()[i+4:], h.scratch[:4])
+	return i
 }
 
-func newEncBuf() *encBuf {
-	return &encBuf{}
+func (h *encBuf) endStruct(i int) {
+	binary.BigEndian.PutUint32(h.scratch[:4], uint32(h.Len()-lenHeader-i))
+	copy(h.Bytes()[i+4:], h.scratch[:4])
 }
 
 func (h *encBuf) encodeHeader(tag Tag, p Type, l uint32) {
@@ -582,7 +476,7 @@ func (h *encBuf) encodeHeader(tag Tag, p Type, l uint32) {
 var ones = [8]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
 var zeros = [8]byte{}
 
-func (h *encBuf) EncodeBigInt(tag Tag, i *big.Int) {
+func (h *encBuf) encodeBigInt(tag Tag, i *big.Int) {
 	start := h.Len()
 	// write out 8 bytes of random, allocating the space where
 	// the header will be written later
@@ -628,7 +522,7 @@ func (h *encBuf) EncodeBigInt(tag Tag, i *big.Int) {
 	copy(h.Bytes()[start:], h.scratch[:8])
 }
 
-func (h *encBuf) EncodeInt(tag Tag, i int32) {
+func (h *encBuf) encodeInt(tag Tag, i int32) {
 	h.encodeHeader(tag, TypeInteger, lenInt)
 	h.encodeIntVal(i)
 	h.Write(h.scratch[:16])
@@ -642,7 +536,7 @@ func (h *encBuf) encodeIntVal(i int32) {
 	}
 }
 
-func (h *encBuf) EncodeBool(tag Tag, b bool) {
+func (h *encBuf) encodeBool(tag Tag, b bool) {
 	h.encodeHeader(tag, TypeBoolean, lenBool)
 	if b {
 		h.encodeLongIntVal(1)
@@ -652,7 +546,7 @@ func (h *encBuf) EncodeBool(tag Tag, b bool) {
 	h.Write(h.scratch[:16])
 }
 
-func (h *encBuf) EncodeLongInt(tag Tag, i int64) {
+func (h *encBuf) encodeLongInt(tag Tag, i int64) {
 	h.encodeHeader(tag, TypeLongInteger, lenLongInt)
 	h.encodeLongIntVal(i)
 	h.Write(h.scratch[:16])
@@ -662,25 +556,25 @@ func (h *encBuf) encodeLongIntVal(i int64) {
 	binary.BigEndian.PutUint64(h.scratch[8:], uint64(i))
 }
 
-func (h *encBuf) EncodeDateTime(tag Tag, t time.Time) {
+func (h *encBuf) encodeDateTime(tag Tag, t time.Time) {
 	h.encodeHeader(tag, TypeDateTime, lenDateTime)
 	h.encodeLongIntVal(t.Unix())
 	h.Write(h.scratch[:16])
 }
 
-func (h *encBuf) EncodeInterval(tag Tag, d time.Duration) {
+func (h *encBuf) encodeInterval(tag Tag, d time.Duration) {
 	h.encodeHeader(tag, TypeInterval, lenInterval)
 	h.encodeIntVal(int32(d / time.Second))
 	h.Write(h.scratch[:16])
 }
 
-func (h *encBuf) EncodeEnum(tag Tag, i EnumValuer) {
+func (h *encBuf) encodeEnum(tag Tag, i EnumValuer) {
 	h.encodeHeader(tag, TypeEnumeration, lenEnumeration)
 	h.encodeIntVal(int32(i.EnumValue()))
 	h.Write(h.scratch[:16])
 }
 
-func (h *encBuf) EncodeTextString(tag Tag, s string) {
+func (h *encBuf) encodeTextString(tag Tag, s string) {
 	start := h.Len()
 	// write out 8 bytes of random, allocating the space where
 	// the header will be written later
@@ -694,7 +588,7 @@ func (h *encBuf) EncodeTextString(tag Tag, s string) {
 	copy(h.Bytes()[start:], h.scratch[:8])
 }
 
-func (h *encBuf) EncodeByteString(tag Tag, b []byte) {
+func (h *encBuf) encodeByteString(tag Tag, b []byte) {
 	start := h.Len()
 	// write out 8 bytes of random, allocating the space where
 	// the header will be written later

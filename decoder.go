@@ -1,17 +1,8 @@
 package kmip
 
 import (
-	"github.com/ansel1/merry"
 	"reflect"
 )
-
-func Unmarshal(b []byte, v interface{}) error {
-	val := reflect.ValueOf(v)
-	if val.Kind() != reflect.Ptr {
-		return merry.New("non-pointer passed to Unmarshal")
-	}
-	return unmarshal(val, TTLV(b))
-}
 
 func unmarshal(val reflect.Value, ttlv TTLV) error {
 

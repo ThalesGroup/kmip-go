@@ -251,7 +251,7 @@ func TestUnmarshal(t *testing.T) {
 				tv = TaggedValue{Tag: TagBatchCount, Value: ttv}
 			}
 
-			b, err := MarshalTTLV(tv)
+			b, err := Marshal(tv)
 			require.NoError(t, err)
 
 			v := reflect.New(reflect.TypeOf(test.ptr).Elem())
@@ -290,7 +290,7 @@ func TestUnmarshal(t *testing.T) {
 			}
 
 			t.Run("roundtrip", func(t *testing.T) {
-				bb, err := MarshalTTLV(TaggedValue{Tag: TagBatchCount, Value: v.Elem().Interface()})
+				bb, err := Marshal(TaggedValue{Tag: TagBatchCount, Value: v.Elem().Interface()})
 				require.NoError(t, err)
 
 				if !test.skipExactRoundtripTest {

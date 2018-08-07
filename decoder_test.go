@@ -11,6 +11,35 @@ import (
 	"time"
 )
 
+func TestUnmarshal_known(t *testing.T) {
+	for _, sample := range knownGoodSamples {
+		tname := sample.name
+		if tname == "" {
+			tname = fmt.Sprintf("%T", sample.v)
+		}
+		t.Run(tname, func(t *testing.T) {
+			typ := reflect.ValueOf(sample.v).Type()
+			if typ.Kind() == reflect.Ptr {
+				typ = typ.Elem()
+			}
+			v := reflect.New(typ).Interface()
+
+			err := Unmarshal(hex2bytes(sample.exp), v)
+			require.NoError(t, err)
+			switch tv := sample.v.(type) {
+			case *big.Int:
+				require.Zero(t, tv.Cmp(v.(*big.Int)))
+			case big.Int:
+				require.Zero(t, tv.Cmp(v.(*big.Int)))
+			default:
+				require.Equal(t, sample.v, reflect.ValueOf(v).Elem().Interface())
+			}
+
+		})
+
+	}
+}
+
 func TestUnmarshal(t *testing.T) {
 
 	type unmarshalTest struct {

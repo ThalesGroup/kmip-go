@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"math/big"
@@ -122,7 +121,7 @@ func TestDecoding(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			b := hex2bytes(test.exp)
 			tt := TTLV(b)
-			assert.NoError(t, tt.Valid())
+			require.NoError(t, tt.Valid())
 
 			tagBytes := make([]byte, 4)
 			copy(tagBytes[1:], b[:3])
@@ -147,9 +146,9 @@ func TestDecoding(t *testing.T) {
 				if assert.IsType(t, v, tt.Value()) {
 					assert.True(t, tt.Value().(*big.Int).Cmp(v) == 0)
 				}
+			case TTLV:
+				assert.Equal(t, v, tt)
 			default:
-				t.Log(spew.Sprintln(test.v))
-				t.Log(spew.Sprintln(tt.Value()))
 				assert.EqualValues(t, test.v, tt.Value())
 			}
 

@@ -26,10 +26,6 @@ func NewEncoder(w io.Writer) *Encoder {
 	return &Encoder{w: w}
 }
 
-type Marshaler interface {
-	MarshalTaggedValue(e *Encoder, tag Tag) error
-}
-
 func (e *Encoder) EncodeValue(tag Tag, v interface{}) error {
 	err := e.encode(tag, v)
 	if err != nil {
@@ -61,7 +57,7 @@ func (e *Encoder) encode(tag Tag, v interface{}) error {
 	case nil:
 		return nil
 	case Marshaler:
-		return t.MarshalTaggedValue(e, tag)
+		return t.MarshalTTLV(e, tag)
 	}
 
 	// if no tag is specified, we need to use the reflect path to see if we can infer it
@@ -93,6 +89,9 @@ func (e *Encoder) encodeInterfaceValue(tag Tag, v interface{}) error {
 	switch t := v.(type) {
 	case MarshalerEnum:
 		e.encodeEnum2(tag, t.MarshalTTLVEnum())
+	case TTLV:
+		// raw TTLV value
+		e.Write(t)
 	case int:
 		if t > math.MaxInt32 {
 			return tagError(ErrIntOverflow, tag, v)
@@ -157,11 +156,13 @@ func (e *Encoder) encodeInterfaceValue(tag Tag, v interface{}) error {
 
 var byteType = reflect.TypeOf(byte(0))
 var marshalerType = reflect.TypeOf((*Marshaler)(nil)).Elem()
+var unmarshalerType = reflect.TypeOf((*Unmarshaler)(nil)).Elem()
 var timeType = reflect.TypeOf((*time.Time)(nil)).Elem()
 var bigIntPtrType = reflect.TypeOf((*big.Int)(nil))
 var bigIntType = bigIntPtrType.Elem()
 var durationType = reflect.TypeOf(time.Nanosecond)
 var marshalerEnumType = reflect.TypeOf((*MarshalerEnum)(nil)).Elem()
+var ttlvType = reflect.TypeOf((*TTLV)(nil)).Elem()
 
 var invalidValue = reflect.Value{}
 
@@ -262,11 +263,16 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 	// checking for empty.  In other words, if the type doesn't implement
 	// marshaler, I want to error on invalid types *before* doing the isEmpty logic.
 	switch {
+	case typ == ttlvType:
+		if flags&fOmitEmpty != 0 && isEmptyValue(v) {
+			return nil
+		}
+		e.Write(v.Bytes())
 	case typ.Implements(marshalerType):
 		if flags&fOmitEmpty != 0 && isEmptyValue(v) {
 			return nil
 		}
-		return v.Interface().(Marshaler).MarshalTaggedValue(e, tag)
+		return v.Interface().(Marshaler).MarshalTTLV(e, tag)
 	case typ.Implements(marshalerEnumType):
 		if flags&fOmitEmpty != 0 && isEmptyValue(v) {
 			return nil
@@ -281,7 +287,7 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 			if flags&fOmitEmpty != 0 && isEmptyValue(v) {
 				return nil
 			}
-			return pv.Interface().(Marshaler).MarshalTaggedValue(e, tag)
+			return pv.Interface().(Marshaler).MarshalTTLV(e, tag)
 		case pvtyp.Implements(marshalerEnumType):
 			if flags&fOmitEmpty != 0 && isEmptyValue(v) {
 				return nil
@@ -347,7 +353,7 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 				// a pointer receiver, and a struct with a non-pointer field of that type:
 				//
 				//     type Wheel struct{}
-				//     func (*Wheel) MarshalTaggedValue(...)
+				//     func (*Wheel) MarshalTTLV(...)
 				//
 				//     type Car struct{
 				//         Wheel Wheel

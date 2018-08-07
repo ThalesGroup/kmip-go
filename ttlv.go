@@ -22,6 +22,17 @@ const lenHeader = lenTag + 1 + lenLen // tag + type + len
 
 type TTLV []byte
 
+func (t *TTLV) UnmarshalTTLV(ttlv TTLV) error {
+	if ttlv == nil {
+		*t = nil
+		return nil
+	}
+
+	*t = make([]byte, len(ttlv))
+	copy(*t, ttlv)
+	return nil
+}
+
 func (t TTLV) Tag() Tag {
 	// don't panic if header is truncated
 	if len(t) < 3 {

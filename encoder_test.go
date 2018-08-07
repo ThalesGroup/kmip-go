@@ -3,6 +3,7 @@ package kmip
 import (
 	"bytes"
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io"
 	"io/ioutil"
@@ -172,11 +173,15 @@ var knownGoodSamples = []struct {
 		v:   CredentialTypeAttestation,
 		exp: "42 00 01 | 05 | 00 00 00 04 | 00 00 00 03 00 00 00 00",
 	},
+	{
+		v:   func() TTLV { return TTLV(hex2bytes("42 00 01 | 06 | 00 00 00 08 | 00 00 00 00 00 00 00 01")) }(),
+		exp: "42 00 01 | 06 | 00 00 00 08 | 00 00 00 00 00 00 00 01",
+	},
 }
 
 type MarshalerStruct struct{}
 
-func (MarshalerStruct) MarshalTaggedValue(e *Encoder, tag Tag) error {
+func (MarshalerStruct) MarshalTTLV(e *Encoder, tag Tag) error {
 	return e.EncodeStructure(TagBatchCount, func(e *Encoder) error {
 		e.EncodeValue(TagActivationDate, 4)
 		e.EncodeValue(TagAlternativeName, 5)
@@ -197,7 +202,7 @@ func (MarshalerStruct) MarshalTaggedValue(e *Encoder, tag Tag) error {
 
 type MarshalerFunc func(e *Encoder, tag Tag) error
 
-func (f MarshalerFunc) MarshalTaggedValue(e *Encoder, tag Tag) error {
+func (f MarshalerFunc) MarshalTTLV(e *Encoder, tag Tag) error {
 	// TODO: workaround for encoding a nil value of type MarshalerFunc.  The non reflect
 	// path currently has no way to detect whether an interface value that implements Marshaler is actually
 	// nil.  This makes it save to call a nil MarshalerFunc
@@ -209,14 +214,34 @@ func (f MarshalerFunc) MarshalTaggedValue(e *Encoder, tag Tag) error {
 
 type ptrMarshaler struct{}
 
-func (*ptrMarshaler) MarshalTaggedValue(e *Encoder, tag Tag) error {
+func (*ptrMarshaler) MarshalTTLV(e *Encoder, tag Tag) error {
 	return e.EncodeValue(tag, 5)
 }
 
 type nonptrMarshaler struct{}
 
-func (nonptrMarshaler) MarshalTaggedValue(e *Encoder, tag Tag) error {
+func (nonptrMarshaler) MarshalTTLV(e *Encoder, tag Tag) error {
 	return e.EncodeValue(tag, 5)
+}
+
+func TestMarshal(t *testing.T) {
+	for _, sample := range knownGoodSamples {
+		tname := sample.name
+		if tname == "" {
+			tname = fmt.Sprintf("%T", sample.v)
+		}
+		t.Run(tname, func(t *testing.T) {
+			exp := hex2bytes(sample.exp)
+
+			var got []byte
+			var err error
+
+			got, err = Marshal(TaggedValue{Tag: Tag(0x420001), Value: sample.v})
+
+			require.NoError(t, err)
+			assert.Equal(t, exp, got)
+		})
+	}
 }
 
 func TestEncoder_Encode(t *testing.T) {
@@ -224,22 +249,7 @@ func TestEncoder_Encode(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func fastPathSupported(v interface{}) bool {
-	switch v.(type) {
-	case MarshalerEnum:
-		// interfaces
-		return true
-	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, bool, time.Time, time.Duration, big.Int, *big.Int, string, []byte, []interface{}:
-		// base types
-		return true
-	case uintptr, complex64, complex128, float32, float64:
-		// types which are not encodeable, but should be detected and rejected in the fast path
-		return true
-	}
-	return false
-}
-
-func TestEncoder_encode_errors(t *testing.T) {
+func TestEncoder_EncodeValue_errors(t *testing.T) {
 	type testCase struct {
 		name   string
 		v      interface{}
@@ -310,68 +320,59 @@ func TestEncoder_encode_errors(t *testing.T) {
 			testName = fmt.Sprintf("%T", test.v)
 		}
 		t.Run(testName, func(t *testing.T) {
-			// test both reflect and non-reflect paths
-			err := enc.encodeReflectValue(TagCancellationResult, reflect.ValueOf(test.v), 0)
+			err := enc.EncodeValue(TagCancellationResult, test.v)
 			require.Error(t, err)
 			t.Log(Details(err))
 			require.True(t, Is(err, test.expErr), Details(err))
-
-			err = enc.encodeInterfaceValue(TagCancellationResult, test.v)
-			require.Error(t, err)
-			if fastPathSupported(test.v) {
-				require.True(t, Is(err, test.expErr), Details(err))
-			} else {
-				require.True(t, err == errNoEncoder)
-			}
 		})
 	}
 }
 
 type Marshalablefloat32 float32
 
-func (Marshalablefloat32) MarshalTaggedValue(e *Encoder, tag Tag) error {
+func (Marshalablefloat32) MarshalTTLV(e *Encoder, tag Tag) error {
 	return e.EncodeValue(tag, 5)
 }
 
 type Marshalablefloat32Ptr float32
 
-func (*Marshalablefloat32Ptr) MarshalTaggedValue(e *Encoder, tag Tag) error {
+func (*Marshalablefloat32Ptr) MarshalTTLV(e *Encoder, tag Tag) error {
 	return e.EncodeValue(tag, 5)
 }
 
 type Marshalablefloat64 float64
 
-func (Marshalablefloat64) MarshalTaggedValue(e *Encoder, tag Tag) error {
+func (Marshalablefloat64) MarshalTTLV(e *Encoder, tag Tag) error {
 	return e.EncodeValue(tag, 5)
 }
 
 type Marshalablefloat64Ptr float64
 
-func (*Marshalablefloat64Ptr) MarshalTaggedValue(e *Encoder, tag Tag) error {
+func (*Marshalablefloat64Ptr) MarshalTTLV(e *Encoder, tag Tag) error {
 	return e.EncodeValue(tag, 5)
 }
 
 type MarshalableMap map[string]string
 
-func (MarshalableMap) MarshalTaggedValue(e *Encoder, tag Tag) error {
+func (MarshalableMap) MarshalTTLV(e *Encoder, tag Tag) error {
 	return e.EncodeValue(tag, 5)
 }
 
 type MarshalableMapPtr map[string]string
 
-func (*MarshalableMapPtr) MarshalTaggedValue(e *Encoder, tag Tag) error {
+func (*MarshalableMapPtr) MarshalTTLV(e *Encoder, tag Tag) error {
 	return e.EncodeValue(tag, 5)
 }
 
 type MarshalableSlice []string
 
-func (MarshalableSlice) MarshalTaggedValue(e *Encoder, tag Tag) error {
+func (MarshalableSlice) MarshalTTLV(e *Encoder, tag Tag) error {
 	return e.EncodeValue(tag, 5)
 }
 
 type MarshalableSlicePtr []string
 
-func (*MarshalableSlicePtr) MarshalTaggedValue(e *Encoder, tag Tag) error {
+func (*MarshalableSlicePtr) MarshalTTLV(e *Encoder, tag Tag) error {
 	return e.EncodeValue(tag, 5)
 }
 

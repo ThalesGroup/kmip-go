@@ -5,7 +5,6 @@ import (
 )
 
 func unmarshal(val reflect.Value, ttlv TTLV) error {
-
 	// Load value from interface, but only if the result will be
 	// usefully addressable.
 	if val.Kind() == reflect.Interface && !val.IsNil() {
@@ -13,6 +12,14 @@ func unmarshal(val reflect.Value, ttlv TTLV) error {
 		if e.Kind() == reflect.Ptr && !e.IsNil() {
 			val = e
 		}
+	}
+
+	// TODO: I think this will only work if the type of the field
+	// directly implements Unmarshaler, but I'm not sure what will
+	// happen if the value is a pointer and Unmarshaler receiver is
+	// not a pointer, or vice versa.  Need to add some test cases for this.
+	if val.Type().Implements(unmarshalerType) {
+		return val.Interface().(Unmarshaler).UnmarshalTTLV(ttlv)
 	}
 
 	if val.Kind() == reflect.Ptr {
@@ -147,21 +154,13 @@ func unmarshalStructure(ttlv TTLV, val reflect.Value) error {
 		return err
 	}
 
-	// keep track of which fields we've already matched up with a TTLV
-	// values.  Since TTLV values can appear more than once, we want to
-	// match them up with subsequent fields.
-	matched := make([]bool, len(ti.fields))
-
 Next:
 	for n := ttlv.ValueStructure(); n != nil; n = n.Next() {
-		for i, field := range ti.fields {
-			if field.tag == n.Tag() && !matched[i] {
+		for _, field := range ti.fields {
+			if field.tag == n.Tag() {
 				err := unmarshal(val.FieldByIndex(field.index), n)
 				if err != nil {
 					return err
-				}
-				if !field.slice {
-					matched[i] = true
 				}
 				continue Next
 			}

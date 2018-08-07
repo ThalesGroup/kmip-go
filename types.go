@@ -1,11 +1,19 @@
 package kmip
 
+type Marshaler interface {
+	MarshalTTLV(e *Encoder, tag Tag) error
+}
+
+type Unmarshaler interface {
+	UnmarshalTTLV(ttlv TTLV) error
+}
+
 type Structure struct {
 	Tag    Tag
 	Values []interface{}
 }
 
-func (s Structure) MarshalTaggedValue(e *Encoder, tag Tag) error {
+func (s Structure) MarshalTTLV(e *Encoder, tag Tag) error {
 	if s.Tag != 0 {
 		tag = s.Tag
 	}
@@ -26,7 +34,7 @@ type TaggedValue struct {
 	Value interface{}
 }
 
-func (t TaggedValue) MarshalTaggedValue(e *Encoder, tag Tag) error {
+func (t TaggedValue) MarshalTTLV(e *Encoder, tag Tag) error {
 	// if tag is set, override the suggested tag
 	if t.Tag != 0 {
 		tag = t.Tag

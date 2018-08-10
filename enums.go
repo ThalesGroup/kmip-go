@@ -1,0 +1,3 @@
+package kmip
+
+func RegisterEnum()

@@ -238,10 +238,6 @@ func ({{.Var}} *{{.Name}}) UnmarshalText(text []byte) (err error) {
 	return
 }
 
-func ({{.Var}} {{.Name}}) EnumValue() uint32 {
-	return uint32({{.Var}})
-}
-
 func ({{.Var}} {{.Name}}) MarshalTTLVEnum() uint32 {
 	return uint32({{.Var}})
 }`
@@ -542,12 +538,54 @@ var Tags = map[string]uint32{
 	"Replace Existing":                         0x420124,
 }
 
-var CredentialType = EnumDef{
-	Comment: "9.1.3.2.1 Credential Type Enumeration",
-	Name: "CredentialType",
-	Values: map[string]uint32{
-		"Username and Password": 0x00000001,
-		"Device":                0x00000002,
-		"Attestation":           0x00000003,
+var enumDefs = []EnumDef {
+	{
+		Comment: "9.1.3.2.1 Credential Type Enumeration",
+		Name:    "CredentialType",
+		Values: map[string]uint32{
+			"Username and Password": 0x00000001,
+			"Device":                0x00000002,
+			"Attestation":           0x00000003,
+		},
+	},
+	{
+		Comment: "9.1.3.2.2 Key Compression Type Enumeration",
+		Name:    "KeyCompressionType",
+		Values: map[string]uint32{
+			"EC Public Key Type Uncompressed":           0x00000001,
+			"EC Public Key Type X9.62 Compressed Prime": 0x00000002,
+			"EC Public Key Type X9.62 Compressed Char2": 0x00000003,
+			"EC Public Key Type X9.62 Hybrid":           0x00000004,
+		},
+	},
+	{
+		Comment:"9.1.3.2.3 Key Format Type Enumeration",
+		Name: "KeyFormatTypeEnumeration",
+		Values:map[string]uint32{
+			"Raw": 0x00000001,
+			"Opaque": 0x00000002,
+			"PKCS#1": 0x00000003,
+			"PKCS#8": 0x00000004,
+			"X.509": 0x00000005,
+			"ECPrivateKey": 0x00000006,
+			"Transparent Symmetric Key": 0x00000007,
+			"Transparent DSA Private Key": 0x00000008,
+			"Transparent DSA Public Key": 0x00000009,
+			"Transparent RSA Private Key": 0x0000000A,
+			"Transparent RSA Public Key": 0x0000000B,
+			"Transparent DH Private Key": 0x0000000C,
+			"Transparent DH Public Key": 0x0000000D,
+			"Transparent ECDSA Private Key": 0x0000000E,
+			"Transparent ECDSA Public Key": 0x0000000F,
+			"Transparent ECDH Private Key": 0x00000010,
+			"Transparent ECDH Public Key": 0x00000011,
+			"Transparent ECMQV Private Key": 0x00000012,
+			"Transparent ECMQV Public Key": 0x00000013,
+			"Transparent EC Private Key": 0x00000014,
+			"Transparent EC Public Key": 0x00000015,
+			"PKCS#12": 0x00000016,
+		},
 	},
 }
+
+

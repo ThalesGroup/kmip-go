@@ -796,6 +796,66 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			}},
 		},
 		{
+			name: "omitemptydatetime",
+			v: struct {
+				Attribute      time.Time
+				AttributeValue time.Time `kmip:",omitempty"`
+				ArchiveDate    time.Time `kmip:",omitempty"`
+			}{
+				AttributeValue: parseTime("Friday, March 14, 2008, 11:56:40 UTC"),
+			},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagAttribute, Value: time.Time{}},
+				TaggedValue{Tag: TagAttributeValue, Value: parseTime("Friday, March 14, 2008, 11:56:40 UTC")},
+			}},
+		},
+		{
+			name: "omitemptydatetimeptr",
+			v: struct {
+				Attribute      *time.Time
+				AttributeValue *time.Time `kmip:",omitempty"`
+				ArchiveDate    *time.Time `kmip:",omitempty"`
+			}{
+				Attribute:      &time.Time{},
+				AttributeValue: func() *time.Time { t := parseTime("Friday, March 14, 2008, 11:56:40 UTC"); return &t }(),
+				ArchiveDate:    &time.Time{},
+			},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagAttribute, Value: time.Time{}},
+				TaggedValue{Tag: TagAttributeValue, Value: parseTime("Friday, March 14, 2008, 11:56:40 UTC")},
+			}},
+		},
+		{
+			name: "omitemptybigint",
+			v: struct {
+				Attribute      big.Int
+				AttributeValue big.Int `kmip:",omitempty"`
+				ArchiveDate    big.Int `kmip:",omitempty"`
+			}{
+				AttributeValue: *parseBigInt("1"),
+			},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagAttribute, Value: big.Int{}},
+				TaggedValue{Tag: TagAttributeValue, Value: parseBigInt("1")},
+			}},
+		},
+		{
+			name: "omitemptybigintptr",
+			v: struct {
+				Attribute      *big.Int
+				AttributeValue *big.Int `kmip:",omitempty"`
+				ArchiveDate    *big.Int `kmip:",omitempty"`
+			}{
+				Attribute:      parseBigInt("0"),
+				AttributeValue: parseBigInt("1"),
+				ArchiveDate:    parseBigInt("0"),
+			},
+			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
+				TaggedValue{Tag: TagAttribute, Value: big.Int{}},
+				TaggedValue{Tag: TagAttributeValue, Value: parseBigInt("1")},
+			}},
+		},
+		{
 			name: "omitemptyint",
 			v: struct {
 				Attribute      int
@@ -1082,7 +1142,7 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			}},
 		},
 		{
-			name: "omitemptyslice",
+			name: "omitemptymarshalableslice",
 			v: &struct {
 				AttributeIndex MarshalableSlice
 				Attribute      MarshalableSlice
@@ -1108,7 +1168,7 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			}},
 		},
 		{
-			name: "omitemptysliceptr",
+			name: "omitemptymarshalablesliceptr",
 			v: &struct {
 				AttributeIndex MarshalableSlicePtr
 				Attribute      MarshalableSlicePtr

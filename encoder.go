@@ -190,6 +190,8 @@ func indirect(v reflect.Value) reflect.Value {
 	return v
 }
 
+var zeroBigInt = big.Int{}
+
 func isEmptyValue(v reflect.Value) bool {
 	switch v.Kind() {
 	case reflect.Array, reflect.Map, reflect.Slice, reflect.String:
@@ -204,6 +206,14 @@ func isEmptyValue(v reflect.Value) bool {
 		return v.Float() == 0
 	case reflect.Interface, reflect.Ptr:
 		return v.IsNil()
+	}
+
+	switch v.Type() {
+	case timeType:
+		return v.Interface().(time.Time).IsZero()
+	case bigIntType:
+		i := v.Interface().(big.Int)
+		return zeroBigInt.Cmp(&i) == 0
 	}
 	return false
 }
@@ -306,6 +316,7 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 		return tagError(ErrUnsupportedTypeError, tag, v).Appendf("%s", v.Type().String())
 	}
 
+	// skip if value is empty and tags include omitempty
 	if flags&fOmitEmpty != 0 && isEmptyValue(v) {
 		return nil
 	}

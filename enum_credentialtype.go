@@ -9,8 +9,8 @@ import (
 	"strings"
 )
 
-// CredentialType
-// 9.1.3.2.1 Credential Type Enumeration
+// Credential Type Enumeration
+// 9.1.3.2.1
 type CredentialType uint32
 
 const (

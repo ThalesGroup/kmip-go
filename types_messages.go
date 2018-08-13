@@ -11,6 +11,7 @@ type RequestMessage struct {
 
 type ResponseMessage struct {
 	ResponseHeader ResponseHeader
+	BatchItem      []ResponseBatchItem
 }
 
 // 7.2

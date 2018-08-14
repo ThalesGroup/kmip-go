@@ -4,8 +4,9 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	"github.com/ansel1/merry"
 	"strings"
+
+	"github.com/ansel1/merry"
 )
 
 func (t Tag) String() string {
@@ -35,9 +36,8 @@ func ParseTag(s string) (Tag, error) {
 	}
 	if v, ok := _TagNameToValueMap[s]; ok {
 		return v, nil
-	} else {
-		return TagNone, nil
 	}
+	return TagNone, nil
 }
 
 func (t Tag) MarshalText() (text []byte, err error) {

@@ -8,6 +8,8 @@ import (
 	"gitlab.protectv.local/regan/kmip.git"
 	"bufio"
 	"io"
+	"context"
+	"github.com/k0kubun/pp"
 )
 
 func main() {
@@ -27,16 +29,42 @@ func main() {
 
 	fmt.Println("server: listening")
 
-	for {
-		conn, err := listener.Accept()
-		if err != nil {
-			panic(err)
-		}
-
-		fmt.Printf("server: accepted from %s\n", conn.RemoteAddr())
-
-		go handleClient(conn)
+	srv := kmip.Server{
+		Handler:kmip.HandlerFunc(func(ctx context.Context, req *kmip.Request, resp *kmip.ResponseMessage) error {
+			fmt.Println("got: ", pp.Sprint(req))
+			resp.ResponseHeader.ProtocolVersion.ProtocolVersionMajor = 1
+			resp.ResponseHeader.ProtocolVersion.ProtocolVersionMinor = 0
+			resp.ResponseHeader.BatchCount = 1
+			resp.BatchItem = []kmip.ResponseBatchItem{
+				{
+					Operation:    kmip.OperationDiscoverVersions,
+					ResultStatus: kmip.ResultStatusSuccess,
+					ResponsePayload: kmip.DiscoverVersionsResponsePayload{
+						ProtocolVersion: []kmip.ProtocolVersion{
+							{
+								ProtocolVersionMajor: 1,
+								ProtocolVersionMinor: 0,
+							},
+						},
+					},
+				},
+			}
+			return nil
+		}),
 	}
+
+	panic(srv.Serve(listener))
+
+	//for {
+	//	conn, err := listener.Accept()
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//
+	//	fmt.Printf("server: accepted from %s\n", conn.RemoteAddr())
+	//
+	//	go handleClient(conn)
+	//}
 }
 
 func handleClient(conn net.Conn) {

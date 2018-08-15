@@ -156,6 +156,48 @@ func TestDecoding(t *testing.T) {
 	}
 }
 
+func TestTTLV_UnmarshalTTLV(t *testing.T) {
+	var ttlv TTLV
+
+	require.Nil(t, ttlv)
+
+	buf := bytes.NewBuffer(nil)
+	enc := NewEncoder(buf)
+	require.NoError(t, enc.EncodeValue(TagComment, "red"))
+
+	err := ttlv.UnmarshalTTLV(TTLV(buf.Bytes()))
+	require.NoError(t, err)
+
+	require.NotNil(t, ttlv)
+	require.Equal(t, TTLV(buf.Bytes()), ttlv)
+
+	// if ttlv is already allocated and is long enough, allocate
+	// into the existing byte slice, rather than allocating a new one
+	// (avoid unnecessary allocation for performance)
+
+	ttlv = make(TTLV, buf.Len()+100) // create a TTLV buf a bit larger than necessary
+	// copy some marker bytes into the end.  after unmarshaling, the marker bytes should
+	// be intact, since they are in the end part of the buffer
+	copy(ttlv[buf.Len():], []byte("whitewhale"))
+	err = ttlv.UnmarshalTTLV(TTLV(buf.Bytes()))
+
+	require.NoError(t, err)
+	require.Equal(t, TTLV(buf.Bytes()), ttlv)
+	require.Equal(t, buf.Len()+100, cap(ttlv))
+	require.Len(t, ttlv, buf.Len())
+	require.EqualValues(t, []byte("whitewhale"), ttlv[buf.Len():buf.Len()+10])
+
+	// if ttlv is not nil, but is not long enough to hold TTLV value,
+	// everything still works
+
+	ttlv = make(TTLV, buf.Len()-2)
+	err = ttlv.UnmarshalTTLV(TTLV(buf.Bytes()))
+
+	require.NoError(t, err)
+	require.Equal(t, TTLV(buf.Bytes()), ttlv)
+
+}
+
 // hex2bytes converts hex string to bytes.  Any non-hex characters in the string are stripped first.
 // panics on error
 func hex2bytes(s string) []byte {

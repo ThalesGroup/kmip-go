@@ -345,6 +345,7 @@ func (c *conn) serve(ctx context.Context) {
 
 		// TODO: set batchcount and timestamp
 
+		// TODO: reuse an encoder, not Marshal.  should save on []byte allocations
 		b, err := Marshal(resp)
 		if err != nil {
 			// TODO: handle error

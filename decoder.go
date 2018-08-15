@@ -31,9 +31,11 @@ func unmarshal(val reflect.Value, ttlv TTLV) error {
 
 	switch val.Kind() {
 	case reflect.Interface:
-		// TODO: For now, simply ignore the field. In the near
-		//       future we may choose to unmarshal the start
-		//       element on it, if not nil.
+		// set blank interface equal to the raw TTLV
+		fullLen := ttlv.FullLen()
+		ttlv2 := make(TTLV, fullLen)
+		copy(ttlv2, ttlv[:fullLen])
+		val.Set(reflect.ValueOf(ttlv2))
 		return nil
 	case reflect.Slice:
 		typ := val.Type()

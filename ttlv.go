@@ -28,7 +28,13 @@ func (t *TTLV) UnmarshalTTLV(ttlv TTLV) error {
 		return nil
 	}
 
-	*t = make([]byte, len(ttlv))
+	l := len(ttlv)
+	if len(*t) < l {
+		*t = make([]byte, l)
+	} else {
+		*t = (*t)[:l]
+	}
+
 	copy(*t, ttlv)
 	return nil
 }

@@ -163,6 +163,17 @@ func TestUnmarshal(t *testing.T) {
 			expected:               int64(CredentialTypeAttestation),
 			skipExactRoundtripTest: true,
 		},
+		{
+			in:  TaggedValue{Tag: TagComment, Value: "red"},
+			ptr: new(interface{}),
+			expected: func() interface{} {
+				b, err := Marshal(TaggedValue{Tag: TagComment, Value: "red"})
+				if err != nil {
+					panic(err)
+				}
+				return TTLV(b)
+			}(),
+		},
 	}
 
 	type A struct {

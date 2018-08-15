@@ -47,6 +47,8 @@ func (e *Encoder) flush() error {
 	if e.structDepth > 0 {
 		return nil
 	}
+	// TODO: reset write buffer when finished
+	// TODO: don't embed encbuf.  we don't want to publish its methods on *Encoder
 	_, err := e.WriteTo(e.w)
 	return err
 }

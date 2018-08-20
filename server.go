@@ -12,12 +12,11 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-
-	"github.com/ansel1/merry"
 )
 
 type Server struct {
-	Handler Handler
+	Handler    Handler
+	RawHandler RawHandler
 
 	mu         sync.Mutex
 	listeners  map[*net.Listener]struct{}
@@ -257,13 +256,12 @@ func (c *conn) serve(ctx context.Context) {
 		//}
 	}
 
-	// HTTP/1.x from here on.
-
 	ctx, cancelCtx := context.WithCancel(ctx)
 	c.cancelCtx = cancelCtx
 	defer cancelCtx()
 
-	c.bufr = newBufioReader(c.rwc)
+	// TODO: do we really need instance pooling here?  We expect KMIP connections to be long lasting
+	c.bufr = bufio.NewReader(c.rwc)
 	//c.bufw = newBufioWriterSize(checkConnErrorWriter{c}, 4<<10)
 
 	for {
@@ -335,26 +333,20 @@ func (c *conn) serve(ctx context.Context) {
 		// was never deployed in the wild and the answer is HTTP/2.
 
 		// TODO: pre-fill fields of response header
-		var resp ResponseMessage
-		err = c.server.Handler.Handle(ctx, w, &resp)
-		cancelCtx()
-		if err != nil {
-			// TODO: do something with the error
-			panic(err)
+		h := c.server.RawHandler
+		if h == nil {
+			h = DefaultHandler
 		}
-
-		// TODO: set batchcount and timestamp
-
-		// TODO: reuse an encoder, not Marshal.  should save on []byte allocations
-		b, err := Marshal(resp)
-		if err != nil {
-			// TODO: handle error
-			panic(err)
-		}
+		ttlv := h.HandleRaw(ctx, w)
+		//var resp ResponseMessage
+		//err = c.server.Handler.Handle(ctx, w, &resp)
+		// TODO: this cancelCtx() was created at the connection level, not the request level.  Need to
+		// figure out how to handle connection vs request timeouts and cancels.
+		//cancelCtx()
 
 		// TODO: use recycled buffered writer
 		writer := bufio.NewWriter(c.rwc)
-		_, err = writer.Write(b)
+		_, err = writer.Write(ttlv)
 		if err != nil {
 			// TODO: handle error
 			panic(err)
@@ -510,21 +502,9 @@ func readRequest(bufr *bufio.Reader) (*Request, error) {
 		return nil, err
 	}
 
-	if err := ttlv.Valid(); err != nil {
-		return nil, merry.Prepend(err, "invalid request")
-	}
-
-	if ttlv.Tag() != TagRequestMessage {
-		return nil, merry.Errorf("invalid tag: expected RequestMessage, was %s", ttlv.Tag().String())
-	}
-
 	// TODO: use pooling to recycle requests?
-	req := new(Request)
-
-	err = Unmarshal(ttlv, &req.RequestMessage)
-
-	if err != nil {
-		return nil, err
+	req := &Request{
+		TTLV: ttlv,
 	}
 
 	return req, nil
@@ -565,7 +545,8 @@ func readTTLV(bufr *bufio.Reader) (TTLV, error) {
 }
 
 type Request struct {
-	RequestMessage RequestMessage
+	TTLV           TTLV
+	RequestMessage *RequestMessage
 	TLS            *tls.ConnectionState
 	RemoteAddr     string
 	LocalAddr      string
@@ -598,23 +579,3 @@ func (oc *onceCloseListener) Close() error {
 }
 
 func (oc *onceCloseListener) close() { oc.closeErr = oc.Listener.Close() }
-
-var (
-	bufioReaderPool sync.Pool
-)
-
-func newBufioReader(r io.Reader) *bufio.Reader {
-	if v := bufioReaderPool.Get(); v != nil {
-		br := v.(*bufio.Reader)
-		br.Reset(r)
-		return br
-	}
-	// Note: if this reader size is ever changed, update
-	// TestHandlerBodyClose's assumptions.
-	return bufio.NewReader(r)
-}
-
-func putBufioReader(br *bufio.Reader) {
-	br.Reset(nil)
-	bufioReaderPool.Put(br)
-}

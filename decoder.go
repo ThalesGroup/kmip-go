@@ -4,6 +4,12 @@ import (
 	"reflect"
 )
 
+// TODO: I may need to support a way to accumulate TTLV values which
+// don't map into fields, like an overflow.  Or support an option to error if
+// there are extra fields, like the json package.
+// The protocol suggests/requires erroring if
+// the client and server protocol versions match exactly, but the server encounters fields
+// it doesn't recognize
 func unmarshal(val reflect.Value, ttlv TTLV) error {
 	// Load value from interface, but only if the result will be
 	// usefully addressable.

@@ -171,6 +171,19 @@ func (t TTLV) Valid() error {
 		return ErrValueTruncated
 	}
 
+	if t.Type() == TypeStructure {
+		inner := t.ValueStructure()
+		for {
+			if len(inner) <= 0 {
+				break
+			}
+			if err := inner.Valid(); err != nil {
+				return merry.Prepend(err, t.Tag().String())
+			}
+			inner = inner.Next()
+		}
+	}
+
 	return nil
 }
 

@@ -49,8 +49,8 @@ type ResponseHeader struct {
 }
 
 type ResponseBatchItem struct {
-	Operation                    Operation
-	UniqueBatchItemID            []byte `kmip:",omitempty"`
+	Operation                    Operation `kmip:",omitempty"`
+	UniqueBatchItemID            []byte    `kmip:",omitempty"`
 	ResultStatus                 ResultStatus
 	ResultReason                 ResultReason `kmip:",omitempty"`
 	ResultMessage                string       `kmip:",omitempty"`

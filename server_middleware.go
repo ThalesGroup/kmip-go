@@ -82,6 +82,8 @@ func (h *StandardProtocolHandler) parseMessage(ctx context.Context, req *Request
 	return nil
 }
 
+var responsePool = sync.Pool{}
+
 type Response struct {
 	ResponseMessage
 	buf bytes.Buffer
@@ -89,10 +91,25 @@ type Response struct {
 }
 
 func newResponse() *Response {
-	// TODO: instance pooling
+	v := responsePool.Get()
+	if v != nil {
+		r := v.(*Response)
+		r.reset()
+		return r
+	}
 	r := Response{}
 	r.enc = NewEncoder(&r.buf)
 	return &r
+}
+
+func releaseResponse(r *Response) {
+	responsePool.Put(r)
+}
+
+func (r *Response) reset() {
+	r.BatchItem = nil
+	r.ResponseMessage = ResponseMessage{}
+	r.buf.Reset()
 }
 
 func (r *Response) Bytes() []byte {
@@ -176,6 +193,7 @@ func (h *StandardProtocolHandler) ServeKMIP(ctx context.Context, req *Request, w
 
 	resp.mustWriteTo(writer)
 
+	releaseResponse(resp)
 }
 
 func (r *ResponseMessage) addFailure(reason ResultReason, msg string) {

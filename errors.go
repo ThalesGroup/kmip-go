@@ -81,8 +81,25 @@ var ErrInvalidHexString = errors.New("invalid hex string")
 type errKey int
 
 const (
-	errorCtx errKey = iota
+	errorKeyCtx errKey = iota
+	errorKeyResultReason
 )
+
+func WithResultReason(err error, rr ResultReason) error {
+	return merry.WithValue(err, errorKeyResultReason, rr)
+}
+
+func GetResultReason(err error) ResultReason {
+	v := merry.Value(err, errorKeyResultReason)
+	switch t := v.(type) {
+	case nil:
+		return ResultReason(0)
+	case ResultReason:
+		return t
+	default:
+		panic(fmt.Sprintf("err result reason attribute's value was wrong type, expected ResultReason, got %T", v))
+	}
+}
 
 type ErrorContext struct {
 	Tag   Tag
@@ -121,11 +138,11 @@ func (ctx *ErrorContext) String() string {
 }
 
 func WithErrorContext(err error, ctx ErrorContext) error {
-	return merry.WithValue(err, errorCtx, &ctx)
+	return merry.WithValue(err, errorKeyCtx, &ctx)
 }
 
 func GetErrorContext(err error) *ErrorContext {
-	v := merry.Value(err, errorCtx)
+	v := merry.Value(err, errorKeyCtx)
 	if v == nil {
 		return nil
 	}
@@ -134,7 +151,7 @@ func GetErrorContext(err error) *ErrorContext {
 
 func tagErrorSkipping(err error, tag Tag, v interface{}, skip int) merry.Error {
 	merr := merry.HereSkipping(err, 1+skip)
-	merr = merr.WithValue(errorCtx, &ErrorContext{Tag: tag, Value: v})
+	merr = merr.WithValue(errorKeyCtx, &ErrorContext{Tag: tag, Value: v})
 
 	if tag != TagNone {
 		merr = merr.Prepend(tag.String())

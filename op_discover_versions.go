@@ -1,57 +1,45 @@
 package kmip
 
+import (
+	"context"
+)
+
 // 4.26
 
 type DiscoverVersionsRequestPayload struct {
 	ProtocolVersion []ProtocolVersion
 }
 
-//func (d *DiscoverVersionsRequestPayload) UnmarshalTTLV(ttlv TTLV) error {
-//	var pv []ProtocolVersion
-//	err := Unmarshal(ttlv, &pv)
-//	if err != nil {
-//		return err
-//	}
-//	if len(pv) > 0 {
-//		if d == nil {
-//			*d = DiscoverVersionsRequestPayload{}
-//		}
-//		d.ProtocolVersion = pv
-//	}
-//	return nil
-//}
-//
-//func (d *DiscoverVersionsRequestPayload) MarshalTTLV(e *Encoder, tag Tag) error {
-//	if d == nil {
-//		return nil
-//	}
-//
-//	return e.EncodeValue(tag, d.ProtocolVersion)
-//}
-
 type DiscoverVersionsResponsePayload struct {
 	ProtocolVersion []ProtocolVersion
 }
 
-//func (d *DiscoverVersionsResponsePayload) UnmarshalTTLV(ttlv TTLV) error {
-//	var pv []ProtocolVersion
-//	err := Unmarshal(ttlv, &pv)
-//	if err != nil {
-//		return err
-//	}
-//	if len(pv) > 0 {
-//		if d == nil {
-//			*d = DiscoverVersionsResponsePayload{}
-//		}
-//		d.ProtocolVersion = pv
-//	}
-//	return nil
-//}
-//
-//func (d *DiscoverVersionsResponsePayload) MarshalTTLV(e *Encoder, tag Tag) error {
-//	if d == nil {
-//		return nil
-//	}
-//
-//	return e.EncodeValue(tag, d.ProtocolVersion)
-//}
+type DiscoverVersionsHandler struct {
+	SupportedVersions []ProtocolVersion
+}
+
+func (h *DiscoverVersionsHandler) HandleItem(ctx context.Context, req *Request) (item *ResponseBatchItem, err error) {
+	var payload DiscoverVersionsRequestPayload
+	err = Unmarshal(req.Payload(), &payload)
+	if err != nil {
+		return nil, err
+	}
+
+	var respPayload DiscoverVersionsResponsePayload
+
+	if len(payload.ProtocolVersion) == 0 {
+		respPayload.ProtocolVersion = h.SupportedVersions
+	} else {
+		for _, v := range h.SupportedVersions {
+			for _, cv := range payload.ProtocolVersion {
+				if cv == v {
+					respPayload.ProtocolVersion = append(respPayload.ProtocolVersion, v)
+					break
+				}
+			}
+		}
+	}
+	return &ResponseBatchItem{
+		ResponsePayload: respPayload,
+	}, nil
+}

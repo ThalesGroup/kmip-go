@@ -4,8 +4,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"gitlab.protectv.local/regan/kmip.git"
-	"context"
-	"github.com/k0kubun/pp"
 )
 
 func main() {
@@ -25,27 +23,46 @@ func main() {
 
 	fmt.Println("server: listening")
 
-	kmip.DefaultHandler.Handler = kmip.HandlerFunc(func(ctx context.Context, req *kmip.Request, resp *kmip.ResponseMessage) error {
-		fmt.Println("got: ", pp.Sprint(req))
-		resp.ResponseHeader.ProtocolVersion.ProtocolVersionMajor = 1
-		resp.ResponseHeader.ProtocolVersion.ProtocolVersionMinor = 0
-		resp.ResponseHeader.BatchCount = 1
-		resp.BatchItem = []kmip.ResponseBatchItem{
+	kmip.DefaultOperationMux.Handle(kmip.OperationDiscoverVersions, &kmip.DiscoverVersionsHandler{
+		SupportedVersions:[]kmip.ProtocolVersion{
 			{
-				Operation:    kmip.OperationDiscoverVersions,
-				ResultStatus: kmip.ResultStatusSuccess,
-				ResponsePayload: kmip.DiscoverVersionsResponsePayload{
-					ProtocolVersion: []kmip.ProtocolVersion{
-						{
-							ProtocolVersionMajor: 1,
-							ProtocolVersionMinor: 0,
-						},
-					},
-				},
+				ProtocolVersionMajor:1,
+				ProtocolVersionMinor:4,
 			},
-		}
-		return nil
+			{
+				ProtocolVersionMajor: 1,
+				ProtocolVersionMinor: 3,
+			},
+			{
+				ProtocolVersionMajor: 1,
+				ProtocolVersionMinor: 2,
+			},
+		},
 	})
+
+	//kmip.DefaultHandler.MessageHandler = kmip.HandlerFunc(func(ctx context.Context, req *kmip.Request, resp *kmip.ResponseMessage) error {
+	//	fmt.Println("got: ", pp.Sprint(req))
+	//	resp.ResponseHeader.ProtocolVersion.ProtocolVersionMajor = 1
+	//	resp.ResponseHeader.ProtocolVersion.ProtocolVersionMinor = 0
+	//	resp.ResponseHeader.BatchCount = 1
+	//	resp.BatchItem = []kmip.ResponseBatchItem{
+	//		{
+	//			Operation:    kmip.OperationDiscoverVersions,
+	//			ResultStatus: kmip.ResultStatusSuccess,
+	//			ResponsePayload: kmip.DiscoverVersionsResponsePayload{
+	//				ProtocolVersion: []kmip.ProtocolVersion{
+	//					{
+	//						ProtocolVersionMajor: 1,
+	//						ProtocolVersionMinor: 0,
+	//					},
+	//				},
+	//			},
+	//		},
+	//	}
+	//	return nil
+	//})
+
+
 
 	srv := kmip.Server{}
 

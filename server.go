@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"github.com/gemalto/flume"
 	"io"
 	"net"
 	"runtime"
@@ -14,9 +15,11 @@ import (
 	"time"
 )
 
+var serverLog = flume.New("kmip_server")
+
 type Server struct {
-	Handler    Handler
-	RawHandler RawHandler
+	Handler    MessageHandler
+	RawHandler ProtocolHandler
 
 	mu         sync.Mutex
 	listeners  map[*net.Listener]struct{}
@@ -29,7 +32,7 @@ var ErrServerClosed = errors.New("http: Server closed")
 
 // Serve accepts incoming connections on the Listener l, creating a
 // new service goroutine for each. The service goroutines read requests and
-// then call srv.Handler to reply to them.
+// then call srv.MessageHandler to reply to them.
 //
 // Serve always returns a non-nil error and closes l.
 // After Shutdown or Close, the returned error is ErrServerClosed.
@@ -211,8 +214,17 @@ type conn struct {
 	server *Server
 }
 
+func (c *conn) close() {
+	// TODO: http package has a buffered writer on the conn to, which is flushed here
+	c.rwc.Close()
+}
+
 // Serve a new connection.
 func (c *conn) serve(ctx context.Context) {
+
+	ctx = flume.WithLogger(ctx, serverLog)
+	ctx, cancelCtx := context.WithCancel(ctx)
+	c.cancelCtx = cancelCtx
 	c.remoteAddr = c.rwc.RemoteAddr().String()
 	c.localAddr = c.rwc.LocalAddr().String()
 	//ctx = context.WithValue(ctx, LocalAddrContextKey, c.rwc.LocalAddr())
@@ -223,11 +235,17 @@ func (c *conn) serve(ctx context.Context) {
 			const size = 64 << 10
 			buf := make([]byte, size)
 			buf = buf[:runtime.Stack(buf, false)]
-			fmt.Printf("kmip: panic serving %v: %v\n%s", c.remoteAddr, Details(err.(error)), buf)
+			if e, ok := err.(error); ok {
+				fmt.Printf("kmip: panic serving %v: %v\n%s", c.remoteAddr, Details(e), buf)
+			} else {
+				fmt.Printf("kmip: panic serving %v: %v\n%s", c.remoteAddr, err, buf)
+			}
+
 			//c.server.logf("http: panic serving %v: %v\n%s", c.remoteAddr, err, buf)
 		}
+		cancelCtx()
 		//if !c.hijacked() {
-		//	c.close()
+		c.close()
 		//	c.setState(c.rwc, StateClosed)
 		//}
 	}()
@@ -255,10 +273,6 @@ func (c *conn) serve(ctx context.Context) {
 		//	return
 		//}
 	}
-
-	ctx, cancelCtx := context.WithCancel(ctx)
-	c.cancelCtx = cancelCtx
-	defer cancelCtx()
 
 	// TODO: do we really need instance pooling here?  We expect KMIP connections to be long lasting
 	c.bufr = bufio.NewReader(c.rwc)
@@ -335,22 +349,18 @@ func (c *conn) serve(ctx context.Context) {
 		// TODO: pre-fill fields of response header
 		h := c.server.RawHandler
 		if h == nil {
-			h = DefaultHandler
+			h = DefaultProtocolHandler
 		}
-		ttlv := h.HandleRaw(ctx, w)
+
 		//var resp ResponseMessage
-		//err = c.server.Handler.Handle(ctx, w, &resp)
+		//err = c.server.MessageHandler.Handle(ctx, w, &resp)
 		// TODO: this cancelCtx() was created at the connection level, not the request level.  Need to
 		// figure out how to handle connection vs request timeouts and cancels.
 		//cancelCtx()
 
 		// TODO: use recycled buffered writer
 		writer := bufio.NewWriter(c.rwc)
-		_, err = writer.Write(ttlv)
-		if err != nil {
-			// TODO: handle error
-			panic(err)
-		}
+		h.ServeKMIP(ctx, w, writer)
 		err = writer.Flush()
 		if err != nil {
 			// TODO: handle error
@@ -483,7 +493,7 @@ func (c *conn) readRequest(ctx context.Context) (w *Request, err error) {
 	//	closeNotifyCh: make(chan bool, 1),
 	//
 	//	// We populate these ahead of time so we're not
-	//	// reading from req.Header after their Handler starts
+	//	// reading from req.Header after their MessageHandler starts
 	//	// and maybe mutates it (Issue 14940)
 	//	wants10KeepAlive: req.wantsHttp10KeepAlive(),
 	//	wantsClose:       req.wantsClose(),
@@ -545,24 +555,35 @@ func readTTLV(bufr *bufio.Reader) (TTLV, error) {
 }
 
 type Request struct {
-	TTLV           TTLV
-	RequestMessage *RequestMessage
-	TLS            *tls.ConnectionState
-	RemoteAddr     string
-	LocalAddr      string
+	TTLV        TTLV
+	Message     *RequestMessage
+	CurrentItem *RequestBatchItem
+
+	TLS        *tls.ConnectionState
+	RemoteAddr string
+	LocalAddr  string
 }
 
-type Handler interface {
-	// TODO: not sure if I should wrap ResponseMessage in a Response type
-	// unclear if there is any other metadata a handler might need to return
-	// to the Server
-	Handle(ctx context.Context, req *Request, resp *ResponseMessage) error
-}
-
-type HandlerFunc func(ctx context.Context, req *Request, resp *ResponseMessage) error
-
-func (f HandlerFunc) Handle(ctx context.Context, req *Request, resp *ResponseMessage) error {
-	return f(ctx, req, resp)
+func (r *Request) Payload() TTLV {
+	if r.CurrentItem == nil {
+		return nil
+	}
+	switch t := r.CurrentItem.RequestPayload.(type) {
+	case nil:
+		return nil
+	case TTLV:
+		return t
+	default:
+		// This case shouldn't hit in normal server operation, where
+		// the payload has been unmarshalled off the wire as TTLV.  This
+		// is here as a convenience to tests or other use cases where
+		// the payload has been set in code to a struct
+		ttlv, err := Marshal(r.CurrentItem.RequestPayload)
+		if err != nil {
+			panic(err)
+		}
+		return ttlv
+	}
 }
 
 // onceCloseListener wraps a net.Listener, protecting it from

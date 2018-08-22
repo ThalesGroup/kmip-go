@@ -1,117 +1,286 @@
 package kmip
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"github.com/ansel1/merry"
+	"github.com/gemalto/flume"
 	"github.com/google/uuid"
+	"io"
+	"sync"
+	"time"
 )
 
-type Middleware func(next Handler) Handler
-
-func Wrap(h Handler, mw ...Middleware) Handler {
-	for i := len(mw); i > 0; i-- {
-		h = mw[i-1](h)
-	}
-	return h
+type ResponseWriter interface {
+	io.Writer
 }
 
-type RawMiddleware func(next RawHandler) RawHandler
-
-func WrapRaw(h RawHandler, mw ...RawMiddleware) RawHandler {
-	for i := len(mw); i > 0; i-- {
-		h = mw[i-1](h)
-	}
-	return h
+type ProtocolHandler interface {
+	ServeKMIP(ctx context.Context, req *Request, resp ResponseWriter)
 }
 
-type RawHandler interface {
-	HandleRaw(ctx context.Context, req *Request) TTLV
+type MessageHandler interface {
+	HandleMessage(ctx context.Context, req *Request, resp *Response)
 }
 
-var DefaultHandler = &ProtocolHandler{}
+type ItemHandler interface {
+	HandleItem(ctx context.Context, req *Request) (item *ResponseBatchItem, err error)
+}
 
-type ProtocolHandler struct {
+type ProtocolHandlerFunc func(context.Context, *Request, ResponseWriter)
+
+func (f ProtocolHandlerFunc) ServeKMIP(ctx context.Context, r *Request, w ResponseWriter) {
+	f(ctx, r, w)
+}
+
+type MessageHandlerFunc func(context.Context, *Request, *Response)
+
+func (f MessageHandlerFunc) HandleMessage(ctx context.Context, req *Request, resp *Response) {
+	f(ctx, req, resp)
+}
+
+type ItemHandlerFunc func(context.Context, *Request) (*ResponseBatchItem, error)
+
+func (f ItemHandlerFunc) HandleItem(ctx context.Context, req *Request) (item *ResponseBatchItem, err error) {
+	return f(ctx, req)
+}
+
+var DefaultProtocolHandler = &StandardProtocolHandler{
+	MessageHandler: DefaultOperationMux,
+	ProtocolVersion: ProtocolVersion{
+		ProtocolVersionMajor: 1,
+		ProtocolVersionMinor: 4,
+	},
+}
+
+var DefaultOperationMux = &OperationMux{}
+
+type StandardProtocolHandler struct {
 	ProtocolVersion ProtocolVersion
-	Handler         Handler
+	MessageHandler  MessageHandler
 }
 
-// TODO: replace with instance pooling
-func (h *ProtocolHandler) newResponseMessage() *ResponseMessage {
-	return &ResponseMessage{
-		ResponseHeader: ResponseHeader{
-			ProtocolVersion:        h.ProtocolVersion,
-			ServerCorrelationValue: uuid.New().String(),
+func (h *StandardProtocolHandler) parseMessage(ctx context.Context, req *Request) error {
+	ttlv := req.TTLV
+	if err := ttlv.Valid(); err != nil {
+		return merry.Prepend(err, "invalid ttlv")
+	}
+
+	if ttlv.Tag() != TagRequestMessage {
+		return merry.Errorf("invalid tag: expected RequestMessage, was %s", ttlv.Tag().String())
+	}
+
+	var message RequestMessage
+	err := Unmarshal(ttlv, &message)
+	if err != nil {
+		return merry.Prepend(err, "failed to parse message")
+	}
+
+	req.Message = &message
+
+	return nil
+}
+
+type Response struct {
+	ResponseMessage
+	buf bytes.Buffer
+	enc *Encoder
+}
+
+func newResponse() *Response {
+	// TODO: instance pooling
+	r := Response{}
+	r.enc = NewEncoder(&r.buf)
+	return &r
+}
+
+func (r *Response) Bytes() []byte {
+	r.buf.Reset()
+	err := r.enc.Encode(&r.ResponseMessage)
+	if err != nil {
+		panic(err)
+	}
+
+	return r.buf.Bytes()
+}
+
+func (r *Response) errorResponse(reason ResultReason, msg string) {
+	r.BatchItem = []ResponseBatchItem{
+		{
+			ResultStatus:  ResultStatusOperationFailed,
+			ResultReason:  reason,
+			ResultMessage: msg,
 		},
 	}
 }
 
-func (h *ProtocolHandler) HandleRaw(ctx context.Context, req *Request) TTLV {
-
-	resp := h.newResponseMessage()
-
-	ttlv := req.TTLV
-	if err := ttlv.Valid(); err != nil {
-		resp.addFailure(ResultReasonInvalidMessage, "invalid ttlv: "+err.Error())
-		return mustEncode(resp)
-	}
-
-	if ttlv.Tag() != TagRequestMessage {
-		resp.addFailure(ResultReasonInvalidMessage, fmt.Sprintf("invalid tag: expected RequestMessage, was %s", ttlv.Tag().String()))
-		return mustEncode(resp)
-	}
-
-	// TODO: replace with instance pooling
-	var reqm RequestMessage
-	req.RequestMessage = &reqm
-
-	err := Unmarshal(ttlv, &reqm)
+func (r *Response) mustWriteTo(w io.Writer) {
+	_, err := r.buf.WriteTo(w)
 	if err != nil {
-		resp.addFailure(ResultReasonInvalidMessage, "failed to parse message: "+err.Error())
-		return mustEncode(resp)
-	}
-
-	// TODO: test for protocol mismatch case
-	if reqm.RequestHeader.ProtocolVersion.ProtocolVersionMajor != h.ProtocolVersion.ProtocolVersionMajor {
-		resp.addFailure(ResultReasonInvalidMessage, "mismatched protocol versions")
-		return mustEncode(resp)
-	}
-
-	// TODO: what do to if Handler is nil?
-	err = h.Handler.Handle(ctx, req, resp)
-	if err != nil {
-		// TODO: have error types which translate into error responses.  Panic on other types of errors.
 		panic(err)
 	}
+}
 
-	respTTLV := mustEncode(resp)
+func (h *StandardProtocolHandler) ServeKMIP(ctx context.Context, req *Request, writer ResponseWriter) {
 
-	if req.RequestMessage.RequestHeader.MaximumResponseSize > 0 && len(respTTLV) > req.RequestMessage.RequestHeader.MaximumResponseSize {
+	// create a server correlation value, which is like a unique transaction ID
+	scv := uuid.New().String()
+
+	// create a logger for the transaction, seeded with the scv
+	logger := flume.FromContext(ctx).With("scv", scv)
+	// attach the logger to the context, so it is available to the handling chain
+	ctx = flume.WithLogger(ctx, logger)
+
+	// we precreate the response object and pass it down to handlers, because due
+	// the guidance in the spec on the Maximum Response Size, it will be necessary
+	// for handlers to recalculate the response size after each batch item, which
+	// requires re-encoding the entire response. Seems inefficient.
+	resp := newResponse()
+	// TODO: it's unclear how the full protocol negogiation is supposed to work
+	// should server be pinned to a particular version?  Or should we try and negogiate a common version?
+	resp.ResponseHeader.ProtocolVersion = h.ProtocolVersion
+	resp.ResponseHeader.TimeStamp = time.Now()
+	resp.ResponseHeader.BatchCount = len(resp.BatchItem)
+	resp.ResponseHeader.ServerCorrelationValue = scv
+
+	if err := h.parseMessage(ctx, req); err != nil {
+		resp.errorResponse(ResultReasonInvalidMessage, err.Error())
+		resp.mustWriteTo(writer)
+		return
+	}
+
+	ccv := req.Message.RequestHeader.ClientCorrelationValue
+	// add the client correlation value to the logging context.  This value uniquely
+	// identifies the client, and is supposed to be included in server logs
+	ctx = flume.WithLogger(ctx, flume.FromContext(ctx).With("ccv", ccv))
+	resp.ResponseHeader.ClientCorrelationValue = req.Message.RequestHeader.ClientCorrelationValue
+
+	clientMajorVersion := req.Message.RequestHeader.ProtocolVersion.ProtocolVersionMajor
+	if clientMajorVersion != h.ProtocolVersion.ProtocolVersionMajor {
+		resp.errorResponse(ResultReasonInvalidMessage,
+			fmt.Sprintf("mismatched protocol versions, client: %d, server: %d", clientMajorVersion, h.ProtocolVersion.ProtocolVersionMajor))
+		resp.mustWriteTo(writer)
+		return
+	}
+
+	h.MessageHandler.HandleMessage(ctx, req, resp)
+
+	respTTLV := resp.Bytes()
+
+	if req.Message.RequestHeader.MaximumResponseSize > 0 && len(respTTLV) > req.Message.RequestHeader.MaximumResponseSize {
 		// new error resp
-		resp = h.newResponseMessage()
-		resp.addFailure(ResultReasonResponseTooLarge, "")
-		return mustEncode(resp)
+		resp.errorResponse(ResultReasonResponseTooLarge, "")
+		respTTLV = resp.Bytes()
 	}
 
-	return respTTLV
-}
+	resp.mustWriteTo(writer)
 
-func mustEncode(v interface{}) TTLV {
-	ttlv, err := Marshal(v)
-	if err != nil {
-		panic(err)
-	}
-	return ttlv
-}
-
-func (r *ResponseMessage) addBatchItem(b *ResponseBatchItem) {
-	r.BatchItem = append(r.BatchItem, *b)
-	r.ResponseHeader.BatchCount++
 }
 
 func (r *ResponseMessage) addFailure(reason ResultReason, msg string) {
-	r.addBatchItem(&ResponseBatchItem{
+	if msg == "" {
+		msg = reason.String()
+	}
+	r.BatchItem = append(r.BatchItem, ResponseBatchItem{
 		ResultStatus:  ResultStatusOperationFailed,
 		ResultReason:  reason,
 		ResultMessage: msg,
 	})
+}
+
+type OperationMux struct {
+	mu           sync.RWMutex
+	handlers     map[Operation]ItemHandler
+	ErrorHandler ErrorHandler
+}
+
+type ErrorHandler interface {
+	HandleError(err error) *ResponseBatchItem
+}
+
+type ErrorHandlerFunc func(err error) *ResponseBatchItem
+
+func (f ErrorHandlerFunc) HandleError(err error) *ResponseBatchItem {
+	return f(err)
+}
+
+var DefaultErrorHandler = ErrorHandlerFunc(func(err error) *ResponseBatchItem {
+	reason := GetResultReason(err)
+	if reason == ResultReason(0) {
+		// error not handled
+		return nil
+	}
+
+	// prefer user message, but fall back on message
+	msg := merry.UserMessage(err)
+	if msg == "" {
+		msg = merry.Message(err)
+	}
+	return newFailedResponseBatchItem(reason, msg)
+})
+
+func newFailedResponseBatchItem(reason ResultReason, msg string) *ResponseBatchItem {
+	return &ResponseBatchItem{
+		ResultStatus:  ResultStatusOperationFailed,
+		ResultReason:  reason,
+		ResultMessage: msg,
+	}
+}
+
+func (m *OperationMux) bi(ctx context.Context, req *Request, reqItem *RequestBatchItem) *ResponseBatchItem {
+
+	req.CurrentItem = reqItem
+	h := m.handlerForOp(reqItem.Operation)
+	if h == nil {
+		return newFailedResponseBatchItem(ResultReasonOperationNotSupported, "")
+	}
+
+	resp, err := h.HandleItem(ctx, req)
+	if err != nil {
+		eh := m.ErrorHandler
+		if eh == nil {
+			eh = DefaultErrorHandler
+		}
+		resp = eh.HandleError(err)
+		if resp == nil {
+			// errors which don't convert just panic
+			panic(err)
+		}
+	}
+
+	return resp
+}
+
+func (m *OperationMux) HandleMessage(ctx context.Context, req *Request, resp *Response) {
+	for i := range req.Message.BatchItem {
+		reqItem := &req.Message.BatchItem[i]
+		respItem := m.bi(ctx, req, reqItem)
+		respItem.Operation = reqItem.Operation
+		respItem.UniqueBatchItemID = reqItem.UniqueBatchItemID
+		resp.BatchItem = append(resp.BatchItem, *respItem)
+	}
+}
+
+func (m *OperationMux) Handle(op Operation, handler ItemHandler) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if m.handlers == nil {
+		m.handlers = map[Operation]ItemHandler{}
+	}
+
+	m.handlers[op] = handler
+}
+
+func (m *OperationMux) handlerForOp(op Operation) ItemHandler {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	return m.handlers[op]
+}
+
+func (m *OperationMux) missingHandler(ctx context.Context, req *Request, resp *ResponseMessage) error {
+	resp.addFailure(ResultReasonOperationNotSupported, "")
+	return nil
 }

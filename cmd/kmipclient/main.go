@@ -55,7 +55,11 @@ func client() {
 		BatchItem: []kmip.RequestBatchItem{
 			{
 				Operation:      kmip.OperationDiscoverVersions,
-				RequestPayload: kmip.DiscoverVersionsRequestPayload{},
+				RequestPayload: kmip.DiscoverVersionsRequestPayload{
+					ProtocolVersion:[]kmip.ProtocolVersion{
+						{ProtocolVersionMajor:1,ProtocolVersionMinor:2},
+					},
+				},
 			},
 		},
 	}

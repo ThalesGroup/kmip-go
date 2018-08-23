@@ -13,7 +13,7 @@ func NormalizeName(s string) string {
 	// 1. Replace round brackets ‘(‘, ‘)’ with spaces
 	s = strings.Map(func(r rune) rune {
 		switch r {
-		case '(',')':
+		case '(', ')':
 			return ' '
 		}
 		return r

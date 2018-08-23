@@ -3,10 +3,16 @@ package main
 import (
 	"crypto/tls"
 	"fmt"
+	"github.com/gemalto/flume"
 	"gitlab.protectv.local/regan/kmip.git"
 )
 
 func main() {
+	flume.Configure(flume.Config{
+		Development:  true,
+		DefaultLevel: flume.DebugLevel,
+	})
+
 	cert, err := tls.LoadX509KeyPair("/Users/russellegan/Downloads/cryptsoft/kmipc_server-1.9.2a/bin/server.pem", "/Users/russellegan/Downloads/cryptsoft/kmipc_server-1.9.2a/bin/server.pem")
 	if err != nil {
 		panic(err)
@@ -23,11 +29,13 @@ func main() {
 
 	fmt.Println("server: listening")
 
+	kmip.DefaultProtocolHandler.LogTraffic = true
+
 	kmip.DefaultOperationMux.Handle(kmip.OperationDiscoverVersions, &kmip.DiscoverVersionsHandler{
-		SupportedVersions:[]kmip.ProtocolVersion{
+		SupportedVersions: []kmip.ProtocolVersion{
 			{
-				ProtocolVersionMajor:1,
-				ProtocolVersionMinor:4,
+				ProtocolVersionMajor: 1,
+				ProtocolVersionMinor: 4,
 			},
 			{
 				ProtocolVersionMajor: 1,
@@ -62,11 +70,8 @@ func main() {
 	//	return nil
 	//})
 
-
-
 	srv := kmip.Server{}
 
 	panic(srv.Serve(listener))
 
 }
-

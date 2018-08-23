@@ -1,10 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"crypto/tls"
 	"fmt"
+	"github.com/google/uuid"
 	"gitlab.protectv.local/regan/kmip.git"
-	"bufio"
 )
 
 func main() {
@@ -44,20 +45,24 @@ func client() {
 
 	fmt.Println("connected")
 
+	biID := uuid.New()
+
 	msg := kmip.RequestMessage{
 		RequestHeader: kmip.RequestHeader{
 			ProtocolVersion: kmip.ProtocolVersion{
 				ProtocolVersionMajor: 1,
 				ProtocolVersionMinor: 0,
 			},
-			BatchCount: 1,
+			BatchCount:             1,
+			ClientCorrelationValue: uuid.New().String(),
 		},
 		BatchItem: []kmip.RequestBatchItem{
 			{
-				Operation:      kmip.OperationDiscoverVersions,
+				UniqueBatchItemID: biID[:],
+				Operation:         kmip.OperationDiscoverVersions,
 				RequestPayload: kmip.DiscoverVersionsRequestPayload{
-					ProtocolVersion:[]kmip.ProtocolVersion{
-						{ProtocolVersionMajor:1,ProtocolVersionMinor:2},
+					ProtocolVersion: []kmip.ProtocolVersion{
+						{ProtocolVersionMajor: 1, ProtocolVersionMinor: 2},
 					},
 				},
 			},

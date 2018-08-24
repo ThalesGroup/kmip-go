@@ -1,16 +1,43 @@
 package kmip
 
 import (
+	"bufio"
+	"github.com/ansel1/merry"
+	"io"
 	"reflect"
 )
 
-// TODO: I may need to support a way to accumulate TTLV values which
-// don't map into fields, like an overflow.  Or support an option to error if
-// there are extra fields, like the json package.
-// The protocol suggests/requires erroring if
-// the client and server protocol versions match exactly, but the server encounters fields
-// it doesn't recognize
-func unmarshal(val reflect.Value, ttlv TTLV) error {
+type Decoder struct {
+	r                     io.Reader
+	bufr                  *bufio.Reader
+	disallowUnknownFields bool
+
+	currStruct reflect.Type
+	currField  string
+}
+
+func NewDecoder(r io.Reader) *Decoder {
+	return &Decoder{
+		r:    r,
+		bufr: bufio.NewReader(r),
+	}
+}
+
+func (dec *Decoder) DisallowUnknownFields() { dec.disallowUnknownFields = true }
+
+func (dec *Decoder) Decode(v interface{}) error {
+	ttlv, err := dec.NextTTLV()
+	if err != nil {
+		return err
+	}
+	val := reflect.ValueOf(v)
+	if val.Kind() != reflect.Ptr {
+		return merry.New("non-pointer passed to Decode")
+	}
+	return dec.unmarshal(val, ttlv)
+}
+
+func (dec *Decoder) unmarshal(val reflect.Value, ttlv TTLV) error {
 	// Load value from interface, but only if the result will be
 	// usefully addressable.
 	if val.Kind() == reflect.Interface && !val.IsNil() {
@@ -25,7 +52,7 @@ func unmarshal(val reflect.Value, ttlv TTLV) error {
 	// happen if the value is a pointer and Unmarshaler receiver is
 	// not a pointer, or vice versa.  Need to add some test cases for this.
 	if val.Type().Implements(unmarshalerType) {
-		return val.Interface().(Unmarshaler).UnmarshalTTLV(ttlv)
+		return val.Interface().(Unmarshaler).UnmarshalTTLV(ttlv, dec.disallowUnknownFields)
 	}
 
 	if val.Kind() == reflect.Ptr {
@@ -56,7 +83,7 @@ func unmarshal(val reflect.Value, ttlv TTLV) error {
 		val.Set(reflect.Append(val, reflect.Zero(val.Type().Elem())))
 
 		// Recur to read element into slice.
-		if err := unmarshal(val.Index(n), ttlv); err != nil {
+		if err := dec.unmarshal(val.Index(n), ttlv); err != nil {
 			val.SetLen(n)
 			return err
 		}
@@ -64,13 +91,25 @@ func unmarshal(val reflect.Value, ttlv TTLV) error {
 	}
 
 	typeMismatchErr := func() error {
-		err := tagErrorSkipping(ErrUnsupportedTypeError, ttlv.Tag(), val, 1)
-		return err.Appendf("can't unmarshal %s into %s (%s)", ttlv.Type(), val.Type().String(), val.Kind().String())
+		e := &UnmarshalerError{
+			Struct: dec.currStruct,
+			Field:  dec.currField,
+			Tag:    ttlv.Tag(),
+			Type:   ttlv.Type(),
+			Val:    val.Type(),
+		}
+		err := merry.WrapSkipping(e, 1).WithCause(ErrUnsupportedTypeError)
+		return err.WithMessagef("can't unmarshal TTLV type into go type")
 	}
 
 	switch ttlv.Type() {
 	case TypeStructure:
-		return unmarshalStructure(ttlv, val)
+		// stash currStruct
+		currStruct := dec.currStruct
+		err := dec.unmarshalStructure(ttlv, val)
+		// restore currStruct
+		dec.currStruct = currStruct
+		return err
 	case TypeInterval:
 		if val.Kind() != reflect.Int64 {
 			return typeMismatchErr()
@@ -101,13 +140,13 @@ func unmarshal(val reflect.Value, ttlv TTLV) error {
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 			i := int64(ttlv.ValueEnumeration())
 			if val.OverflowInt(i) {
-				return tagError(ErrIntOverflow, ttlv.Tag(), val)
+				return dec.newUnmarshalerError(ttlv, val.Type(), ErrIntOverflow)
 			}
 			val.SetInt(i)
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 			i := uint64(ttlv.ValueInteger())
 			if val.OverflowUint(i) {
-				return tagError(ErrIntOverflow, ttlv.Tag(), val)
+				return dec.newUnmarshalerError(ttlv, val.Type(), ErrIntOverflow)
 			}
 			val.SetUint(i)
 		default:
@@ -118,13 +157,13 @@ func unmarshal(val reflect.Value, ttlv TTLV) error {
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32:
 			i := int64(ttlv.ValueInteger())
 			if val.OverflowInt(i) {
-				return tagError(ErrIntOverflow, ttlv.Tag(), val)
+				return dec.newUnmarshalerError(ttlv, val.Type(), ErrIntOverflow)
 			}
 			val.SetInt(i)
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32:
 			i := uint64(ttlv.ValueInteger())
 			if val.OverflowUint(i) {
-				return tagError(ErrIntOverflow, ttlv.Tag(), val)
+				return dec.newUnmarshalerError(ttlv, val.Type(), ErrIntOverflow)
 			}
 			val.SetUint(i)
 		default:
@@ -145,34 +184,100 @@ func unmarshal(val reflect.Value, ttlv TTLV) error {
 		}
 		val.Set(reflect.ValueOf(*ttlv.ValueBigInteger()))
 	default:
-		return tagError(ErrInvalidType, ttlv.Tag(), val).Append(ttlv.Type().String())
+		return dec.newUnmarshalerError(ttlv, val.Type(), ErrInvalidType)
 	}
 	return nil
 
 }
 
-func unmarshalStructure(ttlv TTLV, val reflect.Value) error {
-
-	if ttlv.Type() != TypeStructure {
-		return tagError(ErrInvalidType, ttlv.Tag(), val).Append("kmip structure values must unmarshal into a struct")
-	}
+func (dec *Decoder) unmarshalStructure(ttlv TTLV, val reflect.Value) error {
 
 	ti, err := getTypeInfo(val.Type())
 	if err != nil {
 		return err
 	}
 
+	// push currStruct (caller will pop)
+	dec.currStruct = ti.typ
 Next:
 	for n := ttlv.ValueStructure(); n != nil; n = n.Next() {
 		for _, field := range ti.fields {
 			if field.tag == n.Tag() {
-				err := unmarshal(val.FieldByIndex(field.index), n)
+				// push currField
+				currField := dec.currField
+				dec.currField = field.name
+				err := dec.unmarshal(val.FieldByIndex(field.index), n)
+				// restore currField
+				dec.currField = currField
 				if err != nil {
 					return err
 				}
 				continue Next
 			}
 		}
+		// should only get here if no fields matched the value
+		if dec.disallowUnknownFields {
+			return dec.newUnmarshalerError(ttlv, val.Type(), ErrUnexpectedValue)
+		}
 	}
 	return nil
+}
+
+func (dec *Decoder) NextTTLV() (TTLV, error) {
+	// first, read the header
+	header, err := dec.bufr.Peek(8)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := TTLV(header).ValidHeader(); err != nil {
+		// bad header, abort
+		return TTLV(header), err
+	}
+
+	// allocate a buffer large enough for the entire message
+	fullLen := TTLV(header).FullLen()
+	buf := make([]byte, fullLen)
+
+	var totRead int
+	for {
+		n, err := dec.bufr.Read(buf[totRead:])
+		if err != nil {
+			return TTLV(buf), err
+		}
+
+		totRead += n
+		if totRead >= fullLen {
+			// we've read off a single full message
+			return TTLV(buf), nil
+		}
+		// keep reading
+	}
+}
+
+func (dec *Decoder) newUnmarshalerError(ttlv TTLV, valType reflect.Type, cause error) merry.Error {
+	e := &UnmarshalerError{
+		Struct: dec.currStruct,
+		Field:  dec.currField,
+		Tag:    ttlv.Tag(),
+		Type:   ttlv.Type(),
+		Val:    valType,
+	}
+	return merry.WrapSkipping(e, 1).WithCause(cause)
+}
+
+type UnmarshalerError struct {
+	Val    reflect.Type
+	Struct reflect.Type
+	Field  string
+	Tag    Tag
+	Type   Type
+}
+
+func (e *UnmarshalerError) Error() string {
+	msg := "kmip: error unmarshaling " + e.Tag.String() + " with type" + e.Type.String() + " into value of type " + e.Val.Name()
+	if e.Struct != nil {
+		msg += " in struct field " + e.Struct.Name() + "." + e.Field
+	}
+	return msg
 }

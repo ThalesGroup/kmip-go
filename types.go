@@ -5,7 +5,7 @@ type Marshaler interface {
 }
 
 type Unmarshaler interface {
-	UnmarshalTTLV(ttlv TTLV) error
+	UnmarshalTTLV(ttlv TTLV, disallowUnknownFields bool) error
 }
 
 type Structure struct {

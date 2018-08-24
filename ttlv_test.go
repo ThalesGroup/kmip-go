@@ -165,7 +165,7 @@ func TestTTLV_UnmarshalTTLV(t *testing.T) {
 	enc := NewEncoder(buf)
 	require.NoError(t, enc.EncodeValue(TagComment, "red"))
 
-	err := ttlv.UnmarshalTTLV(TTLV(buf.Bytes()))
+	err := ttlv.UnmarshalTTLV(TTLV(buf.Bytes()), false)
 	require.NoError(t, err)
 
 	require.NotNil(t, ttlv)
@@ -179,7 +179,7 @@ func TestTTLV_UnmarshalTTLV(t *testing.T) {
 	// copy some marker bytes into the end.  after unmarshaling, the marker bytes should
 	// be intact, since they are in the end part of the buffer
 	copy(ttlv[buf.Len():], []byte("whitewhale"))
-	err = ttlv.UnmarshalTTLV(TTLV(buf.Bytes()))
+	err = ttlv.UnmarshalTTLV(TTLV(buf.Bytes()), false)
 
 	require.NoError(t, err)
 	require.Equal(t, TTLV(buf.Bytes()), ttlv)
@@ -191,7 +191,7 @@ func TestTTLV_UnmarshalTTLV(t *testing.T) {
 	// everything still works
 
 	ttlv = make(TTLV, buf.Len()-2)
-	err = ttlv.UnmarshalTTLV(TTLV(buf.Bytes()))
+	err = ttlv.UnmarshalTTLV(TTLV(buf.Bytes()), false)
 
 	require.NoError(t, err)
 	require.Equal(t, TTLV(buf.Bytes()), ttlv)

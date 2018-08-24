@@ -20,6 +20,11 @@ type Encoder struct {
 	structDepth int
 	w           io.Writer
 	encBuf
+
+	// these fields store where the encoder is when marshaling a nested struct.  its
+	// used to construct error messages.
+	currStruct string
+	currField  string
 }
 
 func NewEncoder(w io.Writer) *Encoder {
@@ -79,6 +84,16 @@ func (e *Encoder) encode(tag Tag, v interface{}) error {
 
 var errNoEncoder = errors.New("no non-reflect encoders")
 
+func (e *Encoder) newMarshalingError(tag Tag, t reflect.Type, cause error) merry.Error {
+	err := &MarshalerError{
+		Type:   t,
+		Struct: e.currStruct,
+		Field:  e.currField,
+		Tag:    tag,
+	}
+	return merry.WrapSkipping(err, 1).WithCause(cause)
+}
+
 func (e *Encoder) encodeInterfaceValue(tag Tag, v interface{}) error {
 	// these are fast path encoders, which avoid reflect
 	// in as many cases as possible.
@@ -96,7 +111,7 @@ func (e *Encoder) encodeInterfaceValue(tag Tag, v interface{}) error {
 		e.Write(t)
 	case int:
 		if t > math.MaxInt32 {
-			return tagError(ErrIntOverflow, tag, v)
+			return e.newMarshalingError(tag, intType, ErrIntOverflow)
 		}
 		e.encodeInt(tag, int32(t))
 	case int8:
@@ -107,7 +122,7 @@ func (e *Encoder) encodeInterfaceValue(tag Tag, v interface{}) error {
 		e.encodeInt(tag, t)
 	case uint:
 		if t > math.MaxInt32 {
-			return tagError(ErrIntOverflow, tag, v)
+			return e.newMarshalingError(tag, uintType, ErrIntOverflow)
 		}
 		e.encodeInt(tag, int32(t))
 	case uint8:
@@ -116,7 +131,7 @@ func (e *Encoder) encodeInterfaceValue(tag Tag, v interface{}) error {
 		e.encodeInt(tag, int32(t))
 	case uint32:
 		if t > math.MaxInt32 {
-			return tagError(ErrIntOverflow, tag, v)
+			return e.newMarshalingError(tag, uint32Type, ErrIntOverflow)
 		}
 		e.encodeInt(tag, int32(t))
 	case bool:
@@ -125,7 +140,7 @@ func (e *Encoder) encodeInterfaceValue(tag Tag, v interface{}) error {
 		e.encodeLongInt(tag, t)
 	case uint64:
 		if t > math.MaxInt64 {
-			return tagError(ErrLongIntOverflow, tag, v)
+			return e.newMarshalingError(tag, uint64Type, ErrLongIntOverflow)
 		}
 		e.encodeLongInt(tag, int64(t))
 	case time.Time:
@@ -149,7 +164,7 @@ func (e *Encoder) encodeInterfaceValue(tag Tag, v interface{}) error {
 			}
 		}
 	case uintptr, float32, float64, complex64, complex128:
-		return tagError(ErrUnsupportedTypeError, tag, v).Appendf("%T", v)
+		return e.newMarshalingError(tag, reflect.TypeOf(v), ErrUnsupportedTypeError)
 	default:
 		return errNoEncoder
 	}
@@ -160,6 +175,10 @@ var byteType = reflect.TypeOf(byte(0))
 var marshalerType = reflect.TypeOf((*Marshaler)(nil)).Elem()
 var unmarshalerType = reflect.TypeOf((*Unmarshaler)(nil)).Elem()
 var timeType = reflect.TypeOf((*time.Time)(nil)).Elem()
+var intType = reflect.TypeOf((*int)(nil)).Elem()
+var uintType = reflect.TypeOf((*uint)(nil)).Elem()
+var uint32Type = reflect.TypeOf((*uint32)(nil)).Elem()
+var uint64Type = reflect.TypeOf((*uint64)(nil)).Elem()
 var bigIntPtrType = reflect.TypeOf((*big.Int)(nil))
 var bigIntType = bigIntPtrType.Elem()
 var durationType = reflect.TypeOf(time.Nanosecond)
@@ -223,17 +242,20 @@ func isEmptyValue(v reflect.Value) bool {
 func (e *Encoder) encodeReflectEnum(tag Tag, v reflect.Value) error {
 	switch v.Kind() {
 	case reflect.String:
+		// TODO: if there is a one-to-one relationship between an enum and a tag, we could have
+		// a registry allowing us to translate named enum values to encodings.  For now, string values
+		// can only be encoded as an enum if they are hex strings starting with 0x
 		s := v.String()
 		if !strings.HasPrefix(s, "0x") {
-			return tagError(ErrIntOverflow, tag, v).Append("must start with 0x")
+			return e.newMarshalingError(tag, v.Type(), ErrInvalidHexString).Append("string enum values must be hex strings starting with 0x")
 		}
 		s = s[2:]
 		if len(s) != 8 {
-			return tagError(ErrInvalidLen, tag, v).Append("enum values must be 4 bytes")
+			return e.newMarshalingError(tag, v.Type(), ErrInvalidHexString).Appendf("invalid length, must be 8 (4 bytes), got %d", len(s))
 		}
 		b, err := hex.DecodeString(s)
 		if err != nil {
-			return tagError(ErrInvalidHexString, tag, v).Append(err.Error())
+			return e.newMarshalingError(tag, v.Type(), merry.WithCause(ErrInvalidHexString, err))
 		}
 
 		u := binary.BigEndian.Uint32(b)
@@ -242,19 +264,19 @@ func (e *Encoder) encodeReflectEnum(tag Tag, v reflect.Value) error {
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		i := v.Uint()
 		if i > math.MaxUint32 {
-			return tagError(ErrIntOverflow, tag, v)
+			return e.newMarshalingError(tag, v.Type(), ErrIntOverflow)
 		}
 		e.encodeEnum2(tag, uint32(i))
 		return nil
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		i := v.Int()
 		if i > math.MaxUint32 {
-			return tagError(ErrIntOverflow, tag, v)
+			return e.newMarshalingError(tag, v.Type(), ErrIntOverflow)
 		}
 		e.encodeEnum2(tag, uint32(i))
 		return nil
 	default:
-		return tagError(ErrUnsupportedEnumTypeError, tag, v)
+		return e.newMarshalingError(tag, v.Type(), ErrUnsupportedEnumTypeError)
 	}
 }
 
@@ -315,7 +337,7 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 		reflect.Complex64,
 		reflect.Complex128,
 		reflect.Interface:
-		return tagError(ErrUnsupportedTypeError, tag, v).Appendf("%s", v.Type().String())
+		return e.newMarshalingError(tag, v.Type(), ErrUnsupportedTypeError)
 	}
 
 	// skip if value is empty and tags include omitempty
@@ -333,7 +355,7 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 
 	if !tag.valid() {
 		// error, no value tag to use
-		return tagError(ErrInvalidTag, tag, v)
+		return e.newMarshalingError(tag, typ, ErrInvalidTag).Append(tag.String())
 	}
 
 	if flags&fEnum != 0 {
@@ -346,13 +368,14 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 		return e.encodeInterfaceValue(tag, v.Interface())
 	}
 
-	// TODO: basic types
 	switch typ.Kind() {
 	case reflect.Struct:
-		return e.EncodeStructure(tag, func(e *Encoder) error {
+		// push current struct onto stack
+		currStruct := e.currStruct
+		e.currStruct = typ.Name()
+		err := e.EncodeStructure(tag, func(e *Encoder) error {
 			for _, field := range typeInfo.fields {
 				fv := v.FieldByIndex(field.index)
-				// TODO: check for omitempty
 
 				// note: we're staying in reflection world here instead of
 				// converting back to an interface{} value and going through
@@ -385,20 +408,22 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 				// can make a potentially addressable value (like the field of an addressible struct)
 				// into an unaddressable value (reflect.Value#Interface{} always returns an unaddressable
 				// copy).
+
+				// push the currField
+				currField := e.currField
+				e.currField = field.name
 				err := e.encodeReflectValue(field.tag, fv, field.flags)
+				// pop the currField
+				e.currField = currField
 				if err != nil {
-					// prepend the field name on the error context path
-					errC := GetErrorContext(err)
-					if errC != nil {
-						errC.Path = append(errC.Path, "")
-						copy(errC.Path[1:], errC.Path)
-						errC.Path[0] = field.name
-					}
 					return err
 				}
 			}
 			return nil
 		})
+		// pop current struct
+		e.currStruct = currStruct
+		return err
 	case reflect.String:
 		e.encodeTextString(tag, v.String())
 	case reflect.Slice:
@@ -444,14 +469,13 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 		// all kinds should have been handled by now
 		panic(errors.New("should never get here"))
 	}
-	// TODO: arrays
 	return nil
 
 }
 
 func (e *Encoder) EncodeStructure(tag Tag, f func(e *Encoder) error) error {
 	if !tag.valid() {
-		return tagError(ErrInvalidTag, tag, nil)
+		return merry.Here(ErrInvalidTag).Append(tag.String())
 	}
 
 	e.structDepth++
@@ -629,6 +653,7 @@ func getTypeInfo(typ reflect.Type) (ti typeInfo, err error) {
 	// figure out whether this type has a required or suggested kmip tag
 	// TODO: required tags support, from a subfield like xml.Name
 	ti.tag, _ = ParseTag(typ.Name())
+	ti.typ = typ
 	ti.name = typ.Name()
 
 	if typ.Kind() == reflect.Struct {
@@ -639,7 +664,7 @@ func getTypeInfo(typ reflect.Type) (ti typeInfo, err error) {
 
 var errSkip = errors.New("skip")
 
-func getFieldInfo(sf reflect.StructField) (fi fieldInfo, err error) {
+func getFieldInfo(typ reflect.Type, sf reflect.StructField) (fi fieldInfo, err error) {
 
 	// skip anonymous and unexported fields
 	if sf.Anonymous || /*unexported:*/ sf.PkgPath != "" {
@@ -663,7 +688,12 @@ func getFieldInfo(sf reflect.StructField) (fi fieldInfo, err error) {
 					return
 				}
 				if !fi.tag.valid() {
-					return fi, tagError(ErrInvalidTag, fi.tag, nil).Appendf("struct field tag is not valid KMIP tag: %s", value)
+					var err error = &MarshalerError{
+						Type:   typ,
+						Struct: typ.Name(),
+						Field:  sf.Name,
+					}
+					err = merry.WithCause(err, ErrInvalidTag).Append(fi.tag.String())
 				}
 			}
 		} else {
@@ -692,7 +722,12 @@ func getFieldInfo(sf reflect.StructField) (fi fieldInfo, err error) {
 	// if the field type requires a tag, which doesn't match the tag
 	// encoded in the field tag, throw an error
 	if fi.ti.tagRequired && fi.tag != TagNone && fi.ti.tag != fi.tag {
-		return fi, tagError(ErrInvalidTag, fi.tag, nil).WithMessagef(`field "%s" with tag "%s" conflicts type "%s"'s tag "%s"`, fi.name, fi.tag, fi.ti.name, fi.ti.tag)
+		err := &MarshalerError{
+			Type:   sf.Type,
+			Struct: typ.Name(),
+			Field:  fi.name,
+		}
+		return fi, merry.WithCause(err, ErrTagConflict).Appendf(`field tag "%s" conflicts type's tag "%s"`, fi.tag, fi.ti.tag)
 	}
 
 	if fi.tag == TagNone {
@@ -707,10 +742,16 @@ func getFieldInfo(sf reflect.StructField) (fi fieldInfo, err error) {
 	}
 
 	if fi.tag == TagNone {
-		return fi, tagError(ErrNoTag, TagNone, nil).Appendf(`unable to infer tag for field "%s"`, fi.name)
+		err := &MarshalerError{
+			Type:   sf.Type,
+			Struct: typ.Name(),
+			Field:  fi.name,
+		}
+		return fi, merry.WithCause(err, ErrNoTag)
 	}
 
 	fi.name = sf.Name
+	fi.structType = typ
 	fi.index = sf.Index
 	fi.slice = sf.Type.Kind() == reflect.Slice
 	return
@@ -720,7 +761,7 @@ func getFieldsInfo(typ reflect.Type) (fields []fieldInfo, err error) {
 	// TODO: error fields of unsupported types, like maps
 
 	for i := 0; i < typ.NumField(); i++ {
-		fi, err := getFieldInfo(typ.Field(i))
+		fi, err := getFieldInfo(typ, typ.Field(i))
 		switch err {
 		case errSkip:
 		case nil:
@@ -734,7 +775,13 @@ func getFieldsInfo(typ reflect.Type) (fields []fieldInfo, err error) {
 	names := map[Tag]string{}
 	for _, f := range fields {
 		if fname, ok := names[f.tag]; ok {
-			return fields, tagError(ErrTagConflict, f.tag, nil).WithMessagef(`field "%s" with tag "%s" conflicts with field "%s" with tag "%s"`, fname, f.tag, f.name, f.tag)
+			err := &MarshalerError{
+				Type:   f.ti.typ,
+				Struct: typ.Name(),
+				Field:  f.name,
+				Tag:    f.tag,
+			}
+			return fields, merry.WithCause(err, ErrTagConflict).Appendf("field resolves to the same tag (%s) as other field (%s)", f.tag, fname)
 		}
 		names[f.tag] = f.name
 	}
@@ -743,6 +790,7 @@ func getFieldsInfo(typ reflect.Type) (fields []fieldInfo, err error) {
 }
 
 type typeInfo struct {
+	typ         reflect.Type
 	tag         Tag
 	tagRequired bool
 	name        string
@@ -757,12 +805,13 @@ const (
 )
 
 type fieldInfo struct {
-	name      string
-	tag       Tag
-	index     []int
-	flags     fieldFlags
-	enum      bool
-	omitEmpty bool
-	slice     bool
-	ti        typeInfo
+	structType reflect.Type
+	name       string
+	tag        Tag
+	index      []int
+	flags      fieldFlags
+	enum       bool
+	omitEmpty  bool
+	slice      bool
+	ti         typeInfo
 }

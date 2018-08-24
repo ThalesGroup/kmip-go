@@ -22,7 +22,7 @@ const lenHeader = lenTag + 1 + lenLen // tag + type + len
 
 type TTLV []byte
 
-func (t *TTLV) UnmarshalTTLV(ttlv TTLV) error {
+func (t *TTLV) UnmarshalTTLV(ttlv TTLV, disallowUnknownFields bool) error {
 	if ttlv == nil {
 		*t = nil
 		return nil

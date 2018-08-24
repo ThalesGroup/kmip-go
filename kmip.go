@@ -2,9 +2,7 @@ package kmip
 
 import (
 	"bytes"
-	"github.com/ansel1/merry"
 	"gitlab.protectv.local/regan/kmip.git/internal/kmiputil"
-	"reflect"
 )
 
 func Marshal(v interface{}) ([]byte, error) {
@@ -17,11 +15,7 @@ func Marshal(v interface{}) ([]byte, error) {
 }
 
 func Unmarshal(b []byte, v interface{}) error {
-	val := reflect.ValueOf(v)
-	if val.Kind() != reflect.Ptr {
-		return merry.New("non-pointer passed to Unmarshal")
-	}
-	return unmarshal(val, TTLV(b))
+	return NewDecoder(bytes.NewReader(b)).Decode(v)
 }
 
 // implementation of 5.4.1.1 and 5.5.1.1

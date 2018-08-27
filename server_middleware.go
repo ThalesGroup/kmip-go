@@ -173,7 +173,7 @@ func (h *StandardProtocolHandler) handleRequest(ctx context.Context, req *Reques
 	// minor versions match, then extra fields should cause an error.  Not sure how to enforce
 	// this in this higher level handler, since we (the protocol/message handlers) don't unmarshal the payload.
 	// That's done by a particular item handler.
-	req.DisallowUnknownValues = req.Message.RequestHeader.ProtocolVersion.ProtocolVersionMinor == h.ProtocolVersion.ProtocolVersionMinor
+	req.DisallowExtraValues = req.Message.RequestHeader.ProtocolVersion.ProtocolVersionMinor == h.ProtocolVersion.ProtocolVersionMinor
 
 	h.MessageHandler.HandleMessage(ctx, req, resp)
 

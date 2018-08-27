@@ -556,10 +556,10 @@ func readTTLV(bufr *bufio.Reader) (TTLV, error) {
 }
 
 type Request struct {
-	TTLV                  TTLV
-	Message               *RequestMessage
-	CurrentItem           *RequestBatchItem
-	DisallowUnknownValues bool
+	TTLV                TTLV
+	Message             *RequestMessage
+	CurrentItem         *RequestBatchItem
+	DisallowExtraValues bool
 
 	TLS        *tls.ConnectionState
 	RemoteAddr string
@@ -590,8 +590,8 @@ func (r *Request) Payload() TTLV {
 
 func (r *Request) DecodePayload(v interface{}) error {
 	dec := NewDecoder(bytes.NewReader(r.Payload()))
-	if r.DisallowUnknownValues {
-		dec.DisallowUnknownFields()
+	if r.DisallowExtraValues {
+		dec.DisallowExtraValues()
 	}
 	return dec.Decode(v)
 }

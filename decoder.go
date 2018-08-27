@@ -8,9 +8,9 @@ import (
 )
 
 type Decoder struct {
-	r                     io.Reader
-	bufr                  *bufio.Reader
-	disallowUnknownFields bool
+	r                   io.Reader
+	bufr                *bufio.Reader
+	disallowExtraValues bool
 
 	currStruct reflect.Type
 	currField  string
@@ -23,7 +23,7 @@ func NewDecoder(r io.Reader) *Decoder {
 	}
 }
 
-func (dec *Decoder) DisallowUnknownFields() { dec.disallowUnknownFields = true }
+func (dec *Decoder) DisallowExtraValues() { dec.disallowExtraValues = true }
 
 func (dec *Decoder) Decode(v interface{}) error {
 	ttlv, err := dec.NextTTLV()
@@ -52,7 +52,7 @@ func (dec *Decoder) unmarshal(val reflect.Value, ttlv TTLV) error {
 	// happen if the value is a pointer and Unmarshaler receiver is
 	// not a pointer, or vice versa.  Need to add some test cases for this.
 	if val.Type().Implements(unmarshalerType) {
-		return val.Interface().(Unmarshaler).UnmarshalTTLV(ttlv, dec.disallowUnknownFields)
+		return val.Interface().(Unmarshaler).UnmarshalTTLV(ttlv, dec.disallowExtraValues)
 	}
 
 	if val.Kind() == reflect.Ptr {
@@ -216,7 +216,7 @@ Next:
 			}
 		}
 		// should only get here if no fields matched the value
-		if dec.disallowUnknownFields {
+		if dec.disallowExtraValues {
 			return dec.newUnmarshalerError(ttlv, val.Type(), ErrUnexpectedValue)
 		}
 	}

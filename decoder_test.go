@@ -1,7 +1,9 @@
 package kmip
 
 import (
+	"bytes"
 	"fmt"
+	"github.com/ansel1/merry"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"math"
@@ -349,4 +351,73 @@ func TestUnmarshal(t *testing.T) {
 
 	}
 
+}
+
+func TestDecoder_DisallowUnknownFields(t *testing.T) {
+	type A struct {
+		Comment    string
+		BatchCount int
+	}
+
+	tests := []struct {
+		name  string
+		input Structure
+	}{
+		{
+			name: "middle",
+			input: Structure{
+				TagAlternativeName,
+				[]interface{}{
+					TaggedValue{TagComment, "red"},
+					TaggedValue{TagArchiveDate, "blue"},
+					TaggedValue{TagBatchCount, 5},
+				},
+			},
+		},
+		{
+			name: "first",
+			input: Structure{
+				TagAlternativeName,
+				[]interface{}{
+					TaggedValue{TagArchiveDate, "blue"},
+					TaggedValue{TagComment, "red"},
+					TaggedValue{TagBatchCount, 5},
+				},
+			},
+		},
+		{
+			name: "last",
+			input: Structure{
+				TagAlternativeName,
+				[]interface{}{
+					TaggedValue{TagComment, "red"},
+					TaggedValue{TagBatchCount, 5},
+					TaggedValue{TagArchiveDate, "blue"},
+				},
+			},
+		},
+	}
+
+	for _, testcase := range tests {
+		t.Run(testcase.name, func(t *testing.T) {
+			b, err := Marshal(testcase.input)
+			require.NoError(t, err)
+
+			// verify that it works find if flag is off
+			dec := NewDecoder(bytes.NewReader(b))
+			a := A{}
+			err = dec.Decode(&a)
+			require.NoError(t, err)
+
+			require.Equal(t, A{"red", 5}, a)
+
+			// verify that it bombs is flag is on
+			dec = NewDecoder(bytes.NewReader(b))
+			dec.DisallowExtraValues()
+			err = dec.Decode(&a)
+			require.Error(t, err)
+			require.True(t, merry.Is(err, ErrUnexpectedValue))
+
+		})
+	}
 }

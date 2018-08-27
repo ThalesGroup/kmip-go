@@ -47,10 +47,6 @@ func (dec *Decoder) unmarshal(val reflect.Value, ttlv TTLV) error {
 		}
 	}
 
-	// TODO: I think this will only work if the type of the field
-	// directly implements Unmarshaler, but I'm not sure what will
-	// happen if the value is a pointer and Unmarshaler receiver is
-	// not a pointer, or vice versa.  Need to add some test cases for this.
 	if val.Type().Implements(unmarshalerType) {
 		return val.Interface().(Unmarshaler).UnmarshalTTLV(ttlv, dec.disallowExtraValues)
 	}

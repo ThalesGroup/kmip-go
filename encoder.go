@@ -19,7 +19,7 @@ const kmipStructTag = "kmip"
 type Encoder struct {
 	structDepth int
 	w           io.Writer
-	encBuf
+	encBuf      encBuf
 
 	// these fields store where the encoder is when marshaling a nested struct.  its
 	// used to construct error messages.
@@ -53,8 +53,7 @@ func (e *Encoder) flush() error {
 		return nil
 	}
 	// TODO: reset write buffer when finished
-	// TODO: don't embed encbuf.  we don't want to publish its methods on *Encoder
-	_, err := e.WriteTo(e.w)
+	_, err := e.encBuf.WriteTo(e.w)
 	return err
 }
 
@@ -105,56 +104,56 @@ func (e *Encoder) encodeInterfaceValue(tag Tag, v interface{}) error {
 
 	switch t := v.(type) {
 	case MarshalerEnum:
-		e.encodeEnum2(tag, t.MarshalTTLVEnum())
+		e.encBuf.encodeEnum2(tag, t.MarshalTTLVEnum())
 	case TTLV:
 		// raw TTLV value
-		e.Write(t)
+		e.encBuf.Write(t)
 	case int:
 		if t > math.MaxInt32 {
 			return e.newMarshalingError(tag, intType, ErrIntOverflow)
 		}
-		e.encodeInt(tag, int32(t))
+		e.encBuf.encodeInt(tag, int32(t))
 	case int8:
-		e.encodeInt(tag, int32(t))
+		e.encBuf.encodeInt(tag, int32(t))
 	case int16:
-		e.encodeInt(tag, int32(t))
+		e.encBuf.encodeInt(tag, int32(t))
 	case int32:
-		e.encodeInt(tag, t)
+		e.encBuf.encodeInt(tag, t)
 	case uint:
 		if t > math.MaxInt32 {
 			return e.newMarshalingError(tag, uintType, ErrIntOverflow)
 		}
-		e.encodeInt(tag, int32(t))
+		e.encBuf.encodeInt(tag, int32(t))
 	case uint8:
-		e.encodeInt(tag, int32(t))
+		e.encBuf.encodeInt(tag, int32(t))
 	case uint16:
-		e.encodeInt(tag, int32(t))
+		e.encBuf.encodeInt(tag, int32(t))
 	case uint32:
 		if t > math.MaxInt32 {
 			return e.newMarshalingError(tag, uint32Type, ErrIntOverflow)
 		}
-		e.encodeInt(tag, int32(t))
+		e.encBuf.encodeInt(tag, int32(t))
 	case bool:
-		e.encodeBool(tag, t)
+		e.encBuf.encodeBool(tag, t)
 	case int64:
-		e.encodeLongInt(tag, t)
+		e.encBuf.encodeLongInt(tag, t)
 	case uint64:
 		if t > math.MaxInt64 {
 			return e.newMarshalingError(tag, uint64Type, ErrLongIntOverflow)
 		}
-		e.encodeLongInt(tag, int64(t))
+		e.encBuf.encodeLongInt(tag, int64(t))
 	case time.Time:
-		e.encodeDateTime(tag, t)
+		e.encBuf.encodeDateTime(tag, t)
 	case time.Duration:
-		e.encodeInterval(tag, t)
+		e.encBuf.encodeInterval(tag, t)
 	case big.Int:
-		e.encodeBigInt(tag, &t)
+		e.encBuf.encodeBigInt(tag, &t)
 	case *big.Int:
-		e.encodeBigInt(tag, t)
+		e.encBuf.encodeBigInt(tag, t)
 	case string:
-		e.encodeTextString(tag, t)
+		e.encBuf.encodeTextString(tag, t)
 	case []byte:
-		e.encodeByteString(tag, t)
+		e.encBuf.encodeByteString(tag, t)
 
 	case []interface{}:
 		for _, v := range t {
@@ -259,21 +258,21 @@ func (e *Encoder) encodeReflectEnum(tag Tag, v reflect.Value) error {
 		}
 
 		u := binary.BigEndian.Uint32(b)
-		e.encodeEnum2(tag, u)
+		e.encBuf.encodeEnum2(tag, u)
 		return nil
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		i := v.Uint()
 		if i > math.MaxUint32 {
 			return e.newMarshalingError(tag, v.Type(), ErrIntOverflow)
 		}
-		e.encodeEnum2(tag, uint32(i))
+		e.encBuf.encodeEnum2(tag, uint32(i))
 		return nil
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		i := v.Int()
 		if i > math.MaxUint32 {
 			return e.newMarshalingError(tag, v.Type(), ErrIntOverflow)
 		}
-		e.encodeEnum2(tag, uint32(i))
+		e.encBuf.encodeEnum2(tag, uint32(i))
 		return nil
 	default:
 		return e.newMarshalingError(tag, v.Type(), ErrUnsupportedEnumTypeError)
@@ -301,7 +300,7 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 		if flags&fOmitEmpty != 0 && isEmptyValue(v) {
 			return nil
 		}
-		e.Write(v.Bytes())
+		e.encBuf.Write(v.Bytes())
 	case typ.Implements(marshalerType):
 		if flags&fOmitEmpty != 0 && isEmptyValue(v) {
 			return nil
@@ -311,7 +310,7 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 		if flags&fOmitEmpty != 0 && isEmptyValue(v) {
 			return nil
 		}
-		e.encodeEnum2(tag, v.Interface().(MarshalerEnum).MarshalTTLVEnum())
+		e.encBuf.encodeEnum2(tag, v.Interface().(MarshalerEnum).MarshalTTLVEnum())
 		return nil
 	case v.CanAddr():
 		pv := v.Addr()
@@ -326,7 +325,7 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 			if flags&fOmitEmpty != 0 && isEmptyValue(v) {
 				return nil
 			}
-			e.encodeEnum2(tag, pv.Interface().(MarshalerEnum).MarshalTTLVEnum())
+			e.encBuf.encodeEnum2(tag, pv.Interface().(MarshalerEnum).MarshalTTLVEnum())
 			return nil
 		}
 	}
@@ -425,12 +424,12 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 		e.currStruct = currStruct
 		return err
 	case reflect.String:
-		e.encodeTextString(tag, v.String())
+		e.encBuf.encodeTextString(tag, v.String())
 	case reflect.Slice:
 		switch typ.Elem() {
 		case byteType:
 			// special case, encode as a ByteString
-			e.encodeByteString(tag, v.Bytes())
+			e.encBuf.encodeByteString(tag, v.Bytes())
 			return nil
 		}
 		fallthrough
@@ -448,23 +447,23 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 		if i > math.MaxInt32 {
 			return merry.Here(ErrIntOverflow).Prepend(tag.String())
 		}
-		e.encodeInt(tag, int32(i))
+		e.encBuf.encodeInt(tag, int32(i))
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32:
 		u := v.Uint()
 		if u > math.MaxInt32 {
 			return merry.Here(ErrIntOverflow).Prepend(tag.String())
 		}
-		e.encodeInt(tag, int32(u))
+		e.encBuf.encodeInt(tag, int32(u))
 	case reflect.Uint64:
 		u := v.Uint()
 		if u > math.MaxInt64 {
 			return merry.Here(ErrLongIntOverflow).Prepend(tag.String())
 		}
-		e.encodeLongInt(tag, int64(u))
+		e.encBuf.encodeLongInt(tag, int64(u))
 	case reflect.Int64:
-		e.encodeLongInt(tag, int64(v.Int()))
+		e.encBuf.encodeLongInt(tag, int64(v.Int()))
 	case reflect.Bool:
-		e.encodeBool(tag, v.Bool())
+		e.encBuf.encodeBool(tag, v.Bool())
 	default:
 		// all kinds should have been handled by now
 		panic(errors.New("should never get here"))
@@ -479,9 +478,9 @@ func (e *Encoder) EncodeStructure(tag Tag, f func(e *Encoder) error) error {
 	}
 
 	e.structDepth++
-	i := e.startStruct(tag)
+	i := e.encBuf.startStruct(tag)
 	err := f(e)
-	e.endStruct(i)
+	e.encBuf.endStruct(i)
 	e.structDepth--
 	if err != nil {
 		return err

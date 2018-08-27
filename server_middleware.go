@@ -168,6 +168,13 @@ func (h *StandardProtocolHandler) handleRequest(ctx context.Context, req *Reques
 		return
 	}
 
+	// set a flag hinting to handlers that extra fields should not be tolerated when
+	// unmarshaling payloads.  According to spec, if server and client protocol version
+	// minor versions match, then extra fields should cause an error.  Not sure how to enforce
+	// this in this higher level handler, since we (the protocol/message handlers) don't unmarshal the payload.
+	// That's done by a particular item handler.
+	req.DisallowUnknownValues = req.Message.RequestHeader.ProtocolVersion.ProtocolVersionMinor == h.ProtocolVersion.ProtocolVersionMinor
+
 	h.MessageHandler.HandleMessage(ctx, req, resp)
 
 	respTTLV := resp.Bytes()

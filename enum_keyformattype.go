@@ -39,12 +39,12 @@ const (
 )
 
 var _KeyFormatTypeNameToValueMap = map[string]KeyFormatType{
-	"ECPrivateKey": KeyFormatTypeECPrivateKey,
-	"Opaque":       KeyFormatTypeOpaque,
-	"PKCS_1":       KeyFormatTypePKCS_1,
-	"PKCS_12":      KeyFormatTypePKCS_12,
-	"PKCS_8":       KeyFormatTypePKCS_8,
-	"Raw":          KeyFormatTypeRaw,
+	"ECPrivateKey":               KeyFormatTypeECPrivateKey,
+	"Opaque":                     KeyFormatTypeOpaque,
+	"PKCS_1":                     KeyFormatTypePKCS_1,
+	"PKCS_12":                    KeyFormatTypePKCS_12,
+	"PKCS_8":                     KeyFormatTypePKCS_8,
+	"Raw":                        KeyFormatTypeRaw,
 	"TransparentDHPrivateKey":    KeyFormatTypeTransparentDHPrivateKey,
 	"TransparentDHPublicKey":     KeyFormatTypeTransparentDHPublicKey,
 	"TransparentDSAPrivateKey":   KeyFormatTypeTransparentDSAPrivateKey,

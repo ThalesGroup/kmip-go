@@ -2,6 +2,7 @@ package kmip
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"crypto/tls"
 	"errors"
@@ -555,9 +556,10 @@ func readTTLV(bufr *bufio.Reader) (TTLV, error) {
 }
 
 type Request struct {
-	TTLV        TTLV
-	Message     *RequestMessage
-	CurrentItem *RequestBatchItem
+	TTLV                  TTLV
+	Message               *RequestMessage
+	CurrentItem           *RequestBatchItem
+	DisallowUnknownValues bool
 
 	TLS        *tls.ConnectionState
 	RemoteAddr string
@@ -584,6 +586,14 @@ func (r *Request) Payload() TTLV {
 		}
 		return ttlv
 	}
+}
+
+func (r *Request) DecodePayload(v interface{}) error {
+	dec := NewDecoder(bytes.NewReader(r.Payload()))
+	if r.DisallowUnknownValues {
+		dec.DisallowUnknownFields()
+	}
+	return dec.Decode(v)
 }
 
 // onceCloseListener wraps a net.Listener, protecting it from

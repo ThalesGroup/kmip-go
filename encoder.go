@@ -52,8 +52,8 @@ func (e *Encoder) flush() error {
 	if e.structDepth > 0 {
 		return nil
 	}
-	// TODO: reset write buffer when finished
 	_, err := e.encBuf.WriteTo(e.w)
+	e.encBuf.Reset()
 	return err
 }
 

@@ -757,7 +757,6 @@ func getFieldInfo(typ reflect.Type, sf reflect.StructField) (fi fieldInfo, err e
 }
 
 func getFieldsInfo(typ reflect.Type) (fields []fieldInfo, err error) {
-	// TODO: error fields of unsupported types, like maps
 
 	for i := 0; i < typ.NumField(); i++ {
 		fi, err := getFieldInfo(typ, typ.Field(i))

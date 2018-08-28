@@ -212,60 +212,6 @@ func (h *StandardProtocolHandler) ServeKMIP(ctx context.Context, req *Request, w
 	}
 
 	releaseResponse(resp)
-
-	//// create a server correlation value, which is like a unique transaction ID
-	//scv := uuid.New().String()
-	//
-	//// create a logger for the transaction, seeded with the scv
-	//logger := flume.FromContext(ctx).With("scv", scv)
-	//// attach the logger to the context, so it is available to the handling chain
-	//ctx = flume.WithLogger(ctx, logger)
-	//
-	//// we precreate the response object and pass it down to handlers, because due
-	//// the guidance in the spec on the Maximum Response Size, it will be necessary
-	//// for handlers to recalculate the response size after each batch item, which
-	//// requires re-encoding the entire response. Seems inefficient.
-	//resp := newResponse()
-	//// TODO: it's unclear how the full protocol negogiation is supposed to work
-	//// should server be pinned to a particular version?  Or should we try and negogiate a common version?
-	//resp.ResponseHeader.ProtocolVersion = h.ProtocolVersion
-	//resp.ResponseHeader.TimeStamp = time.Now()
-	//resp.ResponseHeader.BatchCount = len(resp.BatchItem)
-	//resp.ResponseHeader.ServerCorrelationValue = scv
-	//
-	//if err := h.parseMessage(ctx, req); err != nil {
-	//	resp.errorResponse(ResultReasonInvalidMessage, err.Error())
-	//	resp.mustWriteTo(writer)
-	//	return
-	//}
-	//
-	//ccv := req.Message.RequestHeader.ClientCorrelationValue
-	//// add the client correlation value to the logging context.  This value uniquely
-	//// identifies the client, and is supposed to be included in server logs
-	//ctx = flume.WithLogger(ctx, flume.FromContext(ctx).With("ccv", ccv))
-	//resp.ResponseHeader.ClientCorrelationValue = req.Message.RequestHeader.ClientCorrelationValue
-	//
-	//clientMajorVersion := req.Message.RequestHeader.ProtocolVersion.ProtocolVersionMajor
-	//if clientMajorVersion != h.ProtocolVersion.ProtocolVersionMajor {
-	//	resp.errorResponse(ResultReasonInvalidMessage,
-	//		fmt.Sprintf("mismatched protocol versions, client: %d, server: %d", clientMajorVersion, h.ProtocolVersion.ProtocolVersionMajor))
-	//	resp.mustWriteTo(writer)
-	//	return
-	//}
-	//
-	//h.MessageHandler.HandleMessage(ctx, req, resp)
-	//
-	//respTTLV := resp.Bytes()
-	//
-	//if req.Message.RequestHeader.MaximumResponseSize > 0 && len(respTTLV) > req.Message.RequestHeader.MaximumResponseSize {
-	//	// new error resp
-	//	resp.errorResponse(ResultReasonResponseTooLarge, "")
-	//	respTTLV = resp.Bytes()
-	//}
-	//
-	//resp.mustWriteTo(writer)
-	//
-	//releaseResponse(resp)
 }
 
 func (r *ResponseMessage) addFailure(reason ResultReason, msg string) {

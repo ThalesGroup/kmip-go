@@ -203,9 +203,7 @@ func (MarshalerStruct) MarshalTTLV(e *Encoder, tag Tag) error {
 type MarshalerFunc func(e *Encoder, tag Tag) error
 
 func (f MarshalerFunc) MarshalTTLV(e *Encoder, tag Tag) error {
-	// TODO: workaround for encoding a nil value of type MarshalerFunc.  The non reflect
-	// path currently has no way to detect whether an interface value that implements Marshaler is actually
-	// nil.  This makes it save to call a nil MarshalerFunc
+	// This makes it safe to call a nil MarshalerFunc
 	if f == nil {
 		return nil
 	}

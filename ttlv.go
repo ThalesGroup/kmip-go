@@ -285,57 +285,6 @@ func Print(w io.Writer, indent string, t TTLV) (err error) {
 	return
 }
 
-type Reader struct {
-	r io.Reader
-}
-
-func (r *Reader) Read() (TTLV, error) {
-	// TODO: if a full value can't be read, this just errors, but it should probably try to keep reading
-	// but then, do I need timeouts or something?
-
-	// TODO: re-use buffers
-	// pre-allocate buffer large enough to hold most base types
-	buf := bytes.NewBuffer(make([]byte, lenHeader+8))
-	n, err := r.r.Read(buf.Bytes()[:lenHeader])
-	switch err {
-	case nil, io.EOF:
-	default:
-		return nil, merry.Prepend(err, "reading encBuf")
-	}
-
-	if n != lenHeader {
-		return nil, merry.New("not enough bytes for a full encBuf")
-	}
-
-	t := TTLV(buf.Bytes()[:lenHeader])
-	if err := t.ValidHeader(); err != nil {
-		return t, err
-	}
-	l := t.FullLen()
-
-	switch {
-	case l == 0:
-		// TODO: not really clear from the spec whether zero-length TextString and ByteString values are allowed
-		return t, err
-	case err == io.EOF:
-		return t, merry.Errorf("empty value, expecting %d bytes", l)
-	}
-
-	buf.Grow(l)
-
-	n, err = r.r.Read(buf.Bytes()[lenHeader:l])
-	switch err {
-	case nil, io.EOF:
-	default:
-		return nil, merry.Prepend(err, "reading value")
-	}
-
-	if n+lenHeader != l {
-		return nil, merry.New("value truncated")
-	}
-	return TTLV(buf.Bytes()[:l]), err
-}
-
 var one = big.NewInt(1)
 
 func unpadBigInt(data []byte) []byte {

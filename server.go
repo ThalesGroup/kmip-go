@@ -216,7 +216,7 @@ type conn struct {
 }
 
 func (c *conn) close() {
-	// TODO: http package has a buffered writer on the conn to, which is flushed here
+	// TODO: http package has a buffered writer on the conn too, which is flushed here
 	c.rwc.Close()
 }
 

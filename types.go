@@ -85,7 +85,6 @@ type Credential struct {
 
 // TODO: add an unmarshal impl to Credential to handle decoding the right kind
 // of credential based on the credential type value
-// TODO: add general support in decoder for decoding into an interface{}, setting it to TTLV
 
 type UsernameAndPasswordCredentialValue struct {
 	Username string

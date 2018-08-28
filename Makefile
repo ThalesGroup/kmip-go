@@ -23,6 +23,11 @@ clean:
 fmt:
 	go fmt $(PACKAGES)
 
+generate:
+	go install ./cmd/kmipenums
+	go generate
+	go fmt $(PACKAGES)
+
 test:
 	go test $(BUILD_FLAGS) $(PACKAGES)
 

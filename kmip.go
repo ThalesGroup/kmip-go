@@ -1,3 +1,5 @@
+//go:generate kmipenums
+
 package kmip
 
 import (

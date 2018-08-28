@@ -19,8 +19,7 @@ import (
 var serverLog = flume.New("kmip_server")
 
 type Server struct {
-	Handler    MessageHandler
-	RawHandler ProtocolHandler
+	Handler ProtocolHandler
 
 	mu         sync.Mutex
 	listeners  map[*net.Listener]struct{}
@@ -211,6 +210,7 @@ type conn struct {
 
 	// bufr reads from rwc.
 	bufr *bufio.Reader
+	dec  *Decoder
 
 	server *Server
 }
@@ -276,6 +276,7 @@ func (c *conn) serve(ctx context.Context) {
 	}
 
 	// TODO: do we really need instance pooling here?  We expect KMIP connections to be long lasting
+	c.dec = NewDecoder(c.rwc)
 	c.bufr = bufio.NewReader(c.rwc)
 	//c.bufw = newBufioWriterSize(checkConnErrorWriter{c}, 4<<10)
 
@@ -347,8 +348,7 @@ func (c *conn) serve(ctx context.Context) {
 		// But we're not going to implement HTTP pipelining because it
 		// was never deployed in the wild and the answer is HTTP/2.
 
-		// TODO: pre-fill fields of response header
-		h := c.server.RawHandler
+		h := c.server.Handler
 		if h == nil {
 			h = DefaultProtocolHandler
 		}
@@ -431,128 +431,32 @@ func (c *conn) readRequest(ctx context.Context) (w *Request, err error) {
 	//peek, _ := c.bufr.Peek(4) // ReadRequest will get err below
 	//c.bufr.Discard(numLeadingCRorLF(peek))
 	//}
-	req, err := readRequest(c.bufr)
+	ttlv, err := c.dec.NextTTLV()
 	if err != nil {
-		//if c.r.hitReadLimit() {
-		//	return nil, errTooLarge
-		//}
 		return nil, err
 	}
-
-	// TODO: there should be some transport-agnostic KMIP server processing here, handling things like
-	// version negotiation
-	//if !http1ServerSupportsRequest(req) {
-	//	return nil, badRequestError("unsupported protocol version")
+	//if err != nil {
+	//if c.r.hitReadLimit() {
+	//	return nil, errTooLarge
+	//}
 	//}
 
-	//c.lastMethod = req.Method
+	// TODO: use pooling to recycle requests?
+	req := &Request{
+		TTLV:       ttlv,
+		RemoteAddr: c.remoteAddr,
+		LocalAddr:  c.localAddr,
+		TLS:        c.tlsState,
+	}
+
 	//c.r.setInfiniteReadLimit()
-
-	//hosts, haveHost := req.Header["Host"]
-	//isH2Upgrade := req.isH2Upgrade()
-	//if req.ProtoAtLeast(1, 1) && (!haveHost || len(hosts) == 0) && !isH2Upgrade && req.Method != "CONNECT" {
-	//	return nil, badRequestError("missing required Host header")
-	//}
-	//if len(hosts) > 1 {
-	//	return nil, badRequestError("too many Host headers")
-	//}
-	//if len(hosts) == 1 && !httpguts.ValidHostHeader(hosts[0]) {
-	//	return nil, badRequestError("malformed Host header")
-	//}
-	//for k, vv := range req.Header {
-	//	if !httpguts.ValidHeaderFieldName(k) {
-	//		return nil, badRequestError("invalid header name")
-	//	}
-	//	for _, v := range vv {
-	//		if !httpguts.ValidHeaderFieldValue(v) {
-	//			return nil, badRequestError("invalid header value")
-	//		}
-	//	}
-	//}
-	//delete(req.Header, "Host")
-
-	req.RemoteAddr = c.remoteAddr
-	req.LocalAddr = c.localAddr
-	req.TLS = c.tlsState
-
-	//if body, ok := req.Body.(*body); ok {
-	//	body.doEarlyClose = true
-	//}
 
 	// Adjust the read deadline if necessary.
 	//if !hdrDeadline.Equal(wholeReqDeadline) {
 	//	c.rwc.SetReadDeadline(wholeReqDeadline)
 	//}
 
-	//w = &response{
-	//	conn:          c,
-	//	cancelCtx:     cancelCtx,
-	//	req:           req,
-	//	reqBody:       req.Body,
-	//	handlerHeader: make(Header),
-	//	contentLength: -1,
-	//	closeNotifyCh: make(chan bool, 1),
-	//
-	//	// We populate these ahead of time so we're not
-	//	// reading from req.Header after their MessageHandler starts
-	//	// and maybe mutates it (Issue 14940)
-	//	wants10KeepAlive: req.wantsHttp10KeepAlive(),
-	//	wantsClose:       req.wantsClose(),
-	//}
-	//if isH2Upgrade {
-	//	w.closeAfterReply = true
-	//}
-	//w.cw.res = w
-	//w.w = newBufioWriterSize(&w.cw, bufferBeforeChunkingSize)
 	return req, nil
-}
-
-func readRequest(bufr *bufio.Reader) (*Request, error) {
-	ttlv, err := readTTLV(bufr)
-	if err != nil {
-		return nil, err
-	}
-
-	// TODO: use pooling to recycle requests?
-	req := &Request{
-		TTLV: ttlv,
-	}
-
-	return req, nil
-}
-
-func readTTLV(bufr *bufio.Reader) (TTLV, error) {
-
-	// first, read the header
-	header, err := bufr.Peek(8)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := TTLV(header).ValidHeader(); err != nil {
-		// bad header, abort
-		return TTLV(header), err
-	}
-
-	// allocate a buffer large enough for the entire message
-	fullLen := TTLV(header).FullLen()
-	buf := make([]byte, fullLen)
-
-	var totRead int
-	for {
-		n, err := bufr.Read(buf[totRead:])
-		if err != nil {
-			return TTLV(buf), err
-		}
-
-		totRead += n
-		if totRead >= fullLen {
-			// we've read off a single full message
-			return TTLV(buf), nil
-		}
-		// keep reading
-	}
-
 }
 
 type Request struct {

@@ -78,35 +78,6 @@ type Authentication struct {
 	Credential []Credential
 }
 
-type Credential struct {
-	CredentialType  CredentialType
-	CredentialValue interface{}
-}
-
-// TODO: add an unmarshal impl to Credential to handle decoding the right kind
-// of credential based on the credential type value
-
-type UsernameAndPasswordCredentialValue struct {
-	Username string
-	Password string `kmip:",omitempty"`
-}
-
-type DeviceCredentialValue struct {
-	DeviceSerialNumber string `kmip:",omitempty"`
-	Password           string `kmip:",omitempty"`
-	DeviceIdentifier   string `kmip:",omitempty"`
-	NetworkIdentifier  string `kmip:",omitempty"`
-	MachineIdentifier  string `kmip:",omitempty"`
-	MediaIdentifier    string `kmip:",omitempty"`
-}
-
-type AttestationCredentialValue struct {
-	Nonce                  Nonce
-	AttestationType        AttestationType
-	AttestationMeasurement []byte `kmip:",omitempty"`
-	AttestationAssertion   []byte `kmip:",omitempty"`
-}
-
 type Nonce struct {
 	NonceID    []byte
 	NonceValue []byte
@@ -121,4 +92,8 @@ type MessageExtension struct {
 	VendorIdentification string
 	CriticalityIndicator bool
 	VendorExtension      interface{}
+}
+
+type Attributes struct {
+	Attributes []Attribute
 }

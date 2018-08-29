@@ -468,36 +468,45 @@ type Request struct {
 	TLS        *tls.ConnectionState
 	RemoteAddr string
 	LocalAddr  string
+
+	IDPlaceholder string
+
+	decoder *Decoder
 }
 
-func (r *Request) Payload() TTLV {
-	if r.CurrentItem == nil {
-		return nil
-	}
-	switch t := r.CurrentItem.RequestPayload.(type) {
+// coerceToTTLV attempts to coerce an interface value to TTLV.
+// In most production scenarios, this is intended to be used in
+// places where the value is already a TTLV, and just needs to be
+// type cast.  If v is not TTLV, it will be marshaled.  This latter
+// behavior is slow, so it should be used only in tests.
+func coerceToTTLV(v interface{}) (TTLV, error) {
+	switch t := v.(type) {
 	case nil:
-		return nil
+		return nil, nil
 	case TTLV:
-		return t
+		return t, nil
 	default:
-		// This case shouldn't hit in normal server operation, where
-		// the payload has been unmarshalled off the wire as TTLV.  This
-		// is here as a convenience to tests or other use cases where
-		// the payload has been set in code to a struct
-		ttlv, err := Marshal(r.CurrentItem.RequestPayload)
-		if err != nil {
-			panic(err)
-		}
-		return ttlv
+		return Marshal(v)
 	}
+}
+
+// Unmarshal unmarshals ttlv into structures.  Handlers should prefer this
+// method over than their own Decoders or Unmarshal().  This method
+// enforces rules about whether extra fields are allowed, and reuses
+// buffers for efficiency.
+func (r *Request) Unmarshal(ttlv TTLV, into interface{}) error {
+	if len(ttlv) == 0 {
+		return nil
+	}
+	r.decoder.Reset(bytes.NewReader(ttlv))
+	return r.decoder.Decode(into)
 }
 
 func (r *Request) DecodePayload(v interface{}) error {
-	dec := NewDecoder(bytes.NewReader(r.Payload()))
-	if r.DisallowExtraValues {
-		dec.DisallowExtraValues()
+	if r.CurrentItem == nil {
+		return nil
 	}
-	return dec.Decode(v)
+	return r.Unmarshal(coerceToTTLV(r.CurrentItem.RequestPayload))
 }
 
 // onceCloseListener wraps a net.Listener, protecting it from

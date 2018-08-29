@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+// 2 and 9.1.1.2
+
 type Type byte
 
 const (

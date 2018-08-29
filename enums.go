@@ -14,91 +14,46 @@ import (
 type Tag uint32
 
 const (
+	TagNone                                  Tag = 0x000000
 	TagActivationDate                        Tag = 0x420001
-	TagAlternativeName                       Tag = 0x4200bf
-	TagAlternativeNameType                   Tag = 0x4200c1
-	TagAlternativeNameValue                  Tag = 0x4200c0
-	TagAlwaysSensitive                       Tag = 0x420121
 	TagApplicationData                       Tag = 0x420002
 	TagApplicationNamespace                  Tag = 0x420003
 	TagApplicationSpecificInformation        Tag = 0x420004
 	TagArchiveDate                           Tag = 0x420005
-	TagAsynchronousCapability                Tag = 0x4200f0
 	TagAsynchronousCorrelationValue          Tag = 0x420006
 	TagAsynchronousIndicator                 Tag = 0x420007
-	TagAttestationAssertion                  Tag = 0x4200cc
-	TagAttestationCapability                 Tag = 0x4200f1
-	TagAttestationCapableIndicator           Tag = 0x4200d3
-	TagAttestationMeasurement                Tag = 0x4200cb
-	TagAttestationType                       Tag = 0x4200c7
 	TagAttribute                             Tag = 0x420008
 	TagAttributeIndex                        Tag = 0x420009
 	TagAttributeName                         Tag = 0x42000a
 	TagAttributeValue                        Tag = 0x42000b
-	TagAuthenticatedEncryptionAdditionalData Tag = 0x4200fe
-	TagAuthenticatedEncryptionTag            Tag = 0x4200ff
 	TagAuthentication                        Tag = 0x42000c
-	TagBatchContinueCapability               Tag = 0x4200fa
 	TagBatchCount                            Tag = 0x42000d
 	TagBatchErrorContinuationOption          Tag = 0x42000e
 	TagBatchItem                             Tag = 0x42000f
 	TagBatchOrderOption                      Tag = 0x420010
-	TagBatchUndoCapability                   Tag = 0x4200f9
 	TagBlockCipherMode                       Tag = 0x420011
-	TagCRTCoefficient                        Tag = 0x420027
 	TagCancellationResult                    Tag = 0x420012
-	TagCapabilityInformation                 Tag = 0x4200f7
 	TagCertificate                           Tag = 0x420013
 	TagCertificateIdentifier                 Tag = 0x420014
 	TagCertificateIssuer                     Tag = 0x420015
 	TagCertificateIssuerAlternativeName      Tag = 0x420016
-	TagCertificateIssuerC                    Tag = 0x420118
-	TagCertificateIssuerCN                   Tag = 0x420114
-	TagCertificateIssuerDC                   Tag = 0x42011e
-	TagCertificateIssuerDNQualifier          Tag = 0x42011f
 	TagCertificateIssuerDistinguishedName    Tag = 0x420017
-	TagCertificateIssuerEmail                Tag = 0x420117
-	TagCertificateIssuerL                    Tag = 0x42011a
-	TagCertificateIssuerO                    Tag = 0x420115
-	TagCertificateIssuerOU                   Tag = 0x420116
-	TagCertificateIssuerST                   Tag = 0x420119
-	TagCertificateIssuerSerialNumber         Tag = 0x42011c
-	TagCertificateIssuerTitle                Tag = 0x42011d
-	TagCertificateIssuerUID                  Tag = 0x42011b
-	TagCertificateLength                     Tag = 0x4200ad
 	TagCertificateRequest                    Tag = 0x420018
 	TagCertificateRequestType                Tag = 0x420019
-	TagCertificateSerialNumber               Tag = 0x4200af
 	TagCertificateSubject                    Tag = 0x42001a
 	TagCertificateSubjectAlternativeName     Tag = 0x42001b
-	TagCertificateSubjectC                   Tag = 0x42010c
-	TagCertificateSubjectCN                  Tag = 0x420108
-	TagCertificateSubjectDC                  Tag = 0x420112
-	TagCertificateSubjectDNQualifier         Tag = 0x420113
 	TagCertificateSubjectDistinguishedName   Tag = 0x42001c
-	TagCertificateSubjectEmail               Tag = 0x42010b
-	TagCertificateSubjectL                   Tag = 0x42010e
-	TagCertificateSubjectO                   Tag = 0x420109
-	TagCertificateSubjectOU                  Tag = 0x42010a
-	TagCertificateSubjectST                  Tag = 0x42010d
-	TagCertificateSubjectSerialNumber        Tag = 0x420110
-	TagCertificateSubjectTitle               Tag = 0x420111
-	TagCertificateSubjectUID                 Tag = 0x42010f
 	TagCertificateType                       Tag = 0x42001d
 	TagCertificateValue                      Tag = 0x42001e
-	TagClientCorrelationValue                Tag = 0x420105
-	TagClientRegistrationMethod              Tag = 0x4200f6
-	TagComment                               Tag = 0x4200fd
 	TagCommonTemplateAttribute               Tag = 0x42001f
 	TagCompromiseDate                        Tag = 0x420020
 	TagCompromiseOccurrenceDate              Tag = 0x420021
 	TagContactInformation                    Tag = 0x420022
-	TagCorrelationValue                      Tag = 0x4200d6
-	TagCounterLength                         Tag = 0x4200d0
 	TagCredential                            Tag = 0x420023
 	TagCredentialType                        Tag = 0x420024
 	TagCredentialValue                       Tag = 0x420025
 	TagCriticalityIndicator                  Tag = 0x420026
+	TagCRTCoefficient                        Tag = 0x420027
 	TagCryptographicAlgorithm                Tag = 0x420028
 	TagCryptographicDomainParameters         Tag = 0x420029
 	TagCryptographicLength                   Tag = 0x42002a
@@ -106,46 +61,21 @@ const (
 	TagCryptographicUsageMask                Tag = 0x42002c
 	TagCustomAttribute                       Tag = 0x42002d
 	TagD                                     Tag = 0x42002e
-	TagDRBGAlgorithm                         Tag = 0x4200db
-	TagData                                  Tag = 0x4200c2
-	TagDataLength                            Tag = 0x4200c4
 	TagDeactivationDate                      Tag = 0x42002f
 	TagDerivationData                        Tag = 0x420030
 	TagDerivationMethod                      Tag = 0x420031
 	TagDerivationParameters                  Tag = 0x420032
-	TagDescription                           Tag = 0x4200fc
-	TagDestroyAction                         Tag = 0x4200f3
 	TagDestroyDate                           Tag = 0x420033
-	TagDeviceIdentifier                      Tag = 0x4200a2
-	TagDeviceSerialNumber                    Tag = 0x4200b0
 	TagDigest                                Tag = 0x420034
 	TagDigestValue                           Tag = 0x420035
-	TagDigestedData                          Tag = 0x420107
-	TagDigitalSignatureAlgorithm             Tag = 0x4200ae
-	TagEncodingOption                        Tag = 0x4200a3
 	TagEncryptionKeyInformation              Tag = 0x420036
-	TagExtensionInformation                  Tag = 0x4200a4
-	TagExtensionName                         Tag = 0x4200a5
-	TagExtensionTag                          Tag = 0x4200a6
-	TagExtensionType                         Tag = 0x4200a7
-	TagExtractable                           Tag = 0x420122
-	TagFIPS186Variation                      Tag = 0x4200dc
-	TagFinalIndicator                        Tag = 0x4200d8
-	TagFixedFieldLength                      Tag = 0x4200cf
-	TagFresh                                 Tag = 0x4200a8
 	TagG                                     Tag = 0x420037
 	TagHashingAlgorithm                      Tag = 0x420038
-	TagIVCounterNonce                        Tag = 0x42003d
-	TagIVLength                              Tag = 0x4200cd
-	TagInitIndicator                         Tag = 0x4200d7
-	TagInitialCounterValue                   Tag = 0x4200d1
 	TagInitialDate                           Tag = 0x420039
 	TagInitializationVector                  Tag = 0x42003a
-	TagInvocationFieldLength                 Tag = 0x4200d2
 	TagIssuer                                Tag = 0x42003b
-	TagIssuerAlternativeName                 Tag = 0x4200b1
-	TagIssuerDistinguishedName               Tag = 0x4200b2
 	TagIterationCount                        Tag = 0x42003c
+	TagIVCounterNonce                        Tag = 0x42003d
 	TagJ                                     Tag = 0x42003e
 	TagKey                                   Tag = 0x42003f
 	TagKeyBlock                              Tag = 0x420040
@@ -153,13 +83,7 @@ const (
 	TagKeyFormatType                         Tag = 0x420042
 	TagKeyMaterial                           Tag = 0x420043
 	TagKeyPartIdentifier                     Tag = 0x420044
-	TagKeyRoleType                           Tag = 0x420083
 	TagKeyValue                              Tag = 0x420045
-	TagKeyValueLocation                      Tag = 0x4200b8
-	TagKeyValueLocationType                  Tag = 0x4200ba
-	TagKeyValueLocationValue                 Tag = 0x4200b9
-	TagKeyValuePresent                       Tag = 0x4200bb
-	TagKeyWrapType                           Tag = 0x4200f8
 	TagKeyWrappingData                       Tag = 0x420046
 	TagKeyWrappingSpecification              Tag = 0x420047
 	TagLastChangeDate                        Tag = 0x420048
@@ -167,46 +91,25 @@ const (
 	TagLink                                  Tag = 0x42004a
 	TagLinkType                              Tag = 0x42004b
 	TagLinkedObjectIdentifier                Tag = 0x42004c
-	TagLocatedItems                          Tag = 0x4200d5
-	TagMACData                               Tag = 0x4200c6
 	TagMACSignature                          Tag = 0x42004d
 	TagMACSignatureKeyInformation            Tag = 0x42004e
-	TagMachineIdentifier                     Tag = 0x4200a9
-	TagMaskGenerator                         Tag = 0x420101
-	TagMaskGeneratorHashingAlgorithm         Tag = 0x420102
 	TagMaximumItems                          Tag = 0x42004f
 	TagMaximumResponseSize                   Tag = 0x420050
-	TagMediaIdentifier                       Tag = 0x4200aa
 	TagMessageExtension                      Tag = 0x420051
 	TagModulus                               Tag = 0x420052
 	TagName                                  Tag = 0x420053
 	TagNameType                              Tag = 0x420054
 	TagNameValue                             Tag = 0x420055
-	TagNetworkIdentifier                     Tag = 0x4200ab
-	TagNeverExtractable                      Tag = 0x420123
-	TagNonce                                 Tag = 0x4200c8
-	TagNonceID                               Tag = 0x4200c9
-	TagNonceValue                            Tag = 0x4200ca
-	TagNone                                  Tag = 0x000000
 	TagObjectGroup                           Tag = 0x420056
-	TagObjectGroupMember                     Tag = 0x4200ac
 	TagObjectType                            Tag = 0x420057
 	TagOffset                                Tag = 0x420058
-	TagOffsetItems                           Tag = 0x4200d4
 	TagOpaqueDataType                        Tag = 0x420059
 	TagOpaqueDataValue                       Tag = 0x42005a
 	TagOpaqueObject                          Tag = 0x42005b
 	TagOperation                             Tag = 0x42005c
 	TagOperationPolicyName                   Tag = 0x42005d
-	TagOriginalCreationDate                  Tag = 0x4200bc
 	TagP                                     Tag = 0x42005e
-	TagPGPKey                                Tag = 0x4200bd
-	TagPGPKeyVersion                         Tag = 0x4200be
-	TagPKCS_12FriendlyName                   Tag = 0x4200fb
-	TagPSource                               Tag = 0x420103
 	TagPaddingMethod                         Tag = 0x42005f
-	TagPassword                              Tag = 0x4200a1
-	TagPredictionResistance                  Tag = 0x4200dd
 	TagPrimeExponentP                        Tag = 0x420060
 	TagPrimeExponentQ                        Tag = 0x420061
 	TagPrimeFieldSize                        Tag = 0x420062
@@ -215,8 +118,6 @@ const (
 	TagPrivateKeyTemplateAttribute           Tag = 0x420065
 	TagPrivateKeyUniqueIdentifier            Tag = 0x420066
 	TagProcessStartDate                      Tag = 0x420067
-	TagProfileInformation                    Tag = 0x4200eb
-	TagProfileName                           Tag = 0x4200ec
 	TagProtectStopDate                       Tag = 0x420068
 	TagProtocolVersion                       Tag = 0x420069
 	TagProtocolVersionMajor                  Tag = 0x42006a
@@ -230,13 +131,7 @@ const (
 	TagQString                               Tag = 0x420072
 	TagQlength                               Tag = 0x420073
 	TagQueryFunction                         Tag = 0x420074
-	TagRNGAlgorithm                          Tag = 0x4200da
-	TagRNGMode                               Tag = 0x4200f5
-	TagRNGParameters                         Tag = 0x4200d9
-	TagRandomIV                              Tag = 0x4200c5
-	TagRandomNumberGenerator                 Tag = 0x4200de
 	TagRecommendedCurve                      Tag = 0x420075
-	TagReplaceExisting                       Tag = 0x420124
 	TagReplacedUniqueIdentifier              Tag = 0x420076
 	TagRequestHeader                         Tag = 0x420077
 	TagRequestMessage                        Tag = 0x420078
@@ -250,151 +145,211 @@ const (
 	TagRevocationMessage                     Tag = 0x420080
 	TagRevocationReason                      Tag = 0x420081
 	TagRevocationReasonCode                  Tag = 0x420082
+	TagKeyRoleType                           Tag = 0x420083
 	TagSalt                                  Tag = 0x420084
-	TagSaltLength                            Tag = 0x420100
 	TagSecretData                            Tag = 0x420085
 	TagSecretDataType                        Tag = 0x420086
-	TagSensitive                             Tag = 0x420120
 	TagSerialNumber                          Tag = 0x420087
-	TagServerCorrelationValue                Tag = 0x420106
 	TagServerInformation                     Tag = 0x420088
-	TagServerPort                            Tag = 0x4200ee
-	TagServerURI                             Tag = 0x4200ed
-	TagShreddingAlgorithm                    Tag = 0x4200f4
-	TagSignatureData                         Tag = 0x4200c3
 	TagSplitKey                              Tag = 0x420089
 	TagSplitKeyMethod                        Tag = 0x42008a
 	TagSplitKeyParts                         Tag = 0x42008b
 	TagSplitKeyThreshold                     Tag = 0x42008c
 	TagState                                 Tag = 0x42008d
 	TagStorageStatusMask                     Tag = 0x42008e
-	TagStreamingCapability                   Tag = 0x4200ef
-	TagSubjectAlternativeName                Tag = 0x4200b3
-	TagSubjectDistinguishedName              Tag = 0x4200b4
 	TagSymmetricKey                          Tag = 0x42008f
-	TagTagLength                             Tag = 0x4200ce
 	TagTemplate                              Tag = 0x420090
 	TagTemplateAttribute                     Tag = 0x420091
 	TagTimeStamp                             Tag = 0x420092
-	TagTrailerField                          Tag = 0x420104
 	TagUniqueBatchItemID                     Tag = 0x420093
 	TagUniqueIdentifier                      Tag = 0x420094
-	TagUnwrapMode                            Tag = 0x4200f2
 	TagUsageLimits                           Tag = 0x420095
 	TagUsageLimitsCount                      Tag = 0x420096
 	TagUsageLimitsTotal                      Tag = 0x420097
 	TagUsageLimitsUnit                       Tag = 0x420098
 	TagUsername                              Tag = 0x420099
-	TagValidationAuthorityCountry            Tag = 0x4200e1
-	TagValidationAuthorityType               Tag = 0x4200e0
-	TagValidationAuthorityURI                Tag = 0x4200e2
-	TagValidationCertificateIdentifier       Tag = 0x4200e7
-	TagValidationCertificateURI              Tag = 0x4200e8
-	TagValidationInformation                 Tag = 0x4200df
-	TagValidationLevel                       Tag = 0x4200e6
-	TagValidationProfile                     Tag = 0x4200ea
-	TagValidationType                        Tag = 0x4200e5
-	TagValidationVendorURI                   Tag = 0x4200e9
-	TagValidationVersionMajor                Tag = 0x4200e3
-	TagValidationVersionMinor                Tag = 0x4200e4
 	TagValidityDate                          Tag = 0x42009a
 	TagValidityIndicator                     Tag = 0x42009b
 	TagVendorExtension                       Tag = 0x42009c
 	TagVendorIdentification                  Tag = 0x42009d
 	TagWrappingMethod                        Tag = 0x42009e
 	TagX                                     Tag = 0x42009f
+	TagY                                     Tag = 0x4200a0
+	TagPassword                              Tag = 0x4200a1
+	TagDeviceIdentifier                      Tag = 0x4200a2
+	TagEncodingOption                        Tag = 0x4200a3
+	TagExtensionInformation                  Tag = 0x4200a4
+	TagExtensionName                         Tag = 0x4200a5
+	TagExtensionTag                          Tag = 0x4200a6
+	TagExtensionType                         Tag = 0x4200a7
+	TagFresh                                 Tag = 0x4200a8
+	TagMachineIdentifier                     Tag = 0x4200a9
+	TagMediaIdentifier                       Tag = 0x4200aa
+	TagNetworkIdentifier                     Tag = 0x4200ab
+	TagObjectGroupMember                     Tag = 0x4200ac
+	TagCertificateLength                     Tag = 0x4200ad
+	TagDigitalSignatureAlgorithm             Tag = 0x4200ae
+	TagCertificateSerialNumber               Tag = 0x4200af
+	TagDeviceSerialNumber                    Tag = 0x4200b0
+	TagIssuerAlternativeName                 Tag = 0x4200b1
+	TagIssuerDistinguishedName               Tag = 0x4200b2
+	TagSubjectAlternativeName                Tag = 0x4200b3
+	TagSubjectDistinguishedName              Tag = 0x4200b4
 	TagX_509CertificateIdentifier            Tag = 0x4200b5
 	TagX_509CertificateIssuer                Tag = 0x4200b6
 	TagX_509CertificateSubject               Tag = 0x4200b7
-	TagY                                     Tag = 0x4200a0
+	TagKeyValueLocation                      Tag = 0x4200b8
+	TagKeyValueLocationValue                 Tag = 0x4200b9
+	TagKeyValueLocationType                  Tag = 0x4200ba
+	TagKeyValuePresent                       Tag = 0x4200bb
+	TagOriginalCreationDate                  Tag = 0x4200bc
+	TagPGPKey                                Tag = 0x4200bd
+	TagPGPKeyVersion                         Tag = 0x4200be
+	TagAlternativeName                       Tag = 0x4200bf
+	TagAlternativeNameValue                  Tag = 0x4200c0
+	TagAlternativeNameType                   Tag = 0x4200c1
+	TagData                                  Tag = 0x4200c2
+	TagSignatureData                         Tag = 0x4200c3
+	TagDataLength                            Tag = 0x4200c4
+	TagRandomIV                              Tag = 0x4200c5
+	TagMACData                               Tag = 0x4200c6
+	TagAttestationType                       Tag = 0x4200c7
+	TagNonce                                 Tag = 0x4200c8
+	TagNonceID                               Tag = 0x4200c9
+	TagNonceValue                            Tag = 0x4200ca
+	TagAttestationMeasurement                Tag = 0x4200cb
+	TagAttestationAssertion                  Tag = 0x4200cc
+	TagIVLength                              Tag = 0x4200cd
+	TagTagLength                             Tag = 0x4200ce
+	TagFixedFieldLength                      Tag = 0x4200cf
+	TagCounterLength                         Tag = 0x4200d0
+	TagInitialCounterValue                   Tag = 0x4200d1
+	TagInvocationFieldLength                 Tag = 0x4200d2
+	TagAttestationCapableIndicator           Tag = 0x4200d3
+	TagOffsetItems                           Tag = 0x4200d4
+	TagLocatedItems                          Tag = 0x4200d5
+	TagCorrelationValue                      Tag = 0x4200d6
+	TagInitIndicator                         Tag = 0x4200d7
+	TagFinalIndicator                        Tag = 0x4200d8
+	TagRNGParameters                         Tag = 0x4200d9
+	TagRNGAlgorithm                          Tag = 0x4200da
+	TagDRBGAlgorithm                         Tag = 0x4200db
+	TagFIPS186Variation                      Tag = 0x4200dc
+	TagPredictionResistance                  Tag = 0x4200dd
+	TagRandomNumberGenerator                 Tag = 0x4200de
+	TagValidationInformation                 Tag = 0x4200df
+	TagValidationAuthorityType               Tag = 0x4200e0
+	TagValidationAuthorityCountry            Tag = 0x4200e1
+	TagValidationAuthorityURI                Tag = 0x4200e2
+	TagValidationVersionMajor                Tag = 0x4200e3
+	TagValidationVersionMinor                Tag = 0x4200e4
+	TagValidationType                        Tag = 0x4200e5
+	TagValidationLevel                       Tag = 0x4200e6
+	TagValidationCertificateIdentifier       Tag = 0x4200e7
+	TagValidationCertificateURI              Tag = 0x4200e8
+	TagValidationVendorURI                   Tag = 0x4200e9
+	TagValidationProfile                     Tag = 0x4200ea
+	TagProfileInformation                    Tag = 0x4200eb
+	TagProfileName                           Tag = 0x4200ec
+	TagServerURI                             Tag = 0x4200ed
+	TagServerPort                            Tag = 0x4200ee
+	TagStreamingCapability                   Tag = 0x4200ef
+	TagAsynchronousCapability                Tag = 0x4200f0
+	TagAttestationCapability                 Tag = 0x4200f1
+	TagUnwrapMode                            Tag = 0x4200f2
+	TagDestroyAction                         Tag = 0x4200f3
+	TagShreddingAlgorithm                    Tag = 0x4200f4
+	TagRNGMode                               Tag = 0x4200f5
+	TagClientRegistrationMethod              Tag = 0x4200f6
+	TagCapabilityInformation                 Tag = 0x4200f7
+	TagKeyWrapType                           Tag = 0x4200f8
+	TagBatchUndoCapability                   Tag = 0x4200f9
+	TagBatchContinueCapability               Tag = 0x4200fa
+	TagPKCS_12FriendlyName                   Tag = 0x4200fb
+	TagDescription                           Tag = 0x4200fc
+	TagComment                               Tag = 0x4200fd
+	TagAuthenticatedEncryptionAdditionalData Tag = 0x4200fe
+	TagAuthenticatedEncryptionTag            Tag = 0x4200ff
+	TagSaltLength                            Tag = 0x420100
+	TagMaskGenerator                         Tag = 0x420101
+	TagMaskGeneratorHashingAlgorithm         Tag = 0x420102
+	TagPSource                               Tag = 0x420103
+	TagTrailerField                          Tag = 0x420104
+	TagClientCorrelationValue                Tag = 0x420105
+	TagServerCorrelationValue                Tag = 0x420106
+	TagDigestedData                          Tag = 0x420107
+	TagCertificateSubjectCN                  Tag = 0x420108
+	TagCertificateSubjectO                   Tag = 0x420109
+	TagCertificateSubjectOU                  Tag = 0x42010a
+	TagCertificateSubjectEmail               Tag = 0x42010b
+	TagCertificateSubjectC                   Tag = 0x42010c
+	TagCertificateSubjectST                  Tag = 0x42010d
+	TagCertificateSubjectL                   Tag = 0x42010e
+	TagCertificateSubjectUID                 Tag = 0x42010f
+	TagCertificateSubjectSerialNumber        Tag = 0x420110
+	TagCertificateSubjectTitle               Tag = 0x420111
+	TagCertificateSubjectDC                  Tag = 0x420112
+	TagCertificateSubjectDNQualifier         Tag = 0x420113
+	TagCertificateIssuerCN                   Tag = 0x420114
+	TagCertificateIssuerO                    Tag = 0x420115
+	TagCertificateIssuerOU                   Tag = 0x420116
+	TagCertificateIssuerEmail                Tag = 0x420117
+	TagCertificateIssuerC                    Tag = 0x420118
+	TagCertificateIssuerST                   Tag = 0x420119
+	TagCertificateIssuerL                    Tag = 0x42011a
+	TagCertificateIssuerUID                  Tag = 0x42011b
+	TagCertificateIssuerSerialNumber         Tag = 0x42011c
+	TagCertificateIssuerTitle                Tag = 0x42011d
+	TagCertificateIssuerDC                   Tag = 0x42011e
+	TagCertificateIssuerDNQualifier          Tag = 0x42011f
+	TagSensitive                             Tag = 0x420120
+	TagAlwaysSensitive                       Tag = 0x420121
+	TagExtractable                           Tag = 0x420122
+	TagNeverExtractable                      Tag = 0x420123
+	TagReplaceExisting                       Tag = 0x420124
 )
 
 var _TagNameToValueMap = map[string]Tag{
+	"None":                                  TagNone,
 	"ActivationDate":                        TagActivationDate,
-	"AlternativeName":                       TagAlternativeName,
-	"AlternativeNameType":                   TagAlternativeNameType,
-	"AlternativeNameValue":                  TagAlternativeNameValue,
-	"AlwaysSensitive":                       TagAlwaysSensitive,
 	"ApplicationData":                       TagApplicationData,
 	"ApplicationNamespace":                  TagApplicationNamespace,
 	"ApplicationSpecificInformation":        TagApplicationSpecificInformation,
 	"ArchiveDate":                           TagArchiveDate,
-	"AsynchronousCapability":                TagAsynchronousCapability,
 	"AsynchronousCorrelationValue":          TagAsynchronousCorrelationValue,
 	"AsynchronousIndicator":                 TagAsynchronousIndicator,
-	"AttestationAssertion":                  TagAttestationAssertion,
-	"AttestationCapability":                 TagAttestationCapability,
-	"AttestationCapableIndicator":           TagAttestationCapableIndicator,
-	"AttestationMeasurement":                TagAttestationMeasurement,
-	"AttestationType":                       TagAttestationType,
 	"Attribute":                             TagAttribute,
 	"AttributeIndex":                        TagAttributeIndex,
 	"AttributeName":                         TagAttributeName,
 	"AttributeValue":                        TagAttributeValue,
-	"AuthenticatedEncryptionAdditionalData": TagAuthenticatedEncryptionAdditionalData,
-	"AuthenticatedEncryptionTag":            TagAuthenticatedEncryptionTag,
 	"Authentication":                        TagAuthentication,
-	"BatchContinueCapability":               TagBatchContinueCapability,
 	"BatchCount":                            TagBatchCount,
 	"BatchErrorContinuationOption":          TagBatchErrorContinuationOption,
 	"BatchItem":                             TagBatchItem,
 	"BatchOrderOption":                      TagBatchOrderOption,
-	"BatchUndoCapability":                   TagBatchUndoCapability,
 	"BlockCipherMode":                       TagBlockCipherMode,
-	"CRTCoefficient":                        TagCRTCoefficient,
 	"CancellationResult":                    TagCancellationResult,
-	"CapabilityInformation":                 TagCapabilityInformation,
 	"Certificate":                           TagCertificate,
 	"CertificateIdentifier":                 TagCertificateIdentifier,
 	"CertificateIssuer":                     TagCertificateIssuer,
 	"CertificateIssuerAlternativeName":      TagCertificateIssuerAlternativeName,
-	"CertificateIssuerC":                    TagCertificateIssuerC,
-	"CertificateIssuerCN":                   TagCertificateIssuerCN,
-	"CertificateIssuerDC":                   TagCertificateIssuerDC,
-	"CertificateIssuerDNQualifier":          TagCertificateIssuerDNQualifier,
 	"CertificateIssuerDistinguishedName":    TagCertificateIssuerDistinguishedName,
-	"CertificateIssuerEmail":                TagCertificateIssuerEmail,
-	"CertificateIssuerL":                    TagCertificateIssuerL,
-	"CertificateIssuerO":                    TagCertificateIssuerO,
-	"CertificateIssuerOU":                   TagCertificateIssuerOU,
-	"CertificateIssuerST":                   TagCertificateIssuerST,
-	"CertificateIssuerSerialNumber":         TagCertificateIssuerSerialNumber,
-	"CertificateIssuerTitle":                TagCertificateIssuerTitle,
-	"CertificateIssuerUID":                  TagCertificateIssuerUID,
-	"CertificateLength":                     TagCertificateLength,
 	"CertificateRequest":                    TagCertificateRequest,
 	"CertificateRequestType":                TagCertificateRequestType,
-	"CertificateSerialNumber":               TagCertificateSerialNumber,
 	"CertificateSubject":                    TagCertificateSubject,
 	"CertificateSubjectAlternativeName":     TagCertificateSubjectAlternativeName,
-	"CertificateSubjectC":                   TagCertificateSubjectC,
-	"CertificateSubjectCN":                  TagCertificateSubjectCN,
-	"CertificateSubjectDC":                  TagCertificateSubjectDC,
-	"CertificateSubjectDNQualifier":         TagCertificateSubjectDNQualifier,
 	"CertificateSubjectDistinguishedName":   TagCertificateSubjectDistinguishedName,
-	"CertificateSubjectEmail":               TagCertificateSubjectEmail,
-	"CertificateSubjectL":                   TagCertificateSubjectL,
-	"CertificateSubjectO":                   TagCertificateSubjectO,
-	"CertificateSubjectOU":                  TagCertificateSubjectOU,
-	"CertificateSubjectST":                  TagCertificateSubjectST,
-	"CertificateSubjectSerialNumber":        TagCertificateSubjectSerialNumber,
-	"CertificateSubjectTitle":               TagCertificateSubjectTitle,
-	"CertificateSubjectUID":                 TagCertificateSubjectUID,
 	"CertificateType":                       TagCertificateType,
 	"CertificateValue":                      TagCertificateValue,
-	"ClientCorrelationValue":                TagClientCorrelationValue,
-	"ClientRegistrationMethod":              TagClientRegistrationMethod,
-	"Comment":                               TagComment,
 	"CommonTemplateAttribute":               TagCommonTemplateAttribute,
 	"CompromiseDate":                        TagCompromiseDate,
 	"CompromiseOccurrenceDate":              TagCompromiseOccurrenceDate,
 	"ContactInformation":                    TagContactInformation,
-	"CorrelationValue":                      TagCorrelationValue,
-	"CounterLength":                         TagCounterLength,
 	"Credential":                            TagCredential,
 	"CredentialType":                        TagCredentialType,
 	"CredentialValue":                       TagCredentialValue,
 	"CriticalityIndicator":                  TagCriticalityIndicator,
+	"CRTCoefficient":                        TagCRTCoefficient,
 	"CryptographicAlgorithm":                TagCryptographicAlgorithm,
 	"CryptographicDomainParameters":         TagCryptographicDomainParameters,
 	"CryptographicLength":                   TagCryptographicLength,
@@ -402,46 +357,21 @@ var _TagNameToValueMap = map[string]Tag{
 	"CryptographicUsageMask":                TagCryptographicUsageMask,
 	"CustomAttribute":                       TagCustomAttribute,
 	"D":                                     TagD,
-	"DRBGAlgorithm":                         TagDRBGAlgorithm,
-	"Data":                                  TagData,
-	"DataLength":                            TagDataLength,
 	"DeactivationDate":                      TagDeactivationDate,
 	"DerivationData":                        TagDerivationData,
 	"DerivationMethod":                      TagDerivationMethod,
 	"DerivationParameters":                  TagDerivationParameters,
-	"Description":                           TagDescription,
-	"DestroyAction":                         TagDestroyAction,
 	"DestroyDate":                           TagDestroyDate,
-	"DeviceIdentifier":                      TagDeviceIdentifier,
-	"DeviceSerialNumber":                    TagDeviceSerialNumber,
 	"Digest":                                TagDigest,
 	"DigestValue":                           TagDigestValue,
-	"DigestedData":                          TagDigestedData,
-	"DigitalSignatureAlgorithm":             TagDigitalSignatureAlgorithm,
-	"EncodingOption":                        TagEncodingOption,
 	"EncryptionKeyInformation":              TagEncryptionKeyInformation,
-	"ExtensionInformation":                  TagExtensionInformation,
-	"ExtensionName":                         TagExtensionName,
-	"ExtensionTag":                          TagExtensionTag,
-	"ExtensionType":                         TagExtensionType,
-	"Extractable":                           TagExtractable,
-	"FIPS186Variation":                      TagFIPS186Variation,
-	"FinalIndicator":                        TagFinalIndicator,
-	"FixedFieldLength":                      TagFixedFieldLength,
-	"Fresh":                                 TagFresh,
 	"G":                                     TagG,
 	"HashingAlgorithm":                      TagHashingAlgorithm,
-	"IVCounterNonce":                        TagIVCounterNonce,
-	"IVLength":                              TagIVLength,
-	"InitIndicator":                         TagInitIndicator,
-	"InitialCounterValue":                   TagInitialCounterValue,
 	"InitialDate":                           TagInitialDate,
 	"InitializationVector":                  TagInitializationVector,
-	"InvocationFieldLength":                 TagInvocationFieldLength,
 	"Issuer":                                TagIssuer,
-	"IssuerAlternativeName":                 TagIssuerAlternativeName,
-	"IssuerDistinguishedName":               TagIssuerDistinguishedName,
 	"IterationCount":                        TagIterationCount,
+	"IVCounterNonce":                        TagIVCounterNonce,
 	"J":                                     TagJ,
 	"Key":                                   TagKey,
 	"KeyBlock":                              TagKeyBlock,
@@ -449,13 +379,7 @@ var _TagNameToValueMap = map[string]Tag{
 	"KeyFormatType":                         TagKeyFormatType,
 	"KeyMaterial":                           TagKeyMaterial,
 	"KeyPartIdentifier":                     TagKeyPartIdentifier,
-	"KeyRoleType":                           TagKeyRoleType,
 	"KeyValue":                              TagKeyValue,
-	"KeyValueLocation":                      TagKeyValueLocation,
-	"KeyValueLocationType":                  TagKeyValueLocationType,
-	"KeyValueLocationValue":                 TagKeyValueLocationValue,
-	"KeyValuePresent":                       TagKeyValuePresent,
-	"KeyWrapType":                           TagKeyWrapType,
 	"KeyWrappingData":                       TagKeyWrappingData,
 	"KeyWrappingSpecification":              TagKeyWrappingSpecification,
 	"LastChangeDate":                        TagLastChangeDate,
@@ -463,46 +387,25 @@ var _TagNameToValueMap = map[string]Tag{
 	"Link":                                  TagLink,
 	"LinkType":                              TagLinkType,
 	"LinkedObjectIdentifier":                TagLinkedObjectIdentifier,
-	"LocatedItems":                          TagLocatedItems,
-	"MACData":                               TagMACData,
 	"MACSignature":                          TagMACSignature,
 	"MACSignatureKeyInformation":            TagMACSignatureKeyInformation,
-	"MachineIdentifier":                     TagMachineIdentifier,
-	"MaskGenerator":                         TagMaskGenerator,
-	"MaskGeneratorHashingAlgorithm":         TagMaskGeneratorHashingAlgorithm,
 	"MaximumItems":                          TagMaximumItems,
 	"MaximumResponseSize":                   TagMaximumResponseSize,
-	"MediaIdentifier":                       TagMediaIdentifier,
 	"MessageExtension":                      TagMessageExtension,
 	"Modulus":                               TagModulus,
 	"Name":                                  TagName,
 	"NameType":                              TagNameType,
 	"NameValue":                             TagNameValue,
-	"NetworkIdentifier":                     TagNetworkIdentifier,
-	"NeverExtractable":                      TagNeverExtractable,
-	"Nonce":                                 TagNonce,
-	"NonceID":                               TagNonceID,
-	"NonceValue":                            TagNonceValue,
-	"None":                                  TagNone,
 	"ObjectGroup":                           TagObjectGroup,
-	"ObjectGroupMember":                     TagObjectGroupMember,
 	"ObjectType":                            TagObjectType,
 	"Offset":                                TagOffset,
-	"OffsetItems":                           TagOffsetItems,
 	"OpaqueDataType":                        TagOpaqueDataType,
 	"OpaqueDataValue":                       TagOpaqueDataValue,
 	"OpaqueObject":                          TagOpaqueObject,
 	"Operation":                             TagOperation,
 	"OperationPolicyName":                   TagOperationPolicyName,
-	"OriginalCreationDate":                  TagOriginalCreationDate,
 	"P":                                     TagP,
-	"PGPKey":                                TagPGPKey,
-	"PGPKeyVersion":                         TagPGPKeyVersion,
-	"PKCS_12FriendlyName":                   TagPKCS_12FriendlyName,
-	"PSource":                               TagPSource,
 	"PaddingMethod":                         TagPaddingMethod,
-	"Password":                              TagPassword,
-	"PredictionResistance":                  TagPredictionResistance,
 	"PrimeExponentP":                        TagPrimeExponentP,
 	"PrimeExponentQ":                        TagPrimeExponentQ,
 	"PrimeFieldSize":                        TagPrimeFieldSize,
@@ -511,8 +414,6 @@ var _TagNameToValueMap = map[string]Tag{
 	"PrivateKeyTemplateAttribute":           TagPrivateKeyTemplateAttribute,
 	"PrivateKeyUniqueIdentifier":            TagPrivateKeyUniqueIdentifier,
 	"ProcessStartDate":                      TagProcessStartDate,
-	"ProfileInformation":                    TagProfileInformation,
-	"ProfileName":                           TagProfileName,
 	"ProtectStopDate":                       TagProtectStopDate,
 	"ProtocolVersion":                       TagProtocolVersion,
 	"ProtocolVersionMajor":                  TagProtocolVersionMajor,
@@ -526,13 +427,7 @@ var _TagNameToValueMap = map[string]Tag{
 	"QString":                               TagQString,
 	"Qlength":                               TagQlength,
 	"QueryFunction":                         TagQueryFunction,
-	"RNGAlgorithm":                          TagRNGAlgorithm,
-	"RNGMode":                               TagRNGMode,
-	"RNGParameters":                         TagRNGParameters,
-	"RandomIV":                              TagRandomIV,
-	"RandomNumberGenerator":                 TagRandomNumberGenerator,
 	"RecommendedCurve":                      TagRecommendedCurve,
-	"ReplaceExisting":                       TagReplaceExisting,
 	"ReplacedUniqueIdentifier":              TagReplacedUniqueIdentifier,
 	"RequestHeader":                         TagRequestHeader,
 	"RequestMessage":                        TagRequestMessage,
@@ -546,151 +441,211 @@ var _TagNameToValueMap = map[string]Tag{
 	"RevocationMessage":                     TagRevocationMessage,
 	"RevocationReason":                      TagRevocationReason,
 	"RevocationReasonCode":                  TagRevocationReasonCode,
+	"KeyRoleType":                           TagKeyRoleType,
 	"Salt":                                  TagSalt,
-	"SaltLength":                            TagSaltLength,
 	"SecretData":                            TagSecretData,
 	"SecretDataType":                        TagSecretDataType,
-	"Sensitive":                             TagSensitive,
 	"SerialNumber":                          TagSerialNumber,
-	"ServerCorrelationValue":                TagServerCorrelationValue,
 	"ServerInformation":                     TagServerInformation,
-	"ServerPort":                            TagServerPort,
-	"ServerURI":                             TagServerURI,
-	"ShreddingAlgorithm":                    TagShreddingAlgorithm,
-	"SignatureData":                         TagSignatureData,
 	"SplitKey":                              TagSplitKey,
 	"SplitKeyMethod":                        TagSplitKeyMethod,
 	"SplitKeyParts":                         TagSplitKeyParts,
 	"SplitKeyThreshold":                     TagSplitKeyThreshold,
 	"State":                                 TagState,
 	"StorageStatusMask":                     TagStorageStatusMask,
-	"StreamingCapability":                   TagStreamingCapability,
-	"SubjectAlternativeName":                TagSubjectAlternativeName,
-	"SubjectDistinguishedName":              TagSubjectDistinguishedName,
 	"SymmetricKey":                          TagSymmetricKey,
-	"TagLength":                             TagTagLength,
 	"Template":                              TagTemplate,
 	"TemplateAttribute":                     TagTemplateAttribute,
 	"TimeStamp":                             TagTimeStamp,
-	"TrailerField":                          TagTrailerField,
 	"UniqueBatchItemID":                     TagUniqueBatchItemID,
 	"UniqueIdentifier":                      TagUniqueIdentifier,
-	"UnwrapMode":                            TagUnwrapMode,
 	"UsageLimits":                           TagUsageLimits,
 	"UsageLimitsCount":                      TagUsageLimitsCount,
 	"UsageLimitsTotal":                      TagUsageLimitsTotal,
 	"UsageLimitsUnit":                       TagUsageLimitsUnit,
 	"Username":                              TagUsername,
-	"ValidationAuthorityCountry":            TagValidationAuthorityCountry,
-	"ValidationAuthorityType":               TagValidationAuthorityType,
-	"ValidationAuthorityURI":                TagValidationAuthorityURI,
-	"ValidationCertificateIdentifier":       TagValidationCertificateIdentifier,
-	"ValidationCertificateURI":              TagValidationCertificateURI,
-	"ValidationInformation":                 TagValidationInformation,
-	"ValidationLevel":                       TagValidationLevel,
-	"ValidationProfile":                     TagValidationProfile,
-	"ValidationType":                        TagValidationType,
-	"ValidationVendorURI":                   TagValidationVendorURI,
-	"ValidationVersionMajor":                TagValidationVersionMajor,
-	"ValidationVersionMinor":                TagValidationVersionMinor,
 	"ValidityDate":                          TagValidityDate,
 	"ValidityIndicator":                     TagValidityIndicator,
 	"VendorExtension":                       TagVendorExtension,
 	"VendorIdentification":                  TagVendorIdentification,
 	"WrappingMethod":                        TagWrappingMethod,
 	"X":                                     TagX,
+	"Y":                                     TagY,
+	"Password":                              TagPassword,
+	"DeviceIdentifier":                      TagDeviceIdentifier,
+	"EncodingOption":                        TagEncodingOption,
+	"ExtensionInformation":                  TagExtensionInformation,
+	"ExtensionName":                         TagExtensionName,
+	"ExtensionTag":                          TagExtensionTag,
+	"ExtensionType":                         TagExtensionType,
+	"Fresh":                                 TagFresh,
+	"MachineIdentifier":                     TagMachineIdentifier,
+	"MediaIdentifier":                       TagMediaIdentifier,
+	"NetworkIdentifier":                     TagNetworkIdentifier,
+	"ObjectGroupMember":                     TagObjectGroupMember,
+	"CertificateLength":                     TagCertificateLength,
+	"DigitalSignatureAlgorithm":             TagDigitalSignatureAlgorithm,
+	"CertificateSerialNumber":               TagCertificateSerialNumber,
+	"DeviceSerialNumber":                    TagDeviceSerialNumber,
+	"IssuerAlternativeName":                 TagIssuerAlternativeName,
+	"IssuerDistinguishedName":               TagIssuerDistinguishedName,
+	"SubjectAlternativeName":                TagSubjectAlternativeName,
+	"SubjectDistinguishedName":              TagSubjectDistinguishedName,
 	"X_509CertificateIdentifier":            TagX_509CertificateIdentifier,
 	"X_509CertificateIssuer":                TagX_509CertificateIssuer,
 	"X_509CertificateSubject":               TagX_509CertificateSubject,
-	"Y":                                     TagY,
+	"KeyValueLocation":                      TagKeyValueLocation,
+	"KeyValueLocationValue":                 TagKeyValueLocationValue,
+	"KeyValueLocationType":                  TagKeyValueLocationType,
+	"KeyValuePresent":                       TagKeyValuePresent,
+	"OriginalCreationDate":                  TagOriginalCreationDate,
+	"PGPKey":                                TagPGPKey,
+	"PGPKeyVersion":                         TagPGPKeyVersion,
+	"AlternativeName":                       TagAlternativeName,
+	"AlternativeNameValue":                  TagAlternativeNameValue,
+	"AlternativeNameType":                   TagAlternativeNameType,
+	"Data":                                  TagData,
+	"SignatureData":                         TagSignatureData,
+	"DataLength":                            TagDataLength,
+	"RandomIV":                              TagRandomIV,
+	"MACData":                               TagMACData,
+	"AttestationType":                       TagAttestationType,
+	"Nonce":                                 TagNonce,
+	"NonceID":                               TagNonceID,
+	"NonceValue":                            TagNonceValue,
+	"AttestationMeasurement":                TagAttestationMeasurement,
+	"AttestationAssertion":                  TagAttestationAssertion,
+	"IVLength":                              TagIVLength,
+	"TagLength":                             TagTagLength,
+	"FixedFieldLength":                      TagFixedFieldLength,
+	"CounterLength":                         TagCounterLength,
+	"InitialCounterValue":                   TagInitialCounterValue,
+	"InvocationFieldLength":                 TagInvocationFieldLength,
+	"AttestationCapableIndicator":           TagAttestationCapableIndicator,
+	"OffsetItems":                           TagOffsetItems,
+	"LocatedItems":                          TagLocatedItems,
+	"CorrelationValue":                      TagCorrelationValue,
+	"InitIndicator":                         TagInitIndicator,
+	"FinalIndicator":                        TagFinalIndicator,
+	"RNGParameters":                         TagRNGParameters,
+	"RNGAlgorithm":                          TagRNGAlgorithm,
+	"DRBGAlgorithm":                         TagDRBGAlgorithm,
+	"FIPS186Variation":                      TagFIPS186Variation,
+	"PredictionResistance":                  TagPredictionResistance,
+	"RandomNumberGenerator":                 TagRandomNumberGenerator,
+	"ValidationInformation":                 TagValidationInformation,
+	"ValidationAuthorityType":               TagValidationAuthorityType,
+	"ValidationAuthorityCountry":            TagValidationAuthorityCountry,
+	"ValidationAuthorityURI":                TagValidationAuthorityURI,
+	"ValidationVersionMajor":                TagValidationVersionMajor,
+	"ValidationVersionMinor":                TagValidationVersionMinor,
+	"ValidationType":                        TagValidationType,
+	"ValidationLevel":                       TagValidationLevel,
+	"ValidationCertificateIdentifier":       TagValidationCertificateIdentifier,
+	"ValidationCertificateURI":              TagValidationCertificateURI,
+	"ValidationVendorURI":                   TagValidationVendorURI,
+	"ValidationProfile":                     TagValidationProfile,
+	"ProfileInformation":                    TagProfileInformation,
+	"ProfileName":                           TagProfileName,
+	"ServerURI":                             TagServerURI,
+	"ServerPort":                            TagServerPort,
+	"StreamingCapability":                   TagStreamingCapability,
+	"AsynchronousCapability":                TagAsynchronousCapability,
+	"AttestationCapability":                 TagAttestationCapability,
+	"UnwrapMode":                            TagUnwrapMode,
+	"DestroyAction":                         TagDestroyAction,
+	"ShreddingAlgorithm":                    TagShreddingAlgorithm,
+	"RNGMode":                               TagRNGMode,
+	"ClientRegistrationMethod":              TagClientRegistrationMethod,
+	"CapabilityInformation":                 TagCapabilityInformation,
+	"KeyWrapType":                           TagKeyWrapType,
+	"BatchUndoCapability":                   TagBatchUndoCapability,
+	"BatchContinueCapability":               TagBatchContinueCapability,
+	"PKCS_12FriendlyName":                   TagPKCS_12FriendlyName,
+	"Description":                           TagDescription,
+	"Comment":                               TagComment,
+	"AuthenticatedEncryptionAdditionalData": TagAuthenticatedEncryptionAdditionalData,
+	"AuthenticatedEncryptionTag":            TagAuthenticatedEncryptionTag,
+	"SaltLength":                            TagSaltLength,
+	"MaskGenerator":                         TagMaskGenerator,
+	"MaskGeneratorHashingAlgorithm":         TagMaskGeneratorHashingAlgorithm,
+	"PSource":                               TagPSource,
+	"TrailerField":                          TagTrailerField,
+	"ClientCorrelationValue":                TagClientCorrelationValue,
+	"ServerCorrelationValue":                TagServerCorrelationValue,
+	"DigestedData":                          TagDigestedData,
+	"CertificateSubjectCN":                  TagCertificateSubjectCN,
+	"CertificateSubjectO":                   TagCertificateSubjectO,
+	"CertificateSubjectOU":                  TagCertificateSubjectOU,
+	"CertificateSubjectEmail":               TagCertificateSubjectEmail,
+	"CertificateSubjectC":                   TagCertificateSubjectC,
+	"CertificateSubjectST":                  TagCertificateSubjectST,
+	"CertificateSubjectL":                   TagCertificateSubjectL,
+	"CertificateSubjectUID":                 TagCertificateSubjectUID,
+	"CertificateSubjectSerialNumber":        TagCertificateSubjectSerialNumber,
+	"CertificateSubjectTitle":               TagCertificateSubjectTitle,
+	"CertificateSubjectDC":                  TagCertificateSubjectDC,
+	"CertificateSubjectDNQualifier":         TagCertificateSubjectDNQualifier,
+	"CertificateIssuerCN":                   TagCertificateIssuerCN,
+	"CertificateIssuerO":                    TagCertificateIssuerO,
+	"CertificateIssuerOU":                   TagCertificateIssuerOU,
+	"CertificateIssuerEmail":                TagCertificateIssuerEmail,
+	"CertificateIssuerC":                    TagCertificateIssuerC,
+	"CertificateIssuerST":                   TagCertificateIssuerST,
+	"CertificateIssuerL":                    TagCertificateIssuerL,
+	"CertificateIssuerUID":                  TagCertificateIssuerUID,
+	"CertificateIssuerSerialNumber":         TagCertificateIssuerSerialNumber,
+	"CertificateIssuerTitle":                TagCertificateIssuerTitle,
+	"CertificateIssuerDC":                   TagCertificateIssuerDC,
+	"CertificateIssuerDNQualifier":          TagCertificateIssuerDNQualifier,
+	"Sensitive":                             TagSensitive,
+	"AlwaysSensitive":                       TagAlwaysSensitive,
+	"Extractable":                           TagExtractable,
+	"NeverExtractable":                      TagNeverExtractable,
+	"ReplaceExisting":                       TagReplaceExisting,
 }
 
 var _TagValueToNameMap = map[Tag]string{
+	TagNone:                                  "None",
 	TagActivationDate:                        "ActivationDate",
-	TagAlternativeName:                       "AlternativeName",
-	TagAlternativeNameType:                   "AlternativeNameType",
-	TagAlternativeNameValue:                  "AlternativeNameValue",
-	TagAlwaysSensitive:                       "AlwaysSensitive",
 	TagApplicationData:                       "ApplicationData",
 	TagApplicationNamespace:                  "ApplicationNamespace",
 	TagApplicationSpecificInformation:        "ApplicationSpecificInformation",
 	TagArchiveDate:                           "ArchiveDate",
-	TagAsynchronousCapability:                "AsynchronousCapability",
 	TagAsynchronousCorrelationValue:          "AsynchronousCorrelationValue",
 	TagAsynchronousIndicator:                 "AsynchronousIndicator",
-	TagAttestationAssertion:                  "AttestationAssertion",
-	TagAttestationCapability:                 "AttestationCapability",
-	TagAttestationCapableIndicator:           "AttestationCapableIndicator",
-	TagAttestationMeasurement:                "AttestationMeasurement",
-	TagAttestationType:                       "AttestationType",
 	TagAttribute:                             "Attribute",
 	TagAttributeIndex:                        "AttributeIndex",
 	TagAttributeName:                         "AttributeName",
 	TagAttributeValue:                        "AttributeValue",
-	TagAuthenticatedEncryptionAdditionalData: "AuthenticatedEncryptionAdditionalData",
-	TagAuthenticatedEncryptionTag:            "AuthenticatedEncryptionTag",
 	TagAuthentication:                        "Authentication",
-	TagBatchContinueCapability:               "BatchContinueCapability",
 	TagBatchCount:                            "BatchCount",
 	TagBatchErrorContinuationOption:          "BatchErrorContinuationOption",
 	TagBatchItem:                             "BatchItem",
 	TagBatchOrderOption:                      "BatchOrderOption",
-	TagBatchUndoCapability:                   "BatchUndoCapability",
 	TagBlockCipherMode:                       "BlockCipherMode",
-	TagCRTCoefficient:                        "CRTCoefficient",
 	TagCancellationResult:                    "CancellationResult",
-	TagCapabilityInformation:                 "CapabilityInformation",
 	TagCertificate:                           "Certificate",
 	TagCertificateIdentifier:                 "CertificateIdentifier",
 	TagCertificateIssuer:                     "CertificateIssuer",
 	TagCertificateIssuerAlternativeName:      "CertificateIssuerAlternativeName",
-	TagCertificateIssuerC:                    "CertificateIssuerC",
-	TagCertificateIssuerCN:                   "CertificateIssuerCN",
-	TagCertificateIssuerDC:                   "CertificateIssuerDC",
-	TagCertificateIssuerDNQualifier:          "CertificateIssuerDNQualifier",
 	TagCertificateIssuerDistinguishedName:    "CertificateIssuerDistinguishedName",
-	TagCertificateIssuerEmail:                "CertificateIssuerEmail",
-	TagCertificateIssuerL:                    "CertificateIssuerL",
-	TagCertificateIssuerO:                    "CertificateIssuerO",
-	TagCertificateIssuerOU:                   "CertificateIssuerOU",
-	TagCertificateIssuerST:                   "CertificateIssuerST",
-	TagCertificateIssuerSerialNumber:         "CertificateIssuerSerialNumber",
-	TagCertificateIssuerTitle:                "CertificateIssuerTitle",
-	TagCertificateIssuerUID:                  "CertificateIssuerUID",
-	TagCertificateLength:                     "CertificateLength",
 	TagCertificateRequest:                    "CertificateRequest",
 	TagCertificateRequestType:                "CertificateRequestType",
-	TagCertificateSerialNumber:               "CertificateSerialNumber",
 	TagCertificateSubject:                    "CertificateSubject",
 	TagCertificateSubjectAlternativeName:     "CertificateSubjectAlternativeName",
-	TagCertificateSubjectC:                   "CertificateSubjectC",
-	TagCertificateSubjectCN:                  "CertificateSubjectCN",
-	TagCertificateSubjectDC:                  "CertificateSubjectDC",
-	TagCertificateSubjectDNQualifier:         "CertificateSubjectDNQualifier",
 	TagCertificateSubjectDistinguishedName:   "CertificateSubjectDistinguishedName",
-	TagCertificateSubjectEmail:               "CertificateSubjectEmail",
-	TagCertificateSubjectL:                   "CertificateSubjectL",
-	TagCertificateSubjectO:                   "CertificateSubjectO",
-	TagCertificateSubjectOU:                  "CertificateSubjectOU",
-	TagCertificateSubjectST:                  "CertificateSubjectST",
-	TagCertificateSubjectSerialNumber:        "CertificateSubjectSerialNumber",
-	TagCertificateSubjectTitle:               "CertificateSubjectTitle",
-	TagCertificateSubjectUID:                 "CertificateSubjectUID",
 	TagCertificateType:                       "CertificateType",
 	TagCertificateValue:                      "CertificateValue",
-	TagClientCorrelationValue:                "ClientCorrelationValue",
-	TagClientRegistrationMethod:              "ClientRegistrationMethod",
-	TagComment:                               "Comment",
 	TagCommonTemplateAttribute:               "CommonTemplateAttribute",
 	TagCompromiseDate:                        "CompromiseDate",
 	TagCompromiseOccurrenceDate:              "CompromiseOccurrenceDate",
 	TagContactInformation:                    "ContactInformation",
-	TagCorrelationValue:                      "CorrelationValue",
-	TagCounterLength:                         "CounterLength",
 	TagCredential:                            "Credential",
 	TagCredentialType:                        "CredentialType",
 	TagCredentialValue:                       "CredentialValue",
 	TagCriticalityIndicator:                  "CriticalityIndicator",
+	TagCRTCoefficient:                        "CRTCoefficient",
 	TagCryptographicAlgorithm:                "CryptographicAlgorithm",
 	TagCryptographicDomainParameters:         "CryptographicDomainParameters",
 	TagCryptographicLength:                   "CryptographicLength",
@@ -698,46 +653,21 @@ var _TagValueToNameMap = map[Tag]string{
 	TagCryptographicUsageMask:                "CryptographicUsageMask",
 	TagCustomAttribute:                       "CustomAttribute",
 	TagD:                                     "D",
-	TagDRBGAlgorithm:                         "DRBGAlgorithm",
-	TagData:                                  "Data",
-	TagDataLength:                            "DataLength",
 	TagDeactivationDate:                      "DeactivationDate",
 	TagDerivationData:                        "DerivationData",
 	TagDerivationMethod:                      "DerivationMethod",
 	TagDerivationParameters:                  "DerivationParameters",
-	TagDescription:                           "Description",
-	TagDestroyAction:                         "DestroyAction",
 	TagDestroyDate:                           "DestroyDate",
-	TagDeviceIdentifier:                      "DeviceIdentifier",
-	TagDeviceSerialNumber:                    "DeviceSerialNumber",
 	TagDigest:                                "Digest",
 	TagDigestValue:                           "DigestValue",
-	TagDigestedData:                          "DigestedData",
-	TagDigitalSignatureAlgorithm:             "DigitalSignatureAlgorithm",
-	TagEncodingOption:                        "EncodingOption",
 	TagEncryptionKeyInformation:              "EncryptionKeyInformation",
-	TagExtensionInformation:                  "ExtensionInformation",
-	TagExtensionName:                         "ExtensionName",
-	TagExtensionTag:                          "ExtensionTag",
-	TagExtensionType:                         "ExtensionType",
-	TagExtractable:                           "Extractable",
-	TagFIPS186Variation:                      "FIPS186Variation",
-	TagFinalIndicator:                        "FinalIndicator",
-	TagFixedFieldLength:                      "FixedFieldLength",
-	TagFresh:                                 "Fresh",
 	TagG:                                     "G",
 	TagHashingAlgorithm:                      "HashingAlgorithm",
-	TagIVCounterNonce:                        "IVCounterNonce",
-	TagIVLength:                              "IVLength",
-	TagInitIndicator:                         "InitIndicator",
-	TagInitialCounterValue:                   "InitialCounterValue",
 	TagInitialDate:                           "InitialDate",
 	TagInitializationVector:                  "InitializationVector",
-	TagInvocationFieldLength:                 "InvocationFieldLength",
 	TagIssuer:                                "Issuer",
-	TagIssuerAlternativeName:                 "IssuerAlternativeName",
-	TagIssuerDistinguishedName:               "IssuerDistinguishedName",
 	TagIterationCount:                        "IterationCount",
+	TagIVCounterNonce:                        "IVCounterNonce",
 	TagJ:                                     "J",
 	TagKey:                                   "Key",
 	TagKeyBlock:                              "KeyBlock",
@@ -745,13 +675,7 @@ var _TagValueToNameMap = map[Tag]string{
 	TagKeyFormatType:                         "KeyFormatType",
 	TagKeyMaterial:                           "KeyMaterial",
 	TagKeyPartIdentifier:                     "KeyPartIdentifier",
-	TagKeyRoleType:                           "KeyRoleType",
 	TagKeyValue:                              "KeyValue",
-	TagKeyValueLocation:                      "KeyValueLocation",
-	TagKeyValueLocationType:                  "KeyValueLocationType",
-	TagKeyValueLocationValue:                 "KeyValueLocationValue",
-	TagKeyValuePresent:                       "KeyValuePresent",
-	TagKeyWrapType:                           "KeyWrapType",
 	TagKeyWrappingData:                       "KeyWrappingData",
 	TagKeyWrappingSpecification:              "KeyWrappingSpecification",
 	TagLastChangeDate:                        "LastChangeDate",
@@ -759,46 +683,25 @@ var _TagValueToNameMap = map[Tag]string{
 	TagLink:                                  "Link",
 	TagLinkType:                              "LinkType",
 	TagLinkedObjectIdentifier:                "LinkedObjectIdentifier",
-	TagLocatedItems:                          "LocatedItems",
-	TagMACData:                               "MACData",
 	TagMACSignature:                          "MACSignature",
 	TagMACSignatureKeyInformation:            "MACSignatureKeyInformation",
-	TagMachineIdentifier:                     "MachineIdentifier",
-	TagMaskGenerator:                         "MaskGenerator",
-	TagMaskGeneratorHashingAlgorithm:         "MaskGeneratorHashingAlgorithm",
 	TagMaximumItems:                          "MaximumItems",
 	TagMaximumResponseSize:                   "MaximumResponseSize",
-	TagMediaIdentifier:                       "MediaIdentifier",
 	TagMessageExtension:                      "MessageExtension",
 	TagModulus:                               "Modulus",
 	TagName:                                  "Name",
 	TagNameType:                              "NameType",
 	TagNameValue:                             "NameValue",
-	TagNetworkIdentifier:                     "NetworkIdentifier",
-	TagNeverExtractable:                      "NeverExtractable",
-	TagNonce:                                 "Nonce",
-	TagNonceID:                               "NonceID",
-	TagNonceValue:                            "NonceValue",
-	TagNone:                                  "None",
 	TagObjectGroup:                           "ObjectGroup",
-	TagObjectGroupMember:                     "ObjectGroupMember",
 	TagObjectType:                            "ObjectType",
 	TagOffset:                                "Offset",
-	TagOffsetItems:                           "OffsetItems",
 	TagOpaqueDataType:                        "OpaqueDataType",
 	TagOpaqueDataValue:                       "OpaqueDataValue",
 	TagOpaqueObject:                          "OpaqueObject",
 	TagOperation:                             "Operation",
 	TagOperationPolicyName:                   "OperationPolicyName",
-	TagOriginalCreationDate:                  "OriginalCreationDate",
 	TagP:                                     "P",
-	TagPGPKey:                                "PGPKey",
-	TagPGPKeyVersion:                         "PGPKeyVersion",
-	TagPKCS_12FriendlyName:                   "PKCS_12FriendlyName",
-	TagPSource:                               "PSource",
 	TagPaddingMethod:                         "PaddingMethod",
-	TagPassword:                              "Password",
-	TagPredictionResistance:                  "PredictionResistance",
 	TagPrimeExponentP:                        "PrimeExponentP",
 	TagPrimeExponentQ:                        "PrimeExponentQ",
 	TagPrimeFieldSize:                        "PrimeFieldSize",
@@ -807,8 +710,6 @@ var _TagValueToNameMap = map[Tag]string{
 	TagPrivateKeyTemplateAttribute:           "PrivateKeyTemplateAttribute",
 	TagPrivateKeyUniqueIdentifier:            "PrivateKeyUniqueIdentifier",
 	TagProcessStartDate:                      "ProcessStartDate",
-	TagProfileInformation:                    "ProfileInformation",
-	TagProfileName:                           "ProfileName",
 	TagProtectStopDate:                       "ProtectStopDate",
 	TagProtocolVersion:                       "ProtocolVersion",
 	TagProtocolVersionMajor:                  "ProtocolVersionMajor",
@@ -822,13 +723,7 @@ var _TagValueToNameMap = map[Tag]string{
 	TagQString:                               "QString",
 	TagQlength:                               "Qlength",
 	TagQueryFunction:                         "QueryFunction",
-	TagRNGAlgorithm:                          "RNGAlgorithm",
-	TagRNGMode:                               "RNGMode",
-	TagRNGParameters:                         "RNGParameters",
-	TagRandomIV:                              "RandomIV",
-	TagRandomNumberGenerator:                 "RandomNumberGenerator",
 	TagRecommendedCurve:                      "RecommendedCurve",
-	TagReplaceExisting:                       "ReplaceExisting",
 	TagReplacedUniqueIdentifier:              "ReplacedUniqueIdentifier",
 	TagRequestHeader:                         "RequestHeader",
 	TagRequestMessage:                        "RequestMessage",
@@ -842,87 +737,192 @@ var _TagValueToNameMap = map[Tag]string{
 	TagRevocationMessage:                     "RevocationMessage",
 	TagRevocationReason:                      "RevocationReason",
 	TagRevocationReasonCode:                  "RevocationReasonCode",
+	TagKeyRoleType:                           "KeyRoleType",
 	TagSalt:                                  "Salt",
-	TagSaltLength:                            "SaltLength",
 	TagSecretData:                            "SecretData",
 	TagSecretDataType:                        "SecretDataType",
-	TagSensitive:                             "Sensitive",
 	TagSerialNumber:                          "SerialNumber",
-	TagServerCorrelationValue:                "ServerCorrelationValue",
 	TagServerInformation:                     "ServerInformation",
-	TagServerPort:                            "ServerPort",
-	TagServerURI:                             "ServerURI",
-	TagShreddingAlgorithm:                    "ShreddingAlgorithm",
-	TagSignatureData:                         "SignatureData",
 	TagSplitKey:                              "SplitKey",
 	TagSplitKeyMethod:                        "SplitKeyMethod",
 	TagSplitKeyParts:                         "SplitKeyParts",
 	TagSplitKeyThreshold:                     "SplitKeyThreshold",
 	TagState:                                 "State",
 	TagStorageStatusMask:                     "StorageStatusMask",
-	TagStreamingCapability:                   "StreamingCapability",
-	TagSubjectAlternativeName:                "SubjectAlternativeName",
-	TagSubjectDistinguishedName:              "SubjectDistinguishedName",
 	TagSymmetricKey:                          "SymmetricKey",
-	TagTagLength:                             "TagLength",
 	TagTemplate:                              "Template",
 	TagTemplateAttribute:                     "TemplateAttribute",
 	TagTimeStamp:                             "TimeStamp",
-	TagTrailerField:                          "TrailerField",
 	TagUniqueBatchItemID:                     "UniqueBatchItemID",
 	TagUniqueIdentifier:                      "UniqueIdentifier",
-	TagUnwrapMode:                            "UnwrapMode",
 	TagUsageLimits:                           "UsageLimits",
 	TagUsageLimitsCount:                      "UsageLimitsCount",
 	TagUsageLimitsTotal:                      "UsageLimitsTotal",
 	TagUsageLimitsUnit:                       "UsageLimitsUnit",
 	TagUsername:                              "Username",
-	TagValidationAuthorityCountry:            "ValidationAuthorityCountry",
-	TagValidationAuthorityType:               "ValidationAuthorityType",
-	TagValidationAuthorityURI:                "ValidationAuthorityURI",
-	TagValidationCertificateIdentifier:       "ValidationCertificateIdentifier",
-	TagValidationCertificateURI:              "ValidationCertificateURI",
-	TagValidationInformation:                 "ValidationInformation",
-	TagValidationLevel:                       "ValidationLevel",
-	TagValidationProfile:                     "ValidationProfile",
-	TagValidationType:                        "ValidationType",
-	TagValidationVendorURI:                   "ValidationVendorURI",
-	TagValidationVersionMajor:                "ValidationVersionMajor",
-	TagValidationVersionMinor:                "ValidationVersionMinor",
 	TagValidityDate:                          "ValidityDate",
 	TagValidityIndicator:                     "ValidityIndicator",
 	TagVendorExtension:                       "VendorExtension",
 	TagVendorIdentification:                  "VendorIdentification",
 	TagWrappingMethod:                        "WrappingMethod",
 	TagX:                                     "X",
+	TagY:                                     "Y",
+	TagPassword:                              "Password",
+	TagDeviceIdentifier:                      "DeviceIdentifier",
+	TagEncodingOption:                        "EncodingOption",
+	TagExtensionInformation:                  "ExtensionInformation",
+	TagExtensionName:                         "ExtensionName",
+	TagExtensionTag:                          "ExtensionTag",
+	TagExtensionType:                         "ExtensionType",
+	TagFresh:                                 "Fresh",
+	TagMachineIdentifier:                     "MachineIdentifier",
+	TagMediaIdentifier:                       "MediaIdentifier",
+	TagNetworkIdentifier:                     "NetworkIdentifier",
+	TagObjectGroupMember:                     "ObjectGroupMember",
+	TagCertificateLength:                     "CertificateLength",
+	TagDigitalSignatureAlgorithm:             "DigitalSignatureAlgorithm",
+	TagCertificateSerialNumber:               "CertificateSerialNumber",
+	TagDeviceSerialNumber:                    "DeviceSerialNumber",
+	TagIssuerAlternativeName:                 "IssuerAlternativeName",
+	TagIssuerDistinguishedName:               "IssuerDistinguishedName",
+	TagSubjectAlternativeName:                "SubjectAlternativeName",
+	TagSubjectDistinguishedName:              "SubjectDistinguishedName",
 	TagX_509CertificateIdentifier:            "X_509CertificateIdentifier",
 	TagX_509CertificateIssuer:                "X_509CertificateIssuer",
 	TagX_509CertificateSubject:               "X_509CertificateSubject",
-	TagY:                                     "Y",
+	TagKeyValueLocation:                      "KeyValueLocation",
+	TagKeyValueLocationValue:                 "KeyValueLocationValue",
+	TagKeyValueLocationType:                  "KeyValueLocationType",
+	TagKeyValuePresent:                       "KeyValuePresent",
+	TagOriginalCreationDate:                  "OriginalCreationDate",
+	TagPGPKey:                                "PGPKey",
+	TagPGPKeyVersion:                         "PGPKeyVersion",
+	TagAlternativeName:                       "AlternativeName",
+	TagAlternativeNameValue:                  "AlternativeNameValue",
+	TagAlternativeNameType:                   "AlternativeNameType",
+	TagData:                                  "Data",
+	TagSignatureData:                         "SignatureData",
+	TagDataLength:                            "DataLength",
+	TagRandomIV:                              "RandomIV",
+	TagMACData:                               "MACData",
+	TagAttestationType:                       "AttestationType",
+	TagNonce:                                 "Nonce",
+	TagNonceID:                               "NonceID",
+	TagNonceValue:                            "NonceValue",
+	TagAttestationMeasurement:                "AttestationMeasurement",
+	TagAttestationAssertion:                  "AttestationAssertion",
+	TagIVLength:                              "IVLength",
+	TagTagLength:                             "TagLength",
+	TagFixedFieldLength:                      "FixedFieldLength",
+	TagCounterLength:                         "CounterLength",
+	TagInitialCounterValue:                   "InitialCounterValue",
+	TagInvocationFieldLength:                 "InvocationFieldLength",
+	TagAttestationCapableIndicator:           "AttestationCapableIndicator",
+	TagOffsetItems:                           "OffsetItems",
+	TagLocatedItems:                          "LocatedItems",
+	TagCorrelationValue:                      "CorrelationValue",
+	TagInitIndicator:                         "InitIndicator",
+	TagFinalIndicator:                        "FinalIndicator",
+	TagRNGParameters:                         "RNGParameters",
+	TagRNGAlgorithm:                          "RNGAlgorithm",
+	TagDRBGAlgorithm:                         "DRBGAlgorithm",
+	TagFIPS186Variation:                      "FIPS186Variation",
+	TagPredictionResistance:                  "PredictionResistance",
+	TagRandomNumberGenerator:                 "RandomNumberGenerator",
+	TagValidationInformation:                 "ValidationInformation",
+	TagValidationAuthorityType:               "ValidationAuthorityType",
+	TagValidationAuthorityCountry:            "ValidationAuthorityCountry",
+	TagValidationAuthorityURI:                "ValidationAuthorityURI",
+	TagValidationVersionMajor:                "ValidationVersionMajor",
+	TagValidationVersionMinor:                "ValidationVersionMinor",
+	TagValidationType:                        "ValidationType",
+	TagValidationLevel:                       "ValidationLevel",
+	TagValidationCertificateIdentifier:       "ValidationCertificateIdentifier",
+	TagValidationCertificateURI:              "ValidationCertificateURI",
+	TagValidationVendorURI:                   "ValidationVendorURI",
+	TagValidationProfile:                     "ValidationProfile",
+	TagProfileInformation:                    "ProfileInformation",
+	TagProfileName:                           "ProfileName",
+	TagServerURI:                             "ServerURI",
+	TagServerPort:                            "ServerPort",
+	TagStreamingCapability:                   "StreamingCapability",
+	TagAsynchronousCapability:                "AsynchronousCapability",
+	TagAttestationCapability:                 "AttestationCapability",
+	TagUnwrapMode:                            "UnwrapMode",
+	TagDestroyAction:                         "DestroyAction",
+	TagShreddingAlgorithm:                    "ShreddingAlgorithm",
+	TagRNGMode:                               "RNGMode",
+	TagClientRegistrationMethod:              "ClientRegistrationMethod",
+	TagCapabilityInformation:                 "CapabilityInformation",
+	TagKeyWrapType:                           "KeyWrapType",
+	TagBatchUndoCapability:                   "BatchUndoCapability",
+	TagBatchContinueCapability:               "BatchContinueCapability",
+	TagPKCS_12FriendlyName:                   "PKCS_12FriendlyName",
+	TagDescription:                           "Description",
+	TagComment:                               "Comment",
+	TagAuthenticatedEncryptionAdditionalData: "AuthenticatedEncryptionAdditionalData",
+	TagAuthenticatedEncryptionTag:            "AuthenticatedEncryptionTag",
+	TagSaltLength:                            "SaltLength",
+	TagMaskGenerator:                         "MaskGenerator",
+	TagMaskGeneratorHashingAlgorithm:         "MaskGeneratorHashingAlgorithm",
+	TagPSource:                               "PSource",
+	TagTrailerField:                          "TrailerField",
+	TagClientCorrelationValue:                "ClientCorrelationValue",
+	TagServerCorrelationValue:                "ServerCorrelationValue",
+	TagDigestedData:                          "DigestedData",
+	TagCertificateSubjectCN:                  "CertificateSubjectCN",
+	TagCertificateSubjectO:                   "CertificateSubjectO",
+	TagCertificateSubjectOU:                  "CertificateSubjectOU",
+	TagCertificateSubjectEmail:               "CertificateSubjectEmail",
+	TagCertificateSubjectC:                   "CertificateSubjectC",
+	TagCertificateSubjectST:                  "CertificateSubjectST",
+	TagCertificateSubjectL:                   "CertificateSubjectL",
+	TagCertificateSubjectUID:                 "CertificateSubjectUID",
+	TagCertificateSubjectSerialNumber:        "CertificateSubjectSerialNumber",
+	TagCertificateSubjectTitle:               "CertificateSubjectTitle",
+	TagCertificateSubjectDC:                  "CertificateSubjectDC",
+	TagCertificateSubjectDNQualifier:         "CertificateSubjectDNQualifier",
+	TagCertificateIssuerCN:                   "CertificateIssuerCN",
+	TagCertificateIssuerO:                    "CertificateIssuerO",
+	TagCertificateIssuerOU:                   "CertificateIssuerOU",
+	TagCertificateIssuerEmail:                "CertificateIssuerEmail",
+	TagCertificateIssuerC:                    "CertificateIssuerC",
+	TagCertificateIssuerST:                   "CertificateIssuerST",
+	TagCertificateIssuerL:                    "CertificateIssuerL",
+	TagCertificateIssuerUID:                  "CertificateIssuerUID",
+	TagCertificateIssuerSerialNumber:         "CertificateIssuerSerialNumber",
+	TagCertificateIssuerTitle:                "CertificateIssuerTitle",
+	TagCertificateIssuerDC:                   "CertificateIssuerDC",
+	TagCertificateIssuerDNQualifier:          "CertificateIssuerDNQualifier",
+	TagSensitive:                             "Sensitive",
+	TagAlwaysSensitive:                       "AlwaysSensitive",
+	TagExtractable:                           "Extractable",
+	TagNeverExtractable:                      "NeverExtractable",
+	TagReplaceExisting:                       "ReplaceExisting",
 }
 
 // Code generated by "kmipenums "; DO NOT EDIT.
 
 // Credential Type Enumeration
-// 9.1.3.2.1
+// 9.1.3.2.1 Table 289
 type CredentialType uint32
 
 const (
-	CredentialTypeAttestation         CredentialType = 0x00000003
-	CredentialTypeDevice              CredentialType = 0x00000002
 	CredentialTypeUsernameAndPassword CredentialType = 0x00000001
+	CredentialTypeDevice              CredentialType = 0x00000002
+	CredentialTypeAttestation         CredentialType = 0x00000003
 )
 
 var _CredentialTypeNameToValueMap = map[string]CredentialType{
-	"Attestation":         CredentialTypeAttestation,
-	"Device":              CredentialTypeDevice,
 	"UsernameAndPassword": CredentialTypeUsernameAndPassword,
+	"Device":              CredentialTypeDevice,
+	"Attestation":         CredentialTypeAttestation,
 }
 
 var _CredentialTypeValueToNameMap = map[CredentialType]string{
-	CredentialTypeAttestation:         "Attestation",
-	CredentialTypeDevice:              "Device",
 	CredentialTypeUsernameAndPassword: "UsernameAndPassword",
+	CredentialTypeDevice:              "Device",
+	CredentialTypeAttestation:         "Attestation",
 }
 
 func (c CredentialType) String() string {
@@ -962,27 +962,27 @@ func (c CredentialType) MarshalTTLVEnum() uint32 {
 } // Code generated by "kmipenums "; DO NOT EDIT.
 
 // Key Compression Type Enumeration
-// 9.1.3.2.2
+// 9.1.3.2.2 Table 290
 type KeyCompressionType uint32
 
 const (
 	KeyCompressionTypeECPublicKeyTypeUncompressed         KeyCompressionType = 0x00000001
-	KeyCompressionTypeECPublicKeyTypeX9_62CompressedChar2 KeyCompressionType = 0x00000003
 	KeyCompressionTypeECPublicKeyTypeX9_62CompressedPrime KeyCompressionType = 0x00000002
+	KeyCompressionTypeECPublicKeyTypeX9_62CompressedChar2 KeyCompressionType = 0x00000003
 	KeyCompressionTypeECPublicKeyTypeX9_62Hybrid          KeyCompressionType = 0x00000004
 )
 
 var _KeyCompressionTypeNameToValueMap = map[string]KeyCompressionType{
 	"ECPublicKeyTypeUncompressed":         KeyCompressionTypeECPublicKeyTypeUncompressed,
-	"ECPublicKeyTypeX9_62CompressedChar2": KeyCompressionTypeECPublicKeyTypeX9_62CompressedChar2,
 	"ECPublicKeyTypeX9_62CompressedPrime": KeyCompressionTypeECPublicKeyTypeX9_62CompressedPrime,
+	"ECPublicKeyTypeX9_62CompressedChar2": KeyCompressionTypeECPublicKeyTypeX9_62CompressedChar2,
 	"ECPublicKeyTypeX9_62Hybrid":          KeyCompressionTypeECPublicKeyTypeX9_62Hybrid,
 }
 
 var _KeyCompressionTypeValueToNameMap = map[KeyCompressionType]string{
 	KeyCompressionTypeECPublicKeyTypeUncompressed:         "ECPublicKeyTypeUncompressed",
-	KeyCompressionTypeECPublicKeyTypeX9_62CompressedChar2: "ECPublicKeyTypeX9_62CompressedChar2",
 	KeyCompressionTypeECPublicKeyTypeX9_62CompressedPrime: "ECPublicKeyTypeX9_62CompressedPrime",
+	KeyCompressionTypeECPublicKeyTypeX9_62CompressedChar2: "ECPublicKeyTypeX9_62CompressedChar2",
 	KeyCompressionTypeECPublicKeyTypeX9_62Hybrid:          "ECPublicKeyTypeX9_62Hybrid",
 }
 
@@ -1023,82 +1023,82 @@ func (k KeyCompressionType) MarshalTTLVEnum() uint32 {
 } // Code generated by "kmipenums "; DO NOT EDIT.
 
 // Key Format Type Enumeration
-// 9.1.3.2.3
+// 9.1.3.2.3 Table 291
 type KeyFormatType uint32
 
 const (
-	KeyFormatTypeECPrivateKey               KeyFormatType = 0x00000006
+	KeyFormatTypeRaw                        KeyFormatType = 0x00000001
 	KeyFormatTypeOpaque                     KeyFormatType = 0x00000002
 	KeyFormatTypePKCS_1                     KeyFormatType = 0x00000003
-	KeyFormatTypePKCS_12                    KeyFormatType = 0x00000016
 	KeyFormatTypePKCS_8                     KeyFormatType = 0x00000004
-	KeyFormatTypeRaw                        KeyFormatType = 0x00000001
-	KeyFormatTypeTransparentDHPrivateKey    KeyFormatType = 0x0000000c
-	KeyFormatTypeTransparentDHPublicKey     KeyFormatType = 0x0000000d
+	KeyFormatTypeX_509                      KeyFormatType = 0x00000005
+	KeyFormatTypeECPrivateKey               KeyFormatType = 0x00000006
+	KeyFormatTypeTransparentSymmetricKey    KeyFormatType = 0x00000007
 	KeyFormatTypeTransparentDSAPrivateKey   KeyFormatType = 0x00000008
 	KeyFormatTypeTransparentDSAPublicKey    KeyFormatType = 0x00000009
-	KeyFormatTypeTransparentECDHPrivateKey  KeyFormatType = 0x00000010
-	KeyFormatTypeTransparentECDHPublicKey   KeyFormatType = 0x00000011
+	KeyFormatTypeTransparentRSAPrivateKey   KeyFormatType = 0x0000000a
+	KeyFormatTypeTransparentRSAPublicKey    KeyFormatType = 0x0000000b
+	KeyFormatTypeTransparentDHPrivateKey    KeyFormatType = 0x0000000c
+	KeyFormatTypeTransparentDHPublicKey     KeyFormatType = 0x0000000d
 	KeyFormatTypeTransparentECDSAPrivateKey KeyFormatType = 0x0000000e
 	KeyFormatTypeTransparentECDSAPublicKey  KeyFormatType = 0x0000000f
+	KeyFormatTypeTransparentECDHPrivateKey  KeyFormatType = 0x00000010
+	KeyFormatTypeTransparentECDHPublicKey   KeyFormatType = 0x00000011
 	KeyFormatTypeTransparentECMQVPrivateKey KeyFormatType = 0x00000012
 	KeyFormatTypeTransparentECMQVPublicKey  KeyFormatType = 0x00000013
 	KeyFormatTypeTransparentECPrivateKey    KeyFormatType = 0x00000014
 	KeyFormatTypeTransparentECPublicKey     KeyFormatType = 0x00000015
-	KeyFormatTypeTransparentRSAPrivateKey   KeyFormatType = 0x0000000a
-	KeyFormatTypeTransparentRSAPublicKey    KeyFormatType = 0x0000000b
-	KeyFormatTypeTransparentSymmetricKey    KeyFormatType = 0x00000007
-	KeyFormatTypeX_509                      KeyFormatType = 0x00000005
+	KeyFormatTypePKCS_12                    KeyFormatType = 0x00000016
 )
 
 var _KeyFormatTypeNameToValueMap = map[string]KeyFormatType{
-	"ECPrivateKey":               KeyFormatTypeECPrivateKey,
+	"Raw":                        KeyFormatTypeRaw,
 	"Opaque":                     KeyFormatTypeOpaque,
 	"PKCS_1":                     KeyFormatTypePKCS_1,
-	"PKCS_12":                    KeyFormatTypePKCS_12,
 	"PKCS_8":                     KeyFormatTypePKCS_8,
-	"Raw":                        KeyFormatTypeRaw,
-	"TransparentDHPrivateKey":    KeyFormatTypeTransparentDHPrivateKey,
-	"TransparentDHPublicKey":     KeyFormatTypeTransparentDHPublicKey,
+	"X_509":                      KeyFormatTypeX_509,
+	"ECPrivateKey":               KeyFormatTypeECPrivateKey,
+	"TransparentSymmetricKey":    KeyFormatTypeTransparentSymmetricKey,
 	"TransparentDSAPrivateKey":   KeyFormatTypeTransparentDSAPrivateKey,
 	"TransparentDSAPublicKey":    KeyFormatTypeTransparentDSAPublicKey,
-	"TransparentECDHPrivateKey":  KeyFormatTypeTransparentECDHPrivateKey,
-	"TransparentECDHPublicKey":   KeyFormatTypeTransparentECDHPublicKey,
+	"TransparentRSAPrivateKey":   KeyFormatTypeTransparentRSAPrivateKey,
+	"TransparentRSAPublicKey":    KeyFormatTypeTransparentRSAPublicKey,
+	"TransparentDHPrivateKey":    KeyFormatTypeTransparentDHPrivateKey,
+	"TransparentDHPublicKey":     KeyFormatTypeTransparentDHPublicKey,
 	"TransparentECDSAPrivateKey": KeyFormatTypeTransparentECDSAPrivateKey,
 	"TransparentECDSAPublicKey":  KeyFormatTypeTransparentECDSAPublicKey,
+	"TransparentECDHPrivateKey":  KeyFormatTypeTransparentECDHPrivateKey,
+	"TransparentECDHPublicKey":   KeyFormatTypeTransparentECDHPublicKey,
 	"TransparentECMQVPrivateKey": KeyFormatTypeTransparentECMQVPrivateKey,
 	"TransparentECMQVPublicKey":  KeyFormatTypeTransparentECMQVPublicKey,
 	"TransparentECPrivateKey":    KeyFormatTypeTransparentECPrivateKey,
 	"TransparentECPublicKey":     KeyFormatTypeTransparentECPublicKey,
-	"TransparentRSAPrivateKey":   KeyFormatTypeTransparentRSAPrivateKey,
-	"TransparentRSAPublicKey":    KeyFormatTypeTransparentRSAPublicKey,
-	"TransparentSymmetricKey":    KeyFormatTypeTransparentSymmetricKey,
-	"X_509":                      KeyFormatTypeX_509,
+	"PKCS_12":                    KeyFormatTypePKCS_12,
 }
 
 var _KeyFormatTypeValueToNameMap = map[KeyFormatType]string{
-	KeyFormatTypeECPrivateKey:               "ECPrivateKey",
+	KeyFormatTypeRaw:                        "Raw",
 	KeyFormatTypeOpaque:                     "Opaque",
 	KeyFormatTypePKCS_1:                     "PKCS_1",
-	KeyFormatTypePKCS_12:                    "PKCS_12",
 	KeyFormatTypePKCS_8:                     "PKCS_8",
-	KeyFormatTypeRaw:                        "Raw",
-	KeyFormatTypeTransparentDHPrivateKey:    "TransparentDHPrivateKey",
-	KeyFormatTypeTransparentDHPublicKey:     "TransparentDHPublicKey",
+	KeyFormatTypeX_509:                      "X_509",
+	KeyFormatTypeECPrivateKey:               "ECPrivateKey",
+	KeyFormatTypeTransparentSymmetricKey:    "TransparentSymmetricKey",
 	KeyFormatTypeTransparentDSAPrivateKey:   "TransparentDSAPrivateKey",
 	KeyFormatTypeTransparentDSAPublicKey:    "TransparentDSAPublicKey",
-	KeyFormatTypeTransparentECDHPrivateKey:  "TransparentECDHPrivateKey",
-	KeyFormatTypeTransparentECDHPublicKey:   "TransparentECDHPublicKey",
+	KeyFormatTypeTransparentRSAPrivateKey:   "TransparentRSAPrivateKey",
+	KeyFormatTypeTransparentRSAPublicKey:    "TransparentRSAPublicKey",
+	KeyFormatTypeTransparentDHPrivateKey:    "TransparentDHPrivateKey",
+	KeyFormatTypeTransparentDHPublicKey:     "TransparentDHPublicKey",
 	KeyFormatTypeTransparentECDSAPrivateKey: "TransparentECDSAPrivateKey",
 	KeyFormatTypeTransparentECDSAPublicKey:  "TransparentECDSAPublicKey",
+	KeyFormatTypeTransparentECDHPrivateKey:  "TransparentECDHPrivateKey",
+	KeyFormatTypeTransparentECDHPublicKey:   "TransparentECDHPublicKey",
 	KeyFormatTypeTransparentECMQVPrivateKey: "TransparentECMQVPrivateKey",
 	KeyFormatTypeTransparentECMQVPublicKey:  "TransparentECMQVPublicKey",
 	KeyFormatTypeTransparentECPrivateKey:    "TransparentECPrivateKey",
 	KeyFormatTypeTransparentECPublicKey:     "TransparentECPublicKey",
-	KeyFormatTypeTransparentRSAPrivateKey:   "TransparentRSAPrivateKey",
-	KeyFormatTypeTransparentRSAPublicKey:    "TransparentRSAPublicKey",
-	KeyFormatTypeTransparentSymmetricKey:    "TransparentSymmetricKey",
-	KeyFormatTypeX_509:                      "X_509",
+	KeyFormatTypePKCS_12:                    "PKCS_12",
 }
 
 func (k KeyFormatType) String() string {
@@ -1137,44 +1137,467 @@ func (k KeyFormatType) MarshalTTLVEnum() uint32 {
 	return uint32(k)
 } // Code generated by "kmipenums "; DO NOT EDIT.
 
+// Wrapping Method Enumeration
+// 9.1.3.2.4 Table 292
+type WrappingMethod uint32
+
+const (
+	WrappingMethodEncrypt            WrappingMethod = 0x00000001
+	WrappingMethodMACSign            WrappingMethod = 0x00000002
+	WrappingMethodEncryptThenMACSign WrappingMethod = 0x00000003
+	WrappingMethodMACSignThenEncrypt WrappingMethod = 0x00000004
+	WrappingMethodTR_31              WrappingMethod = 0x00000005
+)
+
+var _WrappingMethodNameToValueMap = map[string]WrappingMethod{
+	"Encrypt":            WrappingMethodEncrypt,
+	"MACSign":            WrappingMethodMACSign,
+	"EncryptThenMACSign": WrappingMethodEncryptThenMACSign,
+	"MACSignThenEncrypt": WrappingMethodMACSignThenEncrypt,
+	"TR_31":              WrappingMethodTR_31,
+}
+
+var _WrappingMethodValueToNameMap = map[WrappingMethod]string{
+	WrappingMethodEncrypt:            "Encrypt",
+	WrappingMethodMACSign:            "MACSign",
+	WrappingMethodEncryptThenMACSign: "EncryptThenMACSign",
+	WrappingMethodMACSignThenEncrypt: "MACSignThenEncrypt",
+	WrappingMethodTR_31:              "TR_31",
+}
+
+func (w WrappingMethod) String() string {
+	if s, ok := _WrappingMethodValueToNameMap[w]; ok {
+		return s
+	}
+	return fmt.Sprintf("%#08x", w)
+}
+
+func ParseWrappingMethod(s string) (WrappingMethod, error) {
+	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+		b, err := hex.DecodeString(s[2:])
+		if err != nil {
+			return 0, err
+		}
+		return WrappingMethod(binary.BigEndian.Uint32(b)), nil
+	}
+	if v, ok := _WrappingMethodNameToValueMap[s]; ok {
+		return v, nil
+	} else {
+		var v WrappingMethod
+		return v, fmt.Errorf("%s is not a valid WrappingMethod", s)
+	}
+}
+
+func (w WrappingMethod) MarshalText() (text []byte, err error) {
+	return []byte(w.String()), nil
+}
+
+func (w *WrappingMethod) UnmarshalText(text []byte) (err error) {
+	*w, err = ParseWrappingMethod(string(text))
+	return
+}
+
+func (w WrappingMethod) MarshalTTLVEnum() uint32 {
+	return uint32(w)
+} // Code generated by "kmipenums "; DO NOT EDIT.
+
+// Recommended Curve Enumeration
+// 9.1.3.2.5 Table 293
+type RecommendedCurve uint32
+
+const (
+	RecommendedCurveP_192            RecommendedCurve = 0x00000001
+	RecommendedCurveK_163            RecommendedCurve = 0x00000002
+	RecommendedCurveB_163            RecommendedCurve = 0x00000003
+	RecommendedCurveP_224            RecommendedCurve = 0x00000004
+	RecommendedCurveK_233            RecommendedCurve = 0x00000005
+	RecommendedCurveB_233            RecommendedCurve = 0x00000006
+	RecommendedCurveP_256            RecommendedCurve = 0x00000007
+	RecommendedCurveK_283            RecommendedCurve = 0x00000008
+	RecommendedCurveB_283            RecommendedCurve = 0x00000009
+	RecommendedCurveP_384            RecommendedCurve = 0x0000000a
+	RecommendedCurveK_409            RecommendedCurve = 0x0000000b
+	RecommendedCurveB_409            RecommendedCurve = 0x0000000c
+	RecommendedCurveP_521            RecommendedCurve = 0x0000000d
+	RecommendedCurveK_571            RecommendedCurve = 0x0000000e
+	RecommendedCurveB_571            RecommendedCurve = 0x0000000f
+	RecommendedCurveSECP112R1        RecommendedCurve = 0x00000010
+	RecommendedCurveSECP112R2        RecommendedCurve = 0x00000011
+	RecommendedCurveSECP128R1        RecommendedCurve = 0x00000012
+	RecommendedCurveSECP128R2        RecommendedCurve = 0x00000013
+	RecommendedCurveSECP160K1        RecommendedCurve = 0x00000014
+	RecommendedCurveSECP160R1        RecommendedCurve = 0x00000015
+	RecommendedCurveSECP160R2        RecommendedCurve = 0x00000016
+	RecommendedCurveSECP192K1        RecommendedCurve = 0x00000017
+	RecommendedCurveSECP224K1        RecommendedCurve = 0x00000018
+	RecommendedCurveSECP256K1        RecommendedCurve = 0x00000019
+	RecommendedCurveSECT113R1        RecommendedCurve = 0x0000001a
+	RecommendedCurveSECT113R2        RecommendedCurve = 0x0000001b
+	RecommendedCurveSECT131R1        RecommendedCurve = 0x0000001c
+	RecommendedCurveSECT131R2        RecommendedCurve = 0x0000001d
+	RecommendedCurveSECT163R1        RecommendedCurve = 0x0000001e
+	RecommendedCurveSECT193R1        RecommendedCurve = 0x0000001f
+	RecommendedCurveSECT193R2        RecommendedCurve = 0x00000020
+	RecommendedCurveSECT239K1        RecommendedCurve = 0x00000021
+	RecommendedCurveANSIX9P192V2     RecommendedCurve = 0x00000022
+	RecommendedCurveANSIX9P192V3     RecommendedCurve = 0x00000023
+	RecommendedCurveANSIX9P239V1     RecommendedCurve = 0x00000024
+	RecommendedCurveANSIX9P239V2     RecommendedCurve = 0x00000025
+	RecommendedCurveANSIX9P239V3     RecommendedCurve = 0x00000026
+	RecommendedCurveANSIX9C2PNB163V1 RecommendedCurve = 0x00000027
+	RecommendedCurveANSIX9C2PNB163V2 RecommendedCurve = 0x00000028
+	RecommendedCurveANSIX9C2PNB163V3 RecommendedCurve = 0x00000029
+	RecommendedCurveANSIX9C2PNB176V1 RecommendedCurve = 0x0000002a
+	RecommendedCurveANSIX9C2TNB191V1 RecommendedCurve = 0x0000002b
+	RecommendedCurveANSIX9C2TNB191V2 RecommendedCurve = 0x0000002c
+	RecommendedCurveANSIX9C2TNB191V3 RecommendedCurve = 0x0000002d
+	RecommendedCurveANSIX9C2PNB208W1 RecommendedCurve = 0x0000002e
+	RecommendedCurveANSIX9C2TNB239V1 RecommendedCurve = 0x0000002f
+	RecommendedCurveANSIX9C2TNB239V2 RecommendedCurve = 0x00000030
+	RecommendedCurveANSIX9C2TNB239V3 RecommendedCurve = 0x00000031
+	RecommendedCurveANSIX9C2PNB272W1 RecommendedCurve = 0x00000032
+	RecommendedCurveANSIX9C2PNB304W1 RecommendedCurve = 0x00000033
+	RecommendedCurveANSIX9C2TNB359V1 RecommendedCurve = 0x00000034
+	RecommendedCurveANSIX9C2PNB368W1 RecommendedCurve = 0x00000035
+	RecommendedCurveANSIX9C2TNB431R1 RecommendedCurve = 0x00000036
+	RecommendedCurveBRAINPOOLP160R1  RecommendedCurve = 0x00000037
+	RecommendedCurveBRAINPOOLP160T1  RecommendedCurve = 0x00000038
+	RecommendedCurveBRAINPOOLP192R1  RecommendedCurve = 0x00000039
+	RecommendedCurveBRAINPOOLP192T1  RecommendedCurve = 0x0000003a
+	RecommendedCurveBRAINPOOLP224R1  RecommendedCurve = 0x0000003b
+	RecommendedCurveBRAINPOOLP224T1  RecommendedCurve = 0x0000003c
+	RecommendedCurveBRAINPOOLP256R1  RecommendedCurve = 0x0000003d
+	RecommendedCurveBRAINPOOLP256T1  RecommendedCurve = 0x0000003e
+	RecommendedCurveBRAINPOOLP320R1  RecommendedCurve = 0x0000003f
+	RecommendedCurveBRAINPOOLP320T1  RecommendedCurve = 0x00000040
+	RecommendedCurveBRAINPOOLP384R1  RecommendedCurve = 0x00000041
+	RecommendedCurveBRAINPOOLP384T1  RecommendedCurve = 0x00000042
+	RecommendedCurveBRAINPOOLP512R1  RecommendedCurve = 0x00000043
+	RecommendedCurveBRAINPOOLP512T1  RecommendedCurve = 0x00000044
+)
+
+var _RecommendedCurveNameToValueMap = map[string]RecommendedCurve{
+	"P_192":            RecommendedCurveP_192,
+	"K_163":            RecommendedCurveK_163,
+	"B_163":            RecommendedCurveB_163,
+	"P_224":            RecommendedCurveP_224,
+	"K_233":            RecommendedCurveK_233,
+	"B_233":            RecommendedCurveB_233,
+	"P_256":            RecommendedCurveP_256,
+	"K_283":            RecommendedCurveK_283,
+	"B_283":            RecommendedCurveB_283,
+	"P_384":            RecommendedCurveP_384,
+	"K_409":            RecommendedCurveK_409,
+	"B_409":            RecommendedCurveB_409,
+	"P_521":            RecommendedCurveP_521,
+	"K_571":            RecommendedCurveK_571,
+	"B_571":            RecommendedCurveB_571,
+	"SECP112R1":        RecommendedCurveSECP112R1,
+	"SECP112R2":        RecommendedCurveSECP112R2,
+	"SECP128R1":        RecommendedCurveSECP128R1,
+	"SECP128R2":        RecommendedCurveSECP128R2,
+	"SECP160K1":        RecommendedCurveSECP160K1,
+	"SECP160R1":        RecommendedCurveSECP160R1,
+	"SECP160R2":        RecommendedCurveSECP160R2,
+	"SECP192K1":        RecommendedCurveSECP192K1,
+	"SECP224K1":        RecommendedCurveSECP224K1,
+	"SECP256K1":        RecommendedCurveSECP256K1,
+	"SECT113R1":        RecommendedCurveSECT113R1,
+	"SECT113R2":        RecommendedCurveSECT113R2,
+	"SECT131R1":        RecommendedCurveSECT131R1,
+	"SECT131R2":        RecommendedCurveSECT131R2,
+	"SECT163R1":        RecommendedCurveSECT163R1,
+	"SECT193R1":        RecommendedCurveSECT193R1,
+	"SECT193R2":        RecommendedCurveSECT193R2,
+	"SECT239K1":        RecommendedCurveSECT239K1,
+	"ANSIX9P192V2":     RecommendedCurveANSIX9P192V2,
+	"ANSIX9P192V3":     RecommendedCurveANSIX9P192V3,
+	"ANSIX9P239V1":     RecommendedCurveANSIX9P239V1,
+	"ANSIX9P239V2":     RecommendedCurveANSIX9P239V2,
+	"ANSIX9P239V3":     RecommendedCurveANSIX9P239V3,
+	"ANSIX9C2PNB163V1": RecommendedCurveANSIX9C2PNB163V1,
+	"ANSIX9C2PNB163V2": RecommendedCurveANSIX9C2PNB163V2,
+	"ANSIX9C2PNB163V3": RecommendedCurveANSIX9C2PNB163V3,
+	"ANSIX9C2PNB176V1": RecommendedCurveANSIX9C2PNB176V1,
+	"ANSIX9C2TNB191V1": RecommendedCurveANSIX9C2TNB191V1,
+	"ANSIX9C2TNB191V2": RecommendedCurveANSIX9C2TNB191V2,
+	"ANSIX9C2TNB191V3": RecommendedCurveANSIX9C2TNB191V3,
+	"ANSIX9C2PNB208W1": RecommendedCurveANSIX9C2PNB208W1,
+	"ANSIX9C2TNB239V1": RecommendedCurveANSIX9C2TNB239V1,
+	"ANSIX9C2TNB239V2": RecommendedCurveANSIX9C2TNB239V2,
+	"ANSIX9C2TNB239V3": RecommendedCurveANSIX9C2TNB239V3,
+	"ANSIX9C2PNB272W1": RecommendedCurveANSIX9C2PNB272W1,
+	"ANSIX9C2PNB304W1": RecommendedCurveANSIX9C2PNB304W1,
+	"ANSIX9C2TNB359V1": RecommendedCurveANSIX9C2TNB359V1,
+	"ANSIX9C2PNB368W1": RecommendedCurveANSIX9C2PNB368W1,
+	"ANSIX9C2TNB431R1": RecommendedCurveANSIX9C2TNB431R1,
+	"BRAINPOOLP160R1":  RecommendedCurveBRAINPOOLP160R1,
+	"BRAINPOOLP160T1":  RecommendedCurveBRAINPOOLP160T1,
+	"BRAINPOOLP192R1":  RecommendedCurveBRAINPOOLP192R1,
+	"BRAINPOOLP192T1":  RecommendedCurveBRAINPOOLP192T1,
+	"BRAINPOOLP224R1":  RecommendedCurveBRAINPOOLP224R1,
+	"BRAINPOOLP224T1":  RecommendedCurveBRAINPOOLP224T1,
+	"BRAINPOOLP256R1":  RecommendedCurveBRAINPOOLP256R1,
+	"BRAINPOOLP256T1":  RecommendedCurveBRAINPOOLP256T1,
+	"BRAINPOOLP320R1":  RecommendedCurveBRAINPOOLP320R1,
+	"BRAINPOOLP320T1":  RecommendedCurveBRAINPOOLP320T1,
+	"BRAINPOOLP384R1":  RecommendedCurveBRAINPOOLP384R1,
+	"BRAINPOOLP384T1":  RecommendedCurveBRAINPOOLP384T1,
+	"BRAINPOOLP512R1":  RecommendedCurveBRAINPOOLP512R1,
+	"BRAINPOOLP512T1":  RecommendedCurveBRAINPOOLP512T1,
+}
+
+var _RecommendedCurveValueToNameMap = map[RecommendedCurve]string{
+	RecommendedCurveP_192:            "P_192",
+	RecommendedCurveK_163:            "K_163",
+	RecommendedCurveB_163:            "B_163",
+	RecommendedCurveP_224:            "P_224",
+	RecommendedCurveK_233:            "K_233",
+	RecommendedCurveB_233:            "B_233",
+	RecommendedCurveP_256:            "P_256",
+	RecommendedCurveK_283:            "K_283",
+	RecommendedCurveB_283:            "B_283",
+	RecommendedCurveP_384:            "P_384",
+	RecommendedCurveK_409:            "K_409",
+	RecommendedCurveB_409:            "B_409",
+	RecommendedCurveP_521:            "P_521",
+	RecommendedCurveK_571:            "K_571",
+	RecommendedCurveB_571:            "B_571",
+	RecommendedCurveSECP112R1:        "SECP112R1",
+	RecommendedCurveSECP112R2:        "SECP112R2",
+	RecommendedCurveSECP128R1:        "SECP128R1",
+	RecommendedCurveSECP128R2:        "SECP128R2",
+	RecommendedCurveSECP160K1:        "SECP160K1",
+	RecommendedCurveSECP160R1:        "SECP160R1",
+	RecommendedCurveSECP160R2:        "SECP160R2",
+	RecommendedCurveSECP192K1:        "SECP192K1",
+	RecommendedCurveSECP224K1:        "SECP224K1",
+	RecommendedCurveSECP256K1:        "SECP256K1",
+	RecommendedCurveSECT113R1:        "SECT113R1",
+	RecommendedCurveSECT113R2:        "SECT113R2",
+	RecommendedCurveSECT131R1:        "SECT131R1",
+	RecommendedCurveSECT131R2:        "SECT131R2",
+	RecommendedCurveSECT163R1:        "SECT163R1",
+	RecommendedCurveSECT193R1:        "SECT193R1",
+	RecommendedCurveSECT193R2:        "SECT193R2",
+	RecommendedCurveSECT239K1:        "SECT239K1",
+	RecommendedCurveANSIX9P192V2:     "ANSIX9P192V2",
+	RecommendedCurveANSIX9P192V3:     "ANSIX9P192V3",
+	RecommendedCurveANSIX9P239V1:     "ANSIX9P239V1",
+	RecommendedCurveANSIX9P239V2:     "ANSIX9P239V2",
+	RecommendedCurveANSIX9P239V3:     "ANSIX9P239V3",
+	RecommendedCurveANSIX9C2PNB163V1: "ANSIX9C2PNB163V1",
+	RecommendedCurveANSIX9C2PNB163V2: "ANSIX9C2PNB163V2",
+	RecommendedCurveANSIX9C2PNB163V3: "ANSIX9C2PNB163V3",
+	RecommendedCurveANSIX9C2PNB176V1: "ANSIX9C2PNB176V1",
+	RecommendedCurveANSIX9C2TNB191V1: "ANSIX9C2TNB191V1",
+	RecommendedCurveANSIX9C2TNB191V2: "ANSIX9C2TNB191V2",
+	RecommendedCurveANSIX9C2TNB191V3: "ANSIX9C2TNB191V3",
+	RecommendedCurveANSIX9C2PNB208W1: "ANSIX9C2PNB208W1",
+	RecommendedCurveANSIX9C2TNB239V1: "ANSIX9C2TNB239V1",
+	RecommendedCurveANSIX9C2TNB239V2: "ANSIX9C2TNB239V2",
+	RecommendedCurveANSIX9C2TNB239V3: "ANSIX9C2TNB239V3",
+	RecommendedCurveANSIX9C2PNB272W1: "ANSIX9C2PNB272W1",
+	RecommendedCurveANSIX9C2PNB304W1: "ANSIX9C2PNB304W1",
+	RecommendedCurveANSIX9C2TNB359V1: "ANSIX9C2TNB359V1",
+	RecommendedCurveANSIX9C2PNB368W1: "ANSIX9C2PNB368W1",
+	RecommendedCurveANSIX9C2TNB431R1: "ANSIX9C2TNB431R1",
+	RecommendedCurveBRAINPOOLP160R1:  "BRAINPOOLP160R1",
+	RecommendedCurveBRAINPOOLP160T1:  "BRAINPOOLP160T1",
+	RecommendedCurveBRAINPOOLP192R1:  "BRAINPOOLP192R1",
+	RecommendedCurveBRAINPOOLP192T1:  "BRAINPOOLP192T1",
+	RecommendedCurveBRAINPOOLP224R1:  "BRAINPOOLP224R1",
+	RecommendedCurveBRAINPOOLP224T1:  "BRAINPOOLP224T1",
+	RecommendedCurveBRAINPOOLP256R1:  "BRAINPOOLP256R1",
+	RecommendedCurveBRAINPOOLP256T1:  "BRAINPOOLP256T1",
+	RecommendedCurveBRAINPOOLP320R1:  "BRAINPOOLP320R1",
+	RecommendedCurveBRAINPOOLP320T1:  "BRAINPOOLP320T1",
+	RecommendedCurveBRAINPOOLP384R1:  "BRAINPOOLP384R1",
+	RecommendedCurveBRAINPOOLP384T1:  "BRAINPOOLP384T1",
+	RecommendedCurveBRAINPOOLP512R1:  "BRAINPOOLP512R1",
+	RecommendedCurveBRAINPOOLP512T1:  "BRAINPOOLP512T1",
+}
+
+func (r RecommendedCurve) String() string {
+	if s, ok := _RecommendedCurveValueToNameMap[r]; ok {
+		return s
+	}
+	return fmt.Sprintf("%#08x", r)
+}
+
+func ParseRecommendedCurve(s string) (RecommendedCurve, error) {
+	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+		b, err := hex.DecodeString(s[2:])
+		if err != nil {
+			return 0, err
+		}
+		return RecommendedCurve(binary.BigEndian.Uint32(b)), nil
+	}
+	if v, ok := _RecommendedCurveNameToValueMap[s]; ok {
+		return v, nil
+	} else {
+		var v RecommendedCurve
+		return v, fmt.Errorf("%s is not a valid RecommendedCurve", s)
+	}
+}
+
+func (r RecommendedCurve) MarshalText() (text []byte, err error) {
+	return []byte(r.String()), nil
+}
+
+func (r *RecommendedCurve) UnmarshalText(text []byte) (err error) {
+	*r, err = ParseRecommendedCurve(string(text))
+	return
+}
+
+func (r RecommendedCurve) MarshalTTLVEnum() uint32 {
+	return uint32(r)
+} // Code generated by "kmipenums "; DO NOT EDIT.
+
+// Digital Signature Algorithm Enumeration
+// 9.1.3.2.7 Table 295
+type DigitalSignatureAlgorithm uint32
+
+const (
+	DigitalSignatureAlgorithmMD2WithRSAEncryptionPKCS_1V1_5     DigitalSignatureAlgorithm = 0x00000001
+	DigitalSignatureAlgorithmMD5WithRSAEncryptionPKCS_1V1_5     DigitalSignatureAlgorithm = 0x00000002
+	DigitalSignatureAlgorithmSHA_1WithRSAEncryptionPKCS_1V1_5   DigitalSignatureAlgorithm = 0x00000003
+	DigitalSignatureAlgorithmSHA_224WithRSAEncryptionPKCS_1V1_5 DigitalSignatureAlgorithm = 0x00000004
+	DigitalSignatureAlgorithmSHA_256WithRSAEncryptionPKCS_1V1_5 DigitalSignatureAlgorithm = 0x00000005
+	DigitalSignatureAlgorithmSHA_384WithRSAEncryptionPKCS_1V1_5 DigitalSignatureAlgorithm = 0x00000006
+	DigitalSignatureAlgorithmSHA_512WithRSAEncryptionPKCS_1V1_5 DigitalSignatureAlgorithm = 0x00000007
+	DigitalSignatureAlgorithmRSASSA_PSSPKCS_1V2_1               DigitalSignatureAlgorithm = 0x00000008
+	DigitalSignatureAlgorithmDSAWithSHA_1                       DigitalSignatureAlgorithm = 0x00000009
+	DigitalSignatureAlgorithmDSAWithSHA224                      DigitalSignatureAlgorithm = 0x0000000a
+	DigitalSignatureAlgorithmDSAWithSHA256                      DigitalSignatureAlgorithm = 0x0000000b
+	DigitalSignatureAlgorithmECDSAWithSHA_1                     DigitalSignatureAlgorithm = 0x0000000c
+	DigitalSignatureAlgorithmECDSAWithSHA224                    DigitalSignatureAlgorithm = 0x0000000d
+	DigitalSignatureAlgorithmECDSAWithSHA256                    DigitalSignatureAlgorithm = 0x0000000e
+	DigitalSignatureAlgorithmECDSAWithSHA384                    DigitalSignatureAlgorithm = 0x0000000f
+	DigitalSignatureAlgorithmECDSAWithSHA512                    DigitalSignatureAlgorithm = 0x00000010
+	DigitalSignatureAlgorithmSHA3_256WithRSAEncryption          DigitalSignatureAlgorithm = 0x00000011
+	DigitalSignatureAlgorithmSHA3_384WithRSAEncryption          DigitalSignatureAlgorithm = 0x00000012
+	DigitalSignatureAlgorithmSHA3_512WithRSAEncryption          DigitalSignatureAlgorithm = 0x00000013
+)
+
+var _DigitalSignatureAlgorithmNameToValueMap = map[string]DigitalSignatureAlgorithm{
+	"MD2WithRSAEncryptionPKCS_1V1_5":     DigitalSignatureAlgorithmMD2WithRSAEncryptionPKCS_1V1_5,
+	"MD5WithRSAEncryptionPKCS_1V1_5":     DigitalSignatureAlgorithmMD5WithRSAEncryptionPKCS_1V1_5,
+	"SHA_1WithRSAEncryptionPKCS_1V1_5":   DigitalSignatureAlgorithmSHA_1WithRSAEncryptionPKCS_1V1_5,
+	"SHA_224WithRSAEncryptionPKCS_1V1_5": DigitalSignatureAlgorithmSHA_224WithRSAEncryptionPKCS_1V1_5,
+	"SHA_256WithRSAEncryptionPKCS_1V1_5": DigitalSignatureAlgorithmSHA_256WithRSAEncryptionPKCS_1V1_5,
+	"SHA_384WithRSAEncryptionPKCS_1V1_5": DigitalSignatureAlgorithmSHA_384WithRSAEncryptionPKCS_1V1_5,
+	"SHA_512WithRSAEncryptionPKCS_1V1_5": DigitalSignatureAlgorithmSHA_512WithRSAEncryptionPKCS_1V1_5,
+	"RSASSA_PSSPKCS_1V2_1":               DigitalSignatureAlgorithmRSASSA_PSSPKCS_1V2_1,
+	"DSAWithSHA_1":                       DigitalSignatureAlgorithmDSAWithSHA_1,
+	"DSAWithSHA224":                      DigitalSignatureAlgorithmDSAWithSHA224,
+	"DSAWithSHA256":                      DigitalSignatureAlgorithmDSAWithSHA256,
+	"ECDSAWithSHA_1":                     DigitalSignatureAlgorithmECDSAWithSHA_1,
+	"ECDSAWithSHA224":                    DigitalSignatureAlgorithmECDSAWithSHA224,
+	"ECDSAWithSHA256":                    DigitalSignatureAlgorithmECDSAWithSHA256,
+	"ECDSAWithSHA384":                    DigitalSignatureAlgorithmECDSAWithSHA384,
+	"ECDSAWithSHA512":                    DigitalSignatureAlgorithmECDSAWithSHA512,
+	"SHA3_256WithRSAEncryption":          DigitalSignatureAlgorithmSHA3_256WithRSAEncryption,
+	"SHA3_384WithRSAEncryption":          DigitalSignatureAlgorithmSHA3_384WithRSAEncryption,
+	"SHA3_512WithRSAEncryption":          DigitalSignatureAlgorithmSHA3_512WithRSAEncryption,
+}
+
+var _DigitalSignatureAlgorithmValueToNameMap = map[DigitalSignatureAlgorithm]string{
+	DigitalSignatureAlgorithmMD2WithRSAEncryptionPKCS_1V1_5:     "MD2WithRSAEncryptionPKCS_1V1_5",
+	DigitalSignatureAlgorithmMD5WithRSAEncryptionPKCS_1V1_5:     "MD5WithRSAEncryptionPKCS_1V1_5",
+	DigitalSignatureAlgorithmSHA_1WithRSAEncryptionPKCS_1V1_5:   "SHA_1WithRSAEncryptionPKCS_1V1_5",
+	DigitalSignatureAlgorithmSHA_224WithRSAEncryptionPKCS_1V1_5: "SHA_224WithRSAEncryptionPKCS_1V1_5",
+	DigitalSignatureAlgorithmSHA_256WithRSAEncryptionPKCS_1V1_5: "SHA_256WithRSAEncryptionPKCS_1V1_5",
+	DigitalSignatureAlgorithmSHA_384WithRSAEncryptionPKCS_1V1_5: "SHA_384WithRSAEncryptionPKCS_1V1_5",
+	DigitalSignatureAlgorithmSHA_512WithRSAEncryptionPKCS_1V1_5: "SHA_512WithRSAEncryptionPKCS_1V1_5",
+	DigitalSignatureAlgorithmRSASSA_PSSPKCS_1V2_1:               "RSASSA_PSSPKCS_1V2_1",
+	DigitalSignatureAlgorithmDSAWithSHA_1:                       "DSAWithSHA_1",
+	DigitalSignatureAlgorithmDSAWithSHA224:                      "DSAWithSHA224",
+	DigitalSignatureAlgorithmDSAWithSHA256:                      "DSAWithSHA256",
+	DigitalSignatureAlgorithmECDSAWithSHA_1:                     "ECDSAWithSHA_1",
+	DigitalSignatureAlgorithmECDSAWithSHA224:                    "ECDSAWithSHA224",
+	DigitalSignatureAlgorithmECDSAWithSHA256:                    "ECDSAWithSHA256",
+	DigitalSignatureAlgorithmECDSAWithSHA384:                    "ECDSAWithSHA384",
+	DigitalSignatureAlgorithmECDSAWithSHA512:                    "ECDSAWithSHA512",
+	DigitalSignatureAlgorithmSHA3_256WithRSAEncryption:          "SHA3_256WithRSAEncryption",
+	DigitalSignatureAlgorithmSHA3_384WithRSAEncryption:          "SHA3_384WithRSAEncryption",
+	DigitalSignatureAlgorithmSHA3_512WithRSAEncryption:          "SHA3_512WithRSAEncryption",
+}
+
+func (d DigitalSignatureAlgorithm) String() string {
+	if s, ok := _DigitalSignatureAlgorithmValueToNameMap[d]; ok {
+		return s
+	}
+	return fmt.Sprintf("%#08x", d)
+}
+
+func ParseDigitalSignatureAlgorithm(s string) (DigitalSignatureAlgorithm, error) {
+	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+		b, err := hex.DecodeString(s[2:])
+		if err != nil {
+			return 0, err
+		}
+		return DigitalSignatureAlgorithm(binary.BigEndian.Uint32(b)), nil
+	}
+	if v, ok := _DigitalSignatureAlgorithmNameToValueMap[s]; ok {
+		return v, nil
+	} else {
+		var v DigitalSignatureAlgorithm
+		return v, fmt.Errorf("%s is not a valid DigitalSignatureAlgorithm", s)
+	}
+}
+
+func (d DigitalSignatureAlgorithm) MarshalText() (text []byte, err error) {
+	return []byte(d.String()), nil
+}
+
+func (d *DigitalSignatureAlgorithm) UnmarshalText(text []byte) (err error) {
+	*d, err = ParseDigitalSignatureAlgorithm(string(text))
+	return
+}
+
+func (d DigitalSignatureAlgorithm) MarshalTTLVEnum() uint32 {
+	return uint32(d)
+} // Code generated by "kmipenums "; DO NOT EDIT.
+
 // Object Type Enumeration
-// 9.1.3.2.12
+// 9.1.3.2.12 Table 300
 type ObjectType uint32
 
 const (
 	ObjectTypeCertificate  ObjectType = 0x00000001
+	ObjectTypeSymmetricKey ObjectType = 0x00000002
+	ObjectTypePublicKey    ObjectType = 0x00000003
+	ObjectTypePrivateKey   ObjectType = 0x00000004
+	ObjectTypeSplitKey     ObjectType = 0x00000005
+	ObjectTypeTemplate     ObjectType = 0x00000006
+	ObjectTypeSecretData   ObjectType = 0x00000007
 	ObjectTypeOpaqueObject ObjectType = 0x00000008
 	ObjectTypePGPKey       ObjectType = 0x00000009
-	ObjectTypePrivateKey   ObjectType = 0x00000004
-	ObjectTypePublicKey    ObjectType = 0x00000003
-	ObjectTypeSecretData   ObjectType = 0x00000007
-	ObjectTypeSplitKey     ObjectType = 0x00000005
-	ObjectTypeSymmetricKey ObjectType = 0x00000002
-	ObjectTypeTemplate     ObjectType = 0x00000006
 )
 
 var _ObjectTypeNameToValueMap = map[string]ObjectType{
 	"Certificate":  ObjectTypeCertificate,
+	"SymmetricKey": ObjectTypeSymmetricKey,
+	"PublicKey":    ObjectTypePublicKey,
+	"PrivateKey":   ObjectTypePrivateKey,
+	"SplitKey":     ObjectTypeSplitKey,
+	"Template":     ObjectTypeTemplate,
+	"SecretData":   ObjectTypeSecretData,
 	"OpaqueObject": ObjectTypeOpaqueObject,
 	"PGPKey":       ObjectTypePGPKey,
-	"PrivateKey":   ObjectTypePrivateKey,
-	"PublicKey":    ObjectTypePublicKey,
-	"SecretData":   ObjectTypeSecretData,
-	"SplitKey":     ObjectTypeSplitKey,
-	"SymmetricKey": ObjectTypeSymmetricKey,
-	"Template":     ObjectTypeTemplate,
 }
 
 var _ObjectTypeValueToNameMap = map[ObjectType]string{
 	ObjectTypeCertificate:  "Certificate",
+	ObjectTypeSymmetricKey: "SymmetricKey",
+	ObjectTypePublicKey:    "PublicKey",
+	ObjectTypePrivateKey:   "PrivateKey",
+	ObjectTypeSplitKey:     "SplitKey",
+	ObjectTypeTemplate:     "Template",
+	ObjectTypeSecretData:   "SecretData",
 	ObjectTypeOpaqueObject: "OpaqueObject",
 	ObjectTypePGPKey:       "PGPKey",
-	ObjectTypePrivateKey:   "PrivateKey",
-	ObjectTypePublicKey:    "PublicKey",
-	ObjectTypeSecretData:   "SecretData",
-	ObjectTypeSplitKey:     "SplitKey",
-	ObjectTypeSymmetricKey: "SymmetricKey",
-	ObjectTypeTemplate:     "Template",
 }
 
 func (o ObjectType) String() string {
@@ -1213,146 +1636,785 @@ func (o ObjectType) MarshalTTLVEnum() uint32 {
 	return uint32(o)
 } // Code generated by "kmipenums "; DO NOT EDIT.
 
+// Cryptographic Algorithm Enumeration
+// 9.1.3.2.13 Table 301
+type CryptographicAlgorithm uint32
+
+const (
+	CryptographicAlgorithmDES              CryptographicAlgorithm = 0x00000001
+	CryptographicAlgorithmDES3             CryptographicAlgorithm = 0x00000002
+	CryptographicAlgorithmAES              CryptographicAlgorithm = 0x00000003
+	CryptographicAlgorithmRSA              CryptographicAlgorithm = 0x00000004
+	CryptographicAlgorithmDSA              CryptographicAlgorithm = 0x00000005
+	CryptographicAlgorithmECDSA            CryptographicAlgorithm = 0x00000006
+	CryptographicAlgorithmHMAC_SHA1        CryptographicAlgorithm = 0x00000007
+	CryptographicAlgorithmHMAC_SHA224      CryptographicAlgorithm = 0x00000008
+	CryptographicAlgorithmHMAC_SHA256      CryptographicAlgorithm = 0x00000009
+	CryptographicAlgorithmHMAC_SHA384      CryptographicAlgorithm = 0x0000000a
+	CryptographicAlgorithmHMAC_SHA512      CryptographicAlgorithm = 0x0000000b
+	CryptographicAlgorithmHMAC_MD5         CryptographicAlgorithm = 0x0000000c
+	CryptographicAlgorithmDH               CryptographicAlgorithm = 0x0000000d
+	CryptographicAlgorithmECDH             CryptographicAlgorithm = 0x0000000e
+	CryptographicAlgorithmECMQV            CryptographicAlgorithm = 0x0000000f
+	CryptographicAlgorithmBlowfish         CryptographicAlgorithm = 0x00000010
+	CryptographicAlgorithmCamellia         CryptographicAlgorithm = 0x00000011
+	CryptographicAlgorithmCAST5            CryptographicAlgorithm = 0x00000012
+	CryptographicAlgorithmIDEA             CryptographicAlgorithm = 0x00000013
+	CryptographicAlgorithmMARS             CryptographicAlgorithm = 0x00000014
+	CryptographicAlgorithmRC2              CryptographicAlgorithm = 0x00000015
+	CryptographicAlgorithmRC4              CryptographicAlgorithm = 0x00000016
+	CryptographicAlgorithmRC5              CryptographicAlgorithm = 0x00000017
+	CryptographicAlgorithmSKIPJACK         CryptographicAlgorithm = 0x00000018
+	CryptographicAlgorithmTwofish          CryptographicAlgorithm = 0x00000019
+	CryptographicAlgorithmEC               CryptographicAlgorithm = 0x0000001a
+	CryptographicAlgorithmOneTimePad       CryptographicAlgorithm = 0x0000001b
+	CryptographicAlgorithmChaCha20         CryptographicAlgorithm = 0x0000001c
+	CryptographicAlgorithmPoly1305         CryptographicAlgorithm = 0x0000001d
+	CryptographicAlgorithmChaCha20Poly1305 CryptographicAlgorithm = 0x0000001e
+	CryptographicAlgorithmSHA3_224         CryptographicAlgorithm = 0x0000001f
+	CryptographicAlgorithmSHA3_256         CryptographicAlgorithm = 0x00000020
+	CryptographicAlgorithmSHA3_384         CryptographicAlgorithm = 0x00000021
+	CryptographicAlgorithmSHA3_512         CryptographicAlgorithm = 0x00000022
+	CryptographicAlgorithmHMAC_SHA3_224    CryptographicAlgorithm = 0x00000023
+	CryptographicAlgorithmHMAC_SHA3_256    CryptographicAlgorithm = 0x00000024
+	CryptographicAlgorithmHMAC_SHA3_384    CryptographicAlgorithm = 0x00000025
+	CryptographicAlgorithmHMAC_SHA3_512    CryptographicAlgorithm = 0x00000026
+	CryptographicAlgorithmSHAKE_128        CryptographicAlgorithm = 0x00000027
+	CryptographicAlgorithmSHAKE_256        CryptographicAlgorithm = 0x00000028
+)
+
+var _CryptographicAlgorithmNameToValueMap = map[string]CryptographicAlgorithm{
+	"DES":              CryptographicAlgorithmDES,
+	"DES3":             CryptographicAlgorithmDES3,
+	"AES":              CryptographicAlgorithmAES,
+	"RSA":              CryptographicAlgorithmRSA,
+	"DSA":              CryptographicAlgorithmDSA,
+	"ECDSA":            CryptographicAlgorithmECDSA,
+	"HMAC_SHA1":        CryptographicAlgorithmHMAC_SHA1,
+	"HMAC_SHA224":      CryptographicAlgorithmHMAC_SHA224,
+	"HMAC_SHA256":      CryptographicAlgorithmHMAC_SHA256,
+	"HMAC_SHA384":      CryptographicAlgorithmHMAC_SHA384,
+	"HMAC_SHA512":      CryptographicAlgorithmHMAC_SHA512,
+	"HMAC_MD5":         CryptographicAlgorithmHMAC_MD5,
+	"DH":               CryptographicAlgorithmDH,
+	"ECDH":             CryptographicAlgorithmECDH,
+	"ECMQV":            CryptographicAlgorithmECMQV,
+	"Blowfish":         CryptographicAlgorithmBlowfish,
+	"Camellia":         CryptographicAlgorithmCamellia,
+	"CAST5":            CryptographicAlgorithmCAST5,
+	"IDEA":             CryptographicAlgorithmIDEA,
+	"MARS":             CryptographicAlgorithmMARS,
+	"RC2":              CryptographicAlgorithmRC2,
+	"RC4":              CryptographicAlgorithmRC4,
+	"RC5":              CryptographicAlgorithmRC5,
+	"SKIPJACK":         CryptographicAlgorithmSKIPJACK,
+	"Twofish":          CryptographicAlgorithmTwofish,
+	"EC":               CryptographicAlgorithmEC,
+	"OneTimePad":       CryptographicAlgorithmOneTimePad,
+	"ChaCha20":         CryptographicAlgorithmChaCha20,
+	"Poly1305":         CryptographicAlgorithmPoly1305,
+	"ChaCha20Poly1305": CryptographicAlgorithmChaCha20Poly1305,
+	"SHA3_224":         CryptographicAlgorithmSHA3_224,
+	"SHA3_256":         CryptographicAlgorithmSHA3_256,
+	"SHA3_384":         CryptographicAlgorithmSHA3_384,
+	"SHA3_512":         CryptographicAlgorithmSHA3_512,
+	"HMAC_SHA3_224":    CryptographicAlgorithmHMAC_SHA3_224,
+	"HMAC_SHA3_256":    CryptographicAlgorithmHMAC_SHA3_256,
+	"HMAC_SHA3_384":    CryptographicAlgorithmHMAC_SHA3_384,
+	"HMAC_SHA3_512":    CryptographicAlgorithmHMAC_SHA3_512,
+	"SHAKE_128":        CryptographicAlgorithmSHAKE_128,
+	"SHAKE_256":        CryptographicAlgorithmSHAKE_256,
+}
+
+var _CryptographicAlgorithmValueToNameMap = map[CryptographicAlgorithm]string{
+	CryptographicAlgorithmDES:              "DES",
+	CryptographicAlgorithmDES3:             "DES3",
+	CryptographicAlgorithmAES:              "AES",
+	CryptographicAlgorithmRSA:              "RSA",
+	CryptographicAlgorithmDSA:              "DSA",
+	CryptographicAlgorithmECDSA:            "ECDSA",
+	CryptographicAlgorithmHMAC_SHA1:        "HMAC_SHA1",
+	CryptographicAlgorithmHMAC_SHA224:      "HMAC_SHA224",
+	CryptographicAlgorithmHMAC_SHA256:      "HMAC_SHA256",
+	CryptographicAlgorithmHMAC_SHA384:      "HMAC_SHA384",
+	CryptographicAlgorithmHMAC_SHA512:      "HMAC_SHA512",
+	CryptographicAlgorithmHMAC_MD5:         "HMAC_MD5",
+	CryptographicAlgorithmDH:               "DH",
+	CryptographicAlgorithmECDH:             "ECDH",
+	CryptographicAlgorithmECMQV:            "ECMQV",
+	CryptographicAlgorithmBlowfish:         "Blowfish",
+	CryptographicAlgorithmCamellia:         "Camellia",
+	CryptographicAlgorithmCAST5:            "CAST5",
+	CryptographicAlgorithmIDEA:             "IDEA",
+	CryptographicAlgorithmMARS:             "MARS",
+	CryptographicAlgorithmRC2:              "RC2",
+	CryptographicAlgorithmRC4:              "RC4",
+	CryptographicAlgorithmRC5:              "RC5",
+	CryptographicAlgorithmSKIPJACK:         "SKIPJACK",
+	CryptographicAlgorithmTwofish:          "Twofish",
+	CryptographicAlgorithmEC:               "EC",
+	CryptographicAlgorithmOneTimePad:       "OneTimePad",
+	CryptographicAlgorithmChaCha20:         "ChaCha20",
+	CryptographicAlgorithmPoly1305:         "Poly1305",
+	CryptographicAlgorithmChaCha20Poly1305: "ChaCha20Poly1305",
+	CryptographicAlgorithmSHA3_224:         "SHA3_224",
+	CryptographicAlgorithmSHA3_256:         "SHA3_256",
+	CryptographicAlgorithmSHA3_384:         "SHA3_384",
+	CryptographicAlgorithmSHA3_512:         "SHA3_512",
+	CryptographicAlgorithmHMAC_SHA3_224:    "HMAC_SHA3_224",
+	CryptographicAlgorithmHMAC_SHA3_256:    "HMAC_SHA3_256",
+	CryptographicAlgorithmHMAC_SHA3_384:    "HMAC_SHA3_384",
+	CryptographicAlgorithmHMAC_SHA3_512:    "HMAC_SHA3_512",
+	CryptographicAlgorithmSHAKE_128:        "SHAKE_128",
+	CryptographicAlgorithmSHAKE_256:        "SHAKE_256",
+}
+
+func (c CryptographicAlgorithm) String() string {
+	if s, ok := _CryptographicAlgorithmValueToNameMap[c]; ok {
+		return s
+	}
+	return fmt.Sprintf("%#08x", c)
+}
+
+func ParseCryptographicAlgorithm(s string) (CryptographicAlgorithm, error) {
+	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+		b, err := hex.DecodeString(s[2:])
+		if err != nil {
+			return 0, err
+		}
+		return CryptographicAlgorithm(binary.BigEndian.Uint32(b)), nil
+	}
+	if v, ok := _CryptographicAlgorithmNameToValueMap[s]; ok {
+		return v, nil
+	} else {
+		var v CryptographicAlgorithm
+		return v, fmt.Errorf("%s is not a valid CryptographicAlgorithm", s)
+	}
+}
+
+func (c CryptographicAlgorithm) MarshalText() (text []byte, err error) {
+	return []byte(c.String()), nil
+}
+
+func (c *CryptographicAlgorithm) UnmarshalText(text []byte) (err error) {
+	*c, err = ParseCryptographicAlgorithm(string(text))
+	return
+}
+
+func (c CryptographicAlgorithm) MarshalTTLVEnum() uint32 {
+	return uint32(c)
+} // Code generated by "kmipenums "; DO NOT EDIT.
+
+// Block Cipher Mode Enumeration
+// 9.1.3.2.14 Table 302
+type BlockCipherMode uint32
+
+const (
+	BlockCipherModeCBC               BlockCipherMode = 0x00000001
+	BlockCipherModeECB               BlockCipherMode = 0x00000002
+	BlockCipherModePCBC              BlockCipherMode = 0x00000003
+	BlockCipherModeCFB               BlockCipherMode = 0x00000004
+	BlockCipherModeOFB               BlockCipherMode = 0x00000005
+	BlockCipherModeCTR               BlockCipherMode = 0x00000006
+	BlockCipherModeCMAC              BlockCipherMode = 0x00000007
+	BlockCipherModeCCM               BlockCipherMode = 0x00000008
+	BlockCipherModeGCM               BlockCipherMode = 0x00000009
+	BlockCipherModeCBC_MAC           BlockCipherMode = 0x0000000a
+	BlockCipherModeXTS               BlockCipherMode = 0x0000000b
+	BlockCipherModeAESKeyWrapPadding BlockCipherMode = 0x0000000c
+	BlockCipherModeNISTKeyWrap       BlockCipherMode = 0x0000000d
+	BlockCipherModeX9_102AESKW       BlockCipherMode = 0x0000000e
+	BlockCipherModeX9_102TDKW        BlockCipherMode = 0x0000000f
+	BlockCipherModeX9_102AKW1        BlockCipherMode = 0x00000010
+	BlockCipherModeX9_102AKW2        BlockCipherMode = 0x00000011
+	BlockCipherModeAEAD              BlockCipherMode = 0x00000012
+)
+
+var _BlockCipherModeNameToValueMap = map[string]BlockCipherMode{
+	"CBC":               BlockCipherModeCBC,
+	"ECB":               BlockCipherModeECB,
+	"PCBC":              BlockCipherModePCBC,
+	"CFB":               BlockCipherModeCFB,
+	"OFB":               BlockCipherModeOFB,
+	"CTR":               BlockCipherModeCTR,
+	"CMAC":              BlockCipherModeCMAC,
+	"CCM":               BlockCipherModeCCM,
+	"GCM":               BlockCipherModeGCM,
+	"CBC_MAC":           BlockCipherModeCBC_MAC,
+	"XTS":               BlockCipherModeXTS,
+	"AESKeyWrapPadding": BlockCipherModeAESKeyWrapPadding,
+	"NISTKeyWrap":       BlockCipherModeNISTKeyWrap,
+	"X9_102AESKW":       BlockCipherModeX9_102AESKW,
+	"X9_102TDKW":        BlockCipherModeX9_102TDKW,
+	"X9_102AKW1":        BlockCipherModeX9_102AKW1,
+	"X9_102AKW2":        BlockCipherModeX9_102AKW2,
+	"AEAD":              BlockCipherModeAEAD,
+}
+
+var _BlockCipherModeValueToNameMap = map[BlockCipherMode]string{
+	BlockCipherModeCBC:               "CBC",
+	BlockCipherModeECB:               "ECB",
+	BlockCipherModePCBC:              "PCBC",
+	BlockCipherModeCFB:               "CFB",
+	BlockCipherModeOFB:               "OFB",
+	BlockCipherModeCTR:               "CTR",
+	BlockCipherModeCMAC:              "CMAC",
+	BlockCipherModeCCM:               "CCM",
+	BlockCipherModeGCM:               "GCM",
+	BlockCipherModeCBC_MAC:           "CBC_MAC",
+	BlockCipherModeXTS:               "XTS",
+	BlockCipherModeAESKeyWrapPadding: "AESKeyWrapPadding",
+	BlockCipherModeNISTKeyWrap:       "NISTKeyWrap",
+	BlockCipherModeX9_102AESKW:       "X9_102AESKW",
+	BlockCipherModeX9_102TDKW:        "X9_102TDKW",
+	BlockCipherModeX9_102AKW1:        "X9_102AKW1",
+	BlockCipherModeX9_102AKW2:        "X9_102AKW2",
+	BlockCipherModeAEAD:              "AEAD",
+}
+
+func (b BlockCipherMode) String() string {
+	if s, ok := _BlockCipherModeValueToNameMap[b]; ok {
+		return s
+	}
+	return fmt.Sprintf("%#08x", b)
+}
+
+func ParseBlockCipherMode(s string) (BlockCipherMode, error) {
+	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+		b, err := hex.DecodeString(s[2:])
+		if err != nil {
+			return 0, err
+		}
+		return BlockCipherMode(binary.BigEndian.Uint32(b)), nil
+	}
+	if v, ok := _BlockCipherModeNameToValueMap[s]; ok {
+		return v, nil
+	} else {
+		var v BlockCipherMode
+		return v, fmt.Errorf("%s is not a valid BlockCipherMode", s)
+	}
+}
+
+func (b BlockCipherMode) MarshalText() (text []byte, err error) {
+	return []byte(b.String()), nil
+}
+
+func (b *BlockCipherMode) UnmarshalText(text []byte) (err error) {
+	*b, err = ParseBlockCipherMode(string(text))
+	return
+}
+
+func (b BlockCipherMode) MarshalTTLVEnum() uint32 {
+	return uint32(b)
+} // Code generated by "kmipenums "; DO NOT EDIT.
+
+// Padding Method Enumeration
+// 9.1.3.2.15 Table 303
+type PaddingMethod uint32
+
+const (
+	PaddingMethodNone      PaddingMethod = 0x00000001
+	PaddingMethodOAEP      PaddingMethod = 0x00000002
+	PaddingMethodPKCS5     PaddingMethod = 0x00000003
+	PaddingMethodSSL3      PaddingMethod = 0x00000004
+	PaddingMethodZeros     PaddingMethod = 0x00000005
+	PaddingMethodANSIX9_23 PaddingMethod = 0x00000006
+	PaddingMethodISO10126  PaddingMethod = 0x00000007
+	PaddingMethodPKCS1V1_5 PaddingMethod = 0x00000008
+	PaddingMethodX9_31     PaddingMethod = 0x00000009
+	PaddingMethodPSS       PaddingMethod = 0x0000000a
+)
+
+var _PaddingMethodNameToValueMap = map[string]PaddingMethod{
+	"None":      PaddingMethodNone,
+	"OAEP":      PaddingMethodOAEP,
+	"PKCS5":     PaddingMethodPKCS5,
+	"SSL3":      PaddingMethodSSL3,
+	"Zeros":     PaddingMethodZeros,
+	"ANSIX9_23": PaddingMethodANSIX9_23,
+	"ISO10126":  PaddingMethodISO10126,
+	"PKCS1V1_5": PaddingMethodPKCS1V1_5,
+	"X9_31":     PaddingMethodX9_31,
+	"PSS":       PaddingMethodPSS,
+}
+
+var _PaddingMethodValueToNameMap = map[PaddingMethod]string{
+	PaddingMethodNone:      "None",
+	PaddingMethodOAEP:      "OAEP",
+	PaddingMethodPKCS5:     "PKCS5",
+	PaddingMethodSSL3:      "SSL3",
+	PaddingMethodZeros:     "Zeros",
+	PaddingMethodANSIX9_23: "ANSIX9_23",
+	PaddingMethodISO10126:  "ISO10126",
+	PaddingMethodPKCS1V1_5: "PKCS1V1_5",
+	PaddingMethodX9_31:     "X9_31",
+	PaddingMethodPSS:       "PSS",
+}
+
+func (p PaddingMethod) String() string {
+	if s, ok := _PaddingMethodValueToNameMap[p]; ok {
+		return s
+	}
+	return fmt.Sprintf("%#08x", p)
+}
+
+func ParsePaddingMethod(s string) (PaddingMethod, error) {
+	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+		b, err := hex.DecodeString(s[2:])
+		if err != nil {
+			return 0, err
+		}
+		return PaddingMethod(binary.BigEndian.Uint32(b)), nil
+	}
+	if v, ok := _PaddingMethodNameToValueMap[s]; ok {
+		return v, nil
+	} else {
+		var v PaddingMethod
+		return v, fmt.Errorf("%s is not a valid PaddingMethod", s)
+	}
+}
+
+func (p PaddingMethod) MarshalText() (text []byte, err error) {
+	return []byte(p.String()), nil
+}
+
+func (p *PaddingMethod) UnmarshalText(text []byte) (err error) {
+	*p, err = ParsePaddingMethod(string(text))
+	return
+}
+
+func (p PaddingMethod) MarshalTTLVEnum() uint32 {
+	return uint32(p)
+} // Code generated by "kmipenums "; DO NOT EDIT.
+
+// Hashing Algorithm Enumeration
+// 9.1.3.2.16 Table 304
+type HashingAlgorithm uint32
+
+const (
+	HashingAlgorithmMD2         HashingAlgorithm = 0x00000001
+	HashingAlgorithmMD4         HashingAlgorithm = 0x00000002
+	HashingAlgorithmMD5         HashingAlgorithm = 0x00000003
+	HashingAlgorithmSHA_1       HashingAlgorithm = 0x00000004
+	HashingAlgorithmSHA_224     HashingAlgorithm = 0x00000005
+	HashingAlgorithmSHA_256     HashingAlgorithm = 0x00000006
+	HashingAlgorithmSHA_384     HashingAlgorithm = 0x00000007
+	HashingAlgorithmSHA_512     HashingAlgorithm = 0x00000008
+	HashingAlgorithmRIPEMD_160  HashingAlgorithm = 0x00000009
+	HashingAlgorithmTiger       HashingAlgorithm = 0x0000000a
+	HashingAlgorithmWhirlpool   HashingAlgorithm = 0x0000000b
+	HashingAlgorithmSHA_512_224 HashingAlgorithm = 0x0000000c
+	HashingAlgorithmSHA_512_256 HashingAlgorithm = 0x0000000d
+	HashingAlgorithmSHA_3_224   HashingAlgorithm = 0x0000000e
+	HashingAlgorithmSHA_3_256   HashingAlgorithm = 0x0000000f
+	HashingAlgorithmSHA_3_384   HashingAlgorithm = 0x00000010
+	HashingAlgorithmSHA_3_512   HashingAlgorithm = 0x00000011
+)
+
+var _HashingAlgorithmNameToValueMap = map[string]HashingAlgorithm{
+	"MD2":         HashingAlgorithmMD2,
+	"MD4":         HashingAlgorithmMD4,
+	"MD5":         HashingAlgorithmMD5,
+	"SHA_1":       HashingAlgorithmSHA_1,
+	"SHA_224":     HashingAlgorithmSHA_224,
+	"SHA_256":     HashingAlgorithmSHA_256,
+	"SHA_384":     HashingAlgorithmSHA_384,
+	"SHA_512":     HashingAlgorithmSHA_512,
+	"RIPEMD_160":  HashingAlgorithmRIPEMD_160,
+	"Tiger":       HashingAlgorithmTiger,
+	"Whirlpool":   HashingAlgorithmWhirlpool,
+	"SHA_512_224": HashingAlgorithmSHA_512_224,
+	"SHA_512_256": HashingAlgorithmSHA_512_256,
+	"SHA_3_224":   HashingAlgorithmSHA_3_224,
+	"SHA_3_256":   HashingAlgorithmSHA_3_256,
+	"SHA_3_384":   HashingAlgorithmSHA_3_384,
+	"SHA_3_512":   HashingAlgorithmSHA_3_512,
+}
+
+var _HashingAlgorithmValueToNameMap = map[HashingAlgorithm]string{
+	HashingAlgorithmMD2:         "MD2",
+	HashingAlgorithmMD4:         "MD4",
+	HashingAlgorithmMD5:         "MD5",
+	HashingAlgorithmSHA_1:       "SHA_1",
+	HashingAlgorithmSHA_224:     "SHA_224",
+	HashingAlgorithmSHA_256:     "SHA_256",
+	HashingAlgorithmSHA_384:     "SHA_384",
+	HashingAlgorithmSHA_512:     "SHA_512",
+	HashingAlgorithmRIPEMD_160:  "RIPEMD_160",
+	HashingAlgorithmTiger:       "Tiger",
+	HashingAlgorithmWhirlpool:   "Whirlpool",
+	HashingAlgorithmSHA_512_224: "SHA_512_224",
+	HashingAlgorithmSHA_512_256: "SHA_512_256",
+	HashingAlgorithmSHA_3_224:   "SHA_3_224",
+	HashingAlgorithmSHA_3_256:   "SHA_3_256",
+	HashingAlgorithmSHA_3_384:   "SHA_3_384",
+	HashingAlgorithmSHA_3_512:   "SHA_3_512",
+}
+
+func (h HashingAlgorithm) String() string {
+	if s, ok := _HashingAlgorithmValueToNameMap[h]; ok {
+		return s
+	}
+	return fmt.Sprintf("%#08x", h)
+}
+
+func ParseHashingAlgorithm(s string) (HashingAlgorithm, error) {
+	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+		b, err := hex.DecodeString(s[2:])
+		if err != nil {
+			return 0, err
+		}
+		return HashingAlgorithm(binary.BigEndian.Uint32(b)), nil
+	}
+	if v, ok := _HashingAlgorithmNameToValueMap[s]; ok {
+		return v, nil
+	} else {
+		var v HashingAlgorithm
+		return v, fmt.Errorf("%s is not a valid HashingAlgorithm", s)
+	}
+}
+
+func (h HashingAlgorithm) MarshalText() (text []byte, err error) {
+	return []byte(h.String()), nil
+}
+
+func (h *HashingAlgorithm) UnmarshalText(text []byte) (err error) {
+	*h, err = ParseHashingAlgorithm(string(text))
+	return
+}
+
+func (h HashingAlgorithm) MarshalTTLVEnum() uint32 {
+	return uint32(h)
+} // Code generated by "kmipenums "; DO NOT EDIT.
+
+// Key Role Type Enumeration
+// 9.1.3.2.17 Table 305
+type KeyRoleType uint32
+
+const (
+	KeyRoleTypeBDK      KeyRoleType = 0x00000001
+	KeyRoleTypeCVK      KeyRoleType = 0x00000002
+	KeyRoleTypeDEK      KeyRoleType = 0x00000003
+	KeyRoleTypeMKAC     KeyRoleType = 0x00000004
+	KeyRoleTypeMKSMC    KeyRoleType = 0x00000005
+	KeyRoleTypeMKSMI    KeyRoleType = 0x00000006
+	KeyRoleTypeMKDAC    KeyRoleType = 0x00000007
+	KeyRoleTypeMKDN     KeyRoleType = 0x00000008
+	KeyRoleTypeMKCP     KeyRoleType = 0x00000009
+	KeyRoleTypeMKOTH    KeyRoleType = 0x0000000a
+	KeyRoleTypeKEK      KeyRoleType = 0x0000000b
+	KeyRoleTypeMAC16609 KeyRoleType = 0x0000000c
+	KeyRoleTypeMAC97971 KeyRoleType = 0x0000000d
+	KeyRoleTypeMAC97972 KeyRoleType = 0x0000000e
+	KeyRoleTypeMAC97973 KeyRoleType = 0x0000000f
+	KeyRoleTypeMAC97974 KeyRoleType = 0x00000010
+	KeyRoleTypeMAC97975 KeyRoleType = 0x00000011
+	KeyRoleTypeZPK      KeyRoleType = 0x00000012
+	KeyRoleTypePVKIBM   KeyRoleType = 0x00000013
+	KeyRoleTypePVKPVV   KeyRoleType = 0x00000014
+	KeyRoleTypePVKOTH   KeyRoleType = 0x00000015
+	KeyRoleTypeDUKPT    KeyRoleType = 0x00000016
+	KeyRoleTypeIV       KeyRoleType = 0x00000017
+	KeyRoleTypeTRKBK    KeyRoleType = 0x00000018
+)
+
+var _KeyRoleTypeNameToValueMap = map[string]KeyRoleType{
+	"BDK":      KeyRoleTypeBDK,
+	"CVK":      KeyRoleTypeCVK,
+	"DEK":      KeyRoleTypeDEK,
+	"MKAC":     KeyRoleTypeMKAC,
+	"MKSMC":    KeyRoleTypeMKSMC,
+	"MKSMI":    KeyRoleTypeMKSMI,
+	"MKDAC":    KeyRoleTypeMKDAC,
+	"MKDN":     KeyRoleTypeMKDN,
+	"MKCP":     KeyRoleTypeMKCP,
+	"MKOTH":    KeyRoleTypeMKOTH,
+	"KEK":      KeyRoleTypeKEK,
+	"MAC16609": KeyRoleTypeMAC16609,
+	"MAC97971": KeyRoleTypeMAC97971,
+	"MAC97972": KeyRoleTypeMAC97972,
+	"MAC97973": KeyRoleTypeMAC97973,
+	"MAC97974": KeyRoleTypeMAC97974,
+	"MAC97975": KeyRoleTypeMAC97975,
+	"ZPK":      KeyRoleTypeZPK,
+	"PVKIBM":   KeyRoleTypePVKIBM,
+	"PVKPVV":   KeyRoleTypePVKPVV,
+	"PVKOTH":   KeyRoleTypePVKOTH,
+	"DUKPT":    KeyRoleTypeDUKPT,
+	"IV":       KeyRoleTypeIV,
+	"TRKBK":    KeyRoleTypeTRKBK,
+}
+
+var _KeyRoleTypeValueToNameMap = map[KeyRoleType]string{
+	KeyRoleTypeBDK:      "BDK",
+	KeyRoleTypeCVK:      "CVK",
+	KeyRoleTypeDEK:      "DEK",
+	KeyRoleTypeMKAC:     "MKAC",
+	KeyRoleTypeMKSMC:    "MKSMC",
+	KeyRoleTypeMKSMI:    "MKSMI",
+	KeyRoleTypeMKDAC:    "MKDAC",
+	KeyRoleTypeMKDN:     "MKDN",
+	KeyRoleTypeMKCP:     "MKCP",
+	KeyRoleTypeMKOTH:    "MKOTH",
+	KeyRoleTypeKEK:      "KEK",
+	KeyRoleTypeMAC16609: "MAC16609",
+	KeyRoleTypeMAC97971: "MAC97971",
+	KeyRoleTypeMAC97972: "MAC97972",
+	KeyRoleTypeMAC97973: "MAC97973",
+	KeyRoleTypeMAC97974: "MAC97974",
+	KeyRoleTypeMAC97975: "MAC97975",
+	KeyRoleTypeZPK:      "ZPK",
+	KeyRoleTypePVKIBM:   "PVKIBM",
+	KeyRoleTypePVKPVV:   "PVKPVV",
+	KeyRoleTypePVKOTH:   "PVKOTH",
+	KeyRoleTypeDUKPT:    "DUKPT",
+	KeyRoleTypeIV:       "IV",
+	KeyRoleTypeTRKBK:    "TRKBK",
+}
+
+func (k KeyRoleType) String() string {
+	if s, ok := _KeyRoleTypeValueToNameMap[k]; ok {
+		return s
+	}
+	return fmt.Sprintf("%#08x", k)
+}
+
+func ParseKeyRoleType(s string) (KeyRoleType, error) {
+	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+		b, err := hex.DecodeString(s[2:])
+		if err != nil {
+			return 0, err
+		}
+		return KeyRoleType(binary.BigEndian.Uint32(b)), nil
+	}
+	if v, ok := _KeyRoleTypeNameToValueMap[s]; ok {
+		return v, nil
+	} else {
+		var v KeyRoleType
+		return v, fmt.Errorf("%s is not a valid KeyRoleType", s)
+	}
+}
+
+func (k KeyRoleType) MarshalText() (text []byte, err error) {
+	return []byte(k.String()), nil
+}
+
+func (k *KeyRoleType) UnmarshalText(text []byte) (err error) {
+	*k, err = ParseKeyRoleType(string(text))
+	return
+}
+
+func (k KeyRoleType) MarshalTTLVEnum() uint32 {
+	return uint32(k)
+} // Code generated by "kmipenums "; DO NOT EDIT.
+
+// State Enumeration
+// 9.1.3.2.18 Table 306
+type State uint32
+
+const (
+	StatePreActive            State = 0x00000001
+	StateActive               State = 0x00000002
+	StateDeactivated          State = 0x00000003
+	StateCompromised          State = 0x00000004
+	StateDestroyed            State = 0x00000005
+	StateDestroyedCompromised State = 0x00000006
+)
+
+var _StateNameToValueMap = map[string]State{
+	"PreActive":            StatePreActive,
+	"Active":               StateActive,
+	"Deactivated":          StateDeactivated,
+	"Compromised":          StateCompromised,
+	"Destroyed":            StateDestroyed,
+	"DestroyedCompromised": StateDestroyedCompromised,
+}
+
+var _StateValueToNameMap = map[State]string{
+	StatePreActive:            "PreActive",
+	StateActive:               "Active",
+	StateDeactivated:          "Deactivated",
+	StateCompromised:          "Compromised",
+	StateDestroyed:            "Destroyed",
+	StateDestroyedCompromised: "DestroyedCompromised",
+}
+
+func (s State) String() string {
+	if s, ok := _StateValueToNameMap[s]; ok {
+		return s
+	}
+	return fmt.Sprintf("%#08x", s)
+}
+
+func ParseState(s string) (State, error) {
+	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+		b, err := hex.DecodeString(s[2:])
+		if err != nil {
+			return 0, err
+		}
+		return State(binary.BigEndian.Uint32(b)), nil
+	}
+	if v, ok := _StateNameToValueMap[s]; ok {
+		return v, nil
+	} else {
+		var v State
+		return v, fmt.Errorf("%s is not a valid State", s)
+	}
+}
+
+func (s State) MarshalText() (text []byte, err error) {
+	return []byte(s.String()), nil
+}
+
+func (s *State) UnmarshalText(text []byte) (err error) {
+	*s, err = ParseState(string(text))
+	return
+}
+
+func (s State) MarshalTTLVEnum() uint32 {
+	return uint32(s)
+} // Code generated by "kmipenums "; DO NOT EDIT.
+
 // Operation Enumeration
-// 9.1.3.2.27
+// 9.1.3.2.27 Table 315
 type Operation uint32
 
 const (
-	OperationActivate           Operation = 0x00000012
-	OperationAddAttribute       Operation = 0x0000000d
-	OperationArchive            Operation = 0x00000015
-	OperationCancel             Operation = 0x00000019
-	OperationCertify            Operation = 0x00000006
-	OperationCheck              Operation = 0x00000009
 	OperationCreate             Operation = 0x00000001
 	OperationCreateKeyPair      Operation = 0x00000002
-	OperationCreateSplitKey     Operation = 0x00000028
-	OperationDecrypt            Operation = 0x00000020
-	OperationDeleteAttribute    Operation = 0x0000000f
+	OperationRegister           Operation = 0x00000003
+	OperationReKey              Operation = 0x00000004
 	OperationDeriveKey          Operation = 0x00000005
+	OperationCertify            Operation = 0x00000006
+	OperationReCertify          Operation = 0x00000007
+	OperationLocate             Operation = 0x00000008
+	OperationCheck              Operation = 0x00000009
+	OperationGet                Operation = 0x0000000a
+	OperationGetAttributes      Operation = 0x0000000b
+	OperationGetAttributeList   Operation = 0x0000000c
+	OperationAddAttribute       Operation = 0x0000000d
+	OperationModifyAttribute    Operation = 0x0000000e
+	OperationDeleteAttribute    Operation = 0x0000000f
+	OperationObtainLease        Operation = 0x00000010
+	OperationGetUsageAllocation Operation = 0x00000011
+	OperationActivate           Operation = 0x00000012
+	OperationRevoke             Operation = 0x00000013
 	OperationDestroy            Operation = 0x00000014
+	OperationArchive            Operation = 0x00000015
+	OperationRecover            Operation = 0x00000016
+	OperationValidate           Operation = 0x00000017
+	OperationQuery              Operation = 0x00000018
+	OperationCancel             Operation = 0x00000019
+	OperationPoll               Operation = 0x0000001a
+	OperationNotify             Operation = 0x0000001b
+	OperationPut                Operation = 0x0000001c
+	OperationReKeyKeyPair       Operation = 0x0000001d
 	OperationDiscoverVersions   Operation = 0x0000001e
 	OperationEncrypt            Operation = 0x0000001f
-	OperationExport             Operation = 0x0000002b
-	OperationGet                Operation = 0x0000000a
-	OperationGetAttributeList   Operation = 0x0000000c
-	OperationGetAttributes      Operation = 0x0000000b
-	OperationGetUsageAllocation Operation = 0x00000011
-	OperationHash               Operation = 0x00000027
-	OperationImport             Operation = 0x0000002a
-	OperationJoinSplitKey       Operation = 0x00000029
-	OperationLocate             Operation = 0x00000008
-	OperationMAC                Operation = 0x00000023
-	OperationMACVerify          Operation = 0x00000024
-	OperationModifyAttribute    Operation = 0x0000000e
-	OperationNotify             Operation = 0x0000001b
-	OperationObtainLease        Operation = 0x00000010
-	OperationPoll               Operation = 0x0000001a
-	OperationPut                Operation = 0x0000001c
-	OperationQuery              Operation = 0x00000018
-	OperationRNGRetrieve        Operation = 0x00000025
-	OperationRNGSeed            Operation = 0x00000026
-	OperationReCertify          Operation = 0x00000007
-	OperationReKey              Operation = 0x00000004
-	OperationReKeyKeyPair       Operation = 0x0000001d
-	OperationRecover            Operation = 0x00000016
-	OperationRegister           Operation = 0x00000003
-	OperationRevoke             Operation = 0x00000013
+	OperationDecrypt            Operation = 0x00000020
 	OperationSign               Operation = 0x00000021
 	OperationSignatureVerify    Operation = 0x00000022
-	OperationValidate           Operation = 0x00000017
+	OperationMAC                Operation = 0x00000023
+	OperationMACVerify          Operation = 0x00000024
+	OperationRNGRetrieve        Operation = 0x00000025
+	OperationRNGSeed            Operation = 0x00000026
+	OperationHash               Operation = 0x00000027
+	OperationCreateSplitKey     Operation = 0x00000028
+	OperationJoinSplitKey       Operation = 0x00000029
+	OperationImport             Operation = 0x0000002a
+	OperationExport             Operation = 0x0000002b
 )
 
 var _OperationNameToValueMap = map[string]Operation{
-	"Activate":           OperationActivate,
-	"AddAttribute":       OperationAddAttribute,
-	"Archive":            OperationArchive,
-	"Cancel":             OperationCancel,
-	"Certify":            OperationCertify,
-	"Check":              OperationCheck,
 	"Create":             OperationCreate,
 	"CreateKeyPair":      OperationCreateKeyPair,
-	"CreateSplitKey":     OperationCreateSplitKey,
-	"Decrypt":            OperationDecrypt,
-	"DeleteAttribute":    OperationDeleteAttribute,
+	"Register":           OperationRegister,
+	"ReKey":              OperationReKey,
 	"DeriveKey":          OperationDeriveKey,
+	"Certify":            OperationCertify,
+	"ReCertify":          OperationReCertify,
+	"Locate":             OperationLocate,
+	"Check":              OperationCheck,
+	"Get":                OperationGet,
+	"GetAttributes":      OperationGetAttributes,
+	"GetAttributeList":   OperationGetAttributeList,
+	"AddAttribute":       OperationAddAttribute,
+	"ModifyAttribute":    OperationModifyAttribute,
+	"DeleteAttribute":    OperationDeleteAttribute,
+	"ObtainLease":        OperationObtainLease,
+	"GetUsageAllocation": OperationGetUsageAllocation,
+	"Activate":           OperationActivate,
+	"Revoke":             OperationRevoke,
 	"Destroy":            OperationDestroy,
+	"Archive":            OperationArchive,
+	"Recover":            OperationRecover,
+	"Validate":           OperationValidate,
+	"Query":              OperationQuery,
+	"Cancel":             OperationCancel,
+	"Poll":               OperationPoll,
+	"Notify":             OperationNotify,
+	"Put":                OperationPut,
+	"ReKeyKeyPair":       OperationReKeyKeyPair,
 	"DiscoverVersions":   OperationDiscoverVersions,
 	"Encrypt":            OperationEncrypt,
-	"Export":             OperationExport,
-	"Get":                OperationGet,
-	"GetAttributeList":   OperationGetAttributeList,
-	"GetAttributes":      OperationGetAttributes,
-	"GetUsageAllocation": OperationGetUsageAllocation,
-	"Hash":               OperationHash,
-	"Import":             OperationImport,
-	"JoinSplitKey":       OperationJoinSplitKey,
-	"Locate":             OperationLocate,
-	"MAC":                OperationMAC,
-	"MACVerify":          OperationMACVerify,
-	"ModifyAttribute":    OperationModifyAttribute,
-	"Notify":             OperationNotify,
-	"ObtainLease":        OperationObtainLease,
-	"Poll":               OperationPoll,
-	"Put":                OperationPut,
-	"Query":              OperationQuery,
-	"RNGRetrieve":        OperationRNGRetrieve,
-	"RNGSeed":            OperationRNGSeed,
-	"ReCertify":          OperationReCertify,
-	"ReKey":              OperationReKey,
-	"ReKeyKeyPair":       OperationReKeyKeyPair,
-	"Recover":            OperationRecover,
-	"Register":           OperationRegister,
-	"Revoke":             OperationRevoke,
+	"Decrypt":            OperationDecrypt,
 	"Sign":               OperationSign,
 	"SignatureVerify":    OperationSignatureVerify,
-	"Validate":           OperationValidate,
+	"MAC":                OperationMAC,
+	"MACVerify":          OperationMACVerify,
+	"RNGRetrieve":        OperationRNGRetrieve,
+	"RNGSeed":            OperationRNGSeed,
+	"Hash":               OperationHash,
+	"CreateSplitKey":     OperationCreateSplitKey,
+	"JoinSplitKey":       OperationJoinSplitKey,
+	"Import":             OperationImport,
+	"Export":             OperationExport,
 }
 
 var _OperationValueToNameMap = map[Operation]string{
-	OperationActivate:           "Activate",
-	OperationAddAttribute:       "AddAttribute",
-	OperationArchive:            "Archive",
-	OperationCancel:             "Cancel",
-	OperationCertify:            "Certify",
-	OperationCheck:              "Check",
 	OperationCreate:             "Create",
 	OperationCreateKeyPair:      "CreateKeyPair",
-	OperationCreateSplitKey:     "CreateSplitKey",
-	OperationDecrypt:            "Decrypt",
-	OperationDeleteAttribute:    "DeleteAttribute",
+	OperationRegister:           "Register",
+	OperationReKey:              "ReKey",
 	OperationDeriveKey:          "DeriveKey",
+	OperationCertify:            "Certify",
+	OperationReCertify:          "ReCertify",
+	OperationLocate:             "Locate",
+	OperationCheck:              "Check",
+	OperationGet:                "Get",
+	OperationGetAttributes:      "GetAttributes",
+	OperationGetAttributeList:   "GetAttributeList",
+	OperationAddAttribute:       "AddAttribute",
+	OperationModifyAttribute:    "ModifyAttribute",
+	OperationDeleteAttribute:    "DeleteAttribute",
+	OperationObtainLease:        "ObtainLease",
+	OperationGetUsageAllocation: "GetUsageAllocation",
+	OperationActivate:           "Activate",
+	OperationRevoke:             "Revoke",
 	OperationDestroy:            "Destroy",
+	OperationArchive:            "Archive",
+	OperationRecover:            "Recover",
+	OperationValidate:           "Validate",
+	OperationQuery:              "Query",
+	OperationCancel:             "Cancel",
+	OperationPoll:               "Poll",
+	OperationNotify:             "Notify",
+	OperationPut:                "Put",
+	OperationReKeyKeyPair:       "ReKeyKeyPair",
 	OperationDiscoverVersions:   "DiscoverVersions",
 	OperationEncrypt:            "Encrypt",
-	OperationExport:             "Export",
-	OperationGet:                "Get",
-	OperationGetAttributeList:   "GetAttributeList",
-	OperationGetAttributes:      "GetAttributes",
-	OperationGetUsageAllocation: "GetUsageAllocation",
-	OperationHash:               "Hash",
-	OperationImport:             "Import",
-	OperationJoinSplitKey:       "JoinSplitKey",
-	OperationLocate:             "Locate",
-	OperationMAC:                "MAC",
-	OperationMACVerify:          "MACVerify",
-	OperationModifyAttribute:    "ModifyAttribute",
-	OperationNotify:             "Notify",
-	OperationObtainLease:        "ObtainLease",
-	OperationPoll:               "Poll",
-	OperationPut:                "Put",
-	OperationQuery:              "Query",
-	OperationRNGRetrieve:        "RNGRetrieve",
-	OperationRNGSeed:            "RNGSeed",
-	OperationReCertify:          "ReCertify",
-	OperationReKey:              "ReKey",
-	OperationReKeyKeyPair:       "ReKeyKeyPair",
-	OperationRecover:            "Recover",
-	OperationRegister:           "Register",
-	OperationRevoke:             "Revoke",
+	OperationDecrypt:            "Decrypt",
 	OperationSign:               "Sign",
 	OperationSignatureVerify:    "SignatureVerify",
-	OperationValidate:           "Validate",
+	OperationMAC:                "MAC",
+	OperationMACVerify:          "MACVerify",
+	OperationRNGRetrieve:        "RNGRetrieve",
+	OperationRNGSeed:            "RNGSeed",
+	OperationHash:               "Hash",
+	OperationCreateSplitKey:     "CreateSplitKey",
+	OperationJoinSplitKey:       "JoinSplitKey",
+	OperationImport:             "Import",
+	OperationExport:             "Export",
 }
 
 func (o Operation) String() string {
@@ -1392,28 +2454,28 @@ func (o Operation) MarshalTTLVEnum() uint32 {
 } // Code generated by "kmipenums "; DO NOT EDIT.
 
 // Result Status Enumeration
-// 9.1.3.2.28
+// 9.1.3.2.28 Table 316
 type ResultStatus uint32
 
 const (
+	ResultStatusSuccess          ResultStatus = 0x00000000
 	ResultStatusOperationFailed  ResultStatus = 0x00000001
 	ResultStatusOperationPending ResultStatus = 0x00000002
 	ResultStatusOperationUndone  ResultStatus = 0x00000003
-	ResultStatusSuccess          ResultStatus = 0x00000000
 )
 
 var _ResultStatusNameToValueMap = map[string]ResultStatus{
+	"Success":          ResultStatusSuccess,
 	"OperationFailed":  ResultStatusOperationFailed,
 	"OperationPending": ResultStatusOperationPending,
 	"OperationUndone":  ResultStatusOperationUndone,
-	"Success":          ResultStatusSuccess,
 }
 
 var _ResultStatusValueToNameMap = map[ResultStatus]string{
+	ResultStatusSuccess:          "Success",
 	ResultStatusOperationFailed:  "OperationFailed",
 	ResultStatusOperationPending: "OperationPending",
 	ResultStatusOperationUndone:  "OperationUndone",
-	ResultStatusSuccess:          "Success",
 }
 
 func (r ResultStatus) String() string {
@@ -1453,91 +2515,91 @@ func (r ResultStatus) MarshalTTLVEnum() uint32 {
 } // Code generated by "kmipenums "; DO NOT EDIT.
 
 // Result Reason Enumeration
-// 9.1.3.2.29
+// 9.1.3.2.29 Table 317
 type ResultReason uint32
 
 const (
-	ResultReasonApplicationNamespaceNotSupported ResultReason = 0x0000000f
-	ResultReasonAttestationFailed                ResultReason = 0x00000015
-	ResultReasonAttestationRequired              ResultReason = 0x00000014
-	ResultReasonAuthenticationNotSuccessful      ResultReason = 0x00000003
-	ResultReasonCryptographicFailure             ResultReason = 0x0000000a
-	ResultReasonEncodingOptionError              ResultReason = 0x00000012
-	ResultReasonFeatureNotSupported              ResultReason = 0x00000008
-	ResultReasonGeneralFailure                   ResultReason = 0x00000100
-	ResultReasonIllegalOperation                 ResultReason = 0x0000000b
-	ResultReasonIndexOutOfBounds                 ResultReason = 0x0000000e
-	ResultReasonInvalidField                     ResultReason = 0x00000007
-	ResultReasonInvalidMessage                   ResultReason = 0x00000004
 	ResultReasonItemNotFound                     ResultReason = 0x00000001
-	ResultReasonKeyCompressionTypeNotSupported   ResultReason = 0x00000011
-	ResultReasonKeyFormatTypeNotSupported        ResultReason = 0x00000010
-	ResultReasonKeyValueNotPresent               ResultReason = 0x00000013
+	ResultReasonResponseTooLarge                 ResultReason = 0x00000002
+	ResultReasonAuthenticationNotSuccessful      ResultReason = 0x00000003
+	ResultReasonInvalidMessage                   ResultReason = 0x00000004
+	ResultReasonOperationNotSupported            ResultReason = 0x00000005
 	ResultReasonMissingData                      ResultReason = 0x00000006
+	ResultReasonInvalidField                     ResultReason = 0x00000007
+	ResultReasonFeatureNotSupported              ResultReason = 0x00000008
+	ResultReasonOperationCanceledByRequester     ResultReason = 0x00000009
+	ResultReasonCryptographicFailure             ResultReason = 0x0000000a
+	ResultReasonIllegalOperation                 ResultReason = 0x0000000b
+	ResultReasonPermissionDenied                 ResultReason = 0x0000000c
+	ResultReasonObjectArchived                   ResultReason = 0x0000000d
+	ResultReasonIndexOutOfBounds                 ResultReason = 0x0000000e
+	ResultReasonApplicationNamespaceNotSupported ResultReason = 0x0000000f
+	ResultReasonKeyFormatTypeNotSupported        ResultReason = 0x00000010
+	ResultReasonKeyCompressionTypeNotSupported   ResultReason = 0x00000011
+	ResultReasonEncodingOptionError              ResultReason = 0x00000012
+	ResultReasonKeyValueNotPresent               ResultReason = 0x00000013
+	ResultReasonAttestationRequired              ResultReason = 0x00000014
+	ResultReasonAttestationFailed                ResultReason = 0x00000015
+	ResultReasonSensitive                        ResultReason = 0x00000016
 	ResultReasonNotExtractable                   ResultReason = 0x00000017
 	ResultReasonObjectAlreadyExists              ResultReason = 0x00000018
-	ResultReasonObjectArchived                   ResultReason = 0x0000000d
-	ResultReasonOperationCanceledByRequester     ResultReason = 0x00000009
-	ResultReasonOperationNotSupported            ResultReason = 0x00000005
-	ResultReasonPermissionDenied                 ResultReason = 0x0000000c
-	ResultReasonResponseTooLarge                 ResultReason = 0x00000002
-	ResultReasonSensitive                        ResultReason = 0x00000016
+	ResultReasonGeneralFailure                   ResultReason = 0x00000100
 )
 
 var _ResultReasonNameToValueMap = map[string]ResultReason{
-	"ApplicationNamespaceNotSupported": ResultReasonApplicationNamespaceNotSupported,
-	"AttestationFailed":                ResultReasonAttestationFailed,
-	"AttestationRequired":              ResultReasonAttestationRequired,
-	"AuthenticationNotSuccessful":      ResultReasonAuthenticationNotSuccessful,
-	"CryptographicFailure":             ResultReasonCryptographicFailure,
-	"EncodingOptionError":              ResultReasonEncodingOptionError,
-	"FeatureNotSupported":              ResultReasonFeatureNotSupported,
-	"GeneralFailure":                   ResultReasonGeneralFailure,
-	"IllegalOperation":                 ResultReasonIllegalOperation,
-	"IndexOutOfBounds":                 ResultReasonIndexOutOfBounds,
-	"InvalidField":                     ResultReasonInvalidField,
-	"InvalidMessage":                   ResultReasonInvalidMessage,
 	"ItemNotFound":                     ResultReasonItemNotFound,
-	"KeyCompressionTypeNotSupported":   ResultReasonKeyCompressionTypeNotSupported,
-	"KeyFormatTypeNotSupported":        ResultReasonKeyFormatTypeNotSupported,
-	"KeyValueNotPresent":               ResultReasonKeyValueNotPresent,
+	"ResponseTooLarge":                 ResultReasonResponseTooLarge,
+	"AuthenticationNotSuccessful":      ResultReasonAuthenticationNotSuccessful,
+	"InvalidMessage":                   ResultReasonInvalidMessage,
+	"OperationNotSupported":            ResultReasonOperationNotSupported,
 	"MissingData":                      ResultReasonMissingData,
+	"InvalidField":                     ResultReasonInvalidField,
+	"FeatureNotSupported":              ResultReasonFeatureNotSupported,
+	"OperationCanceledByRequester":     ResultReasonOperationCanceledByRequester,
+	"CryptographicFailure":             ResultReasonCryptographicFailure,
+	"IllegalOperation":                 ResultReasonIllegalOperation,
+	"PermissionDenied":                 ResultReasonPermissionDenied,
+	"ObjectArchived":                   ResultReasonObjectArchived,
+	"IndexOutOfBounds":                 ResultReasonIndexOutOfBounds,
+	"ApplicationNamespaceNotSupported": ResultReasonApplicationNamespaceNotSupported,
+	"KeyFormatTypeNotSupported":        ResultReasonKeyFormatTypeNotSupported,
+	"KeyCompressionTypeNotSupported":   ResultReasonKeyCompressionTypeNotSupported,
+	"EncodingOptionError":              ResultReasonEncodingOptionError,
+	"KeyValueNotPresent":               ResultReasonKeyValueNotPresent,
+	"AttestationRequired":              ResultReasonAttestationRequired,
+	"AttestationFailed":                ResultReasonAttestationFailed,
+	"Sensitive":                        ResultReasonSensitive,
 	"NotExtractable":                   ResultReasonNotExtractable,
 	"ObjectAlreadyExists":              ResultReasonObjectAlreadyExists,
-	"ObjectArchived":                   ResultReasonObjectArchived,
-	"OperationCanceledByRequester":     ResultReasonOperationCanceledByRequester,
-	"OperationNotSupported":            ResultReasonOperationNotSupported,
-	"PermissionDenied":                 ResultReasonPermissionDenied,
-	"ResponseTooLarge":                 ResultReasonResponseTooLarge,
-	"Sensitive":                        ResultReasonSensitive,
+	"GeneralFailure":                   ResultReasonGeneralFailure,
 }
 
 var _ResultReasonValueToNameMap = map[ResultReason]string{
-	ResultReasonApplicationNamespaceNotSupported: "ApplicationNamespaceNotSupported",
-	ResultReasonAttestationFailed:                "AttestationFailed",
-	ResultReasonAttestationRequired:              "AttestationRequired",
-	ResultReasonAuthenticationNotSuccessful:      "AuthenticationNotSuccessful",
-	ResultReasonCryptographicFailure:             "CryptographicFailure",
-	ResultReasonEncodingOptionError:              "EncodingOptionError",
-	ResultReasonFeatureNotSupported:              "FeatureNotSupported",
-	ResultReasonGeneralFailure:                   "GeneralFailure",
-	ResultReasonIllegalOperation:                 "IllegalOperation",
-	ResultReasonIndexOutOfBounds:                 "IndexOutOfBounds",
-	ResultReasonInvalidField:                     "InvalidField",
-	ResultReasonInvalidMessage:                   "InvalidMessage",
 	ResultReasonItemNotFound:                     "ItemNotFound",
-	ResultReasonKeyCompressionTypeNotSupported:   "KeyCompressionTypeNotSupported",
-	ResultReasonKeyFormatTypeNotSupported:        "KeyFormatTypeNotSupported",
-	ResultReasonKeyValueNotPresent:               "KeyValueNotPresent",
+	ResultReasonResponseTooLarge:                 "ResponseTooLarge",
+	ResultReasonAuthenticationNotSuccessful:      "AuthenticationNotSuccessful",
+	ResultReasonInvalidMessage:                   "InvalidMessage",
+	ResultReasonOperationNotSupported:            "OperationNotSupported",
 	ResultReasonMissingData:                      "MissingData",
+	ResultReasonInvalidField:                     "InvalidField",
+	ResultReasonFeatureNotSupported:              "FeatureNotSupported",
+	ResultReasonOperationCanceledByRequester:     "OperationCanceledByRequester",
+	ResultReasonCryptographicFailure:             "CryptographicFailure",
+	ResultReasonIllegalOperation:                 "IllegalOperation",
+	ResultReasonPermissionDenied:                 "PermissionDenied",
+	ResultReasonObjectArchived:                   "ObjectArchived",
+	ResultReasonIndexOutOfBounds:                 "IndexOutOfBounds",
+	ResultReasonApplicationNamespaceNotSupported: "ApplicationNamespaceNotSupported",
+	ResultReasonKeyFormatTypeNotSupported:        "KeyFormatTypeNotSupported",
+	ResultReasonKeyCompressionTypeNotSupported:   "KeyCompressionTypeNotSupported",
+	ResultReasonEncodingOptionError:              "EncodingOptionError",
+	ResultReasonKeyValueNotPresent:               "KeyValueNotPresent",
+	ResultReasonAttestationRequired:              "AttestationRequired",
+	ResultReasonAttestationFailed:                "AttestationFailed",
+	ResultReasonSensitive:                        "Sensitive",
 	ResultReasonNotExtractable:                   "NotExtractable",
 	ResultReasonObjectAlreadyExists:              "ObjectAlreadyExists",
-	ResultReasonObjectArchived:                   "ObjectArchived",
-	ResultReasonOperationCanceledByRequester:     "OperationCanceledByRequester",
-	ResultReasonOperationNotSupported:            "OperationNotSupported",
-	ResultReasonPermissionDenied:                 "PermissionDenied",
-	ResultReasonResponseTooLarge:                 "ResponseTooLarge",
-	ResultReasonSensitive:                        "Sensitive",
+	ResultReasonGeneralFailure:                   "GeneralFailure",
 }
 
 func (r ResultReason) String() string {
@@ -1577,7 +2639,7 @@ func (r ResultReason) MarshalTTLVEnum() uint32 {
 } // Code generated by "kmipenums "; DO NOT EDIT.
 
 // Batch Error Continuation Enumeration
-// 9.1.3.2.30
+// 9.1.3.2.30 Table 318
 type BatchErrorContinuation uint32
 
 const (
@@ -1634,26 +2696,81 @@ func (b BatchErrorContinuation) MarshalTTLVEnum() uint32 {
 	return uint32(b)
 } // Code generated by "kmipenums "; DO NOT EDIT.
 
+// Encoding Option Enumeration
+// 9.1.3.2.33 Table 320
+type EncodingOption uint32
+
+const (
+	EncodingOptionNoEncoding   EncodingOption = 0x00000001
+	EncodingOptionTTLVEncoding EncodingOption = 0x00000002
+)
+
+var _EncodingOptionNameToValueMap = map[string]EncodingOption{
+	"NoEncoding":   EncodingOptionNoEncoding,
+	"TTLVEncoding": EncodingOptionTTLVEncoding,
+}
+
+var _EncodingOptionValueToNameMap = map[EncodingOption]string{
+	EncodingOptionNoEncoding:   "NoEncoding",
+	EncodingOptionTTLVEncoding: "TTLVEncoding",
+}
+
+func (e EncodingOption) String() string {
+	if s, ok := _EncodingOptionValueToNameMap[e]; ok {
+		return s
+	}
+	return fmt.Sprintf("%#08x", e)
+}
+
+func ParseEncodingOption(s string) (EncodingOption, error) {
+	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+		b, err := hex.DecodeString(s[2:])
+		if err != nil {
+			return 0, err
+		}
+		return EncodingOption(binary.BigEndian.Uint32(b)), nil
+	}
+	if v, ok := _EncodingOptionNameToValueMap[s]; ok {
+		return v, nil
+	} else {
+		var v EncodingOption
+		return v, fmt.Errorf("%s is not a valid EncodingOption", s)
+	}
+}
+
+func (e EncodingOption) MarshalText() (text []byte, err error) {
+	return []byte(e.String()), nil
+}
+
+func (e *EncodingOption) UnmarshalText(text []byte) (err error) {
+	*e, err = ParseEncodingOption(string(text))
+	return
+}
+
+func (e EncodingOption) MarshalTTLVEnum() uint32 {
+	return uint32(e)
+} // Code generated by "kmipenums "; DO NOT EDIT.
+
 // Attestation Type Enumeration
-// 9.1.3.2.36
+// 9.1.3.2.36 Table 324
 type AttestationType uint32
 
 const (
-	AttestationTypeSAMLAssertion      AttestationType = 0x00000003
-	AttestationTypeTCGIntegrityReport AttestationType = 0x00000002
 	AttestationTypeTPMQuote           AttestationType = 0x00000001
+	AttestationTypeTCGIntegrityReport AttestationType = 0x00000002
+	AttestationTypeSAMLAssertion      AttestationType = 0x00000003
 )
 
 var _AttestationTypeNameToValueMap = map[string]AttestationType{
-	"SAMLAssertion":      AttestationTypeSAMLAssertion,
-	"TCGIntegrityReport": AttestationTypeTCGIntegrityReport,
 	"TPMQuote":           AttestationTypeTPMQuote,
+	"TCGIntegrityReport": AttestationTypeTCGIntegrityReport,
+	"SAMLAssertion":      AttestationTypeSAMLAssertion,
 }
 
 var _AttestationTypeValueToNameMap = map[AttestationType]string{
-	AttestationTypeSAMLAssertion:      "SAMLAssertion",
-	AttestationTypeTCGIntegrityReport: "TCGIntegrityReport",
 	AttestationTypeTPMQuote:           "TPMQuote",
+	AttestationTypeTCGIntegrityReport: "TCGIntegrityReport",
+	AttestationTypeSAMLAssertion:      "SAMLAssertion",
 }
 
 func (a AttestationType) String() string {
@@ -1690,4 +2807,56 @@ func (a *AttestationType) UnmarshalText(text []byte) (err error) {
 
 func (a AttestationType) MarshalTTLVEnum() uint32 {
 	return uint32(a)
+} // Code generated by "kmipenums "; DO NOT EDIT.
+
+// Mask Generator Enumeration
+// 9.1.3.2.49
+type MaskGenerator uint32
+
+const (
+	MaskGeneratorMGF1 MaskGenerator = 0x00000001
+)
+
+var _MaskGeneratorNameToValueMap = map[string]MaskGenerator{
+	"MGF1": MaskGeneratorMGF1,
+}
+
+var _MaskGeneratorValueToNameMap = map[MaskGenerator]string{
+	MaskGeneratorMGF1: "MGF1",
+}
+
+func (m MaskGenerator) String() string {
+	if s, ok := _MaskGeneratorValueToNameMap[m]; ok {
+		return s
+	}
+	return fmt.Sprintf("%#08x", m)
+}
+
+func ParseMaskGenerator(s string) (MaskGenerator, error) {
+	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+		b, err := hex.DecodeString(s[2:])
+		if err != nil {
+			return 0, err
+		}
+		return MaskGenerator(binary.BigEndian.Uint32(b)), nil
+	}
+	if v, ok := _MaskGeneratorNameToValueMap[s]; ok {
+		return v, nil
+	} else {
+		var v MaskGenerator
+		return v, fmt.Errorf("%s is not a valid MaskGenerator", s)
+	}
+}
+
+func (m MaskGenerator) MarshalText() (text []byte, err error) {
+	return []byte(m.String()), nil
+}
+
+func (m *MaskGenerator) UnmarshalText(text []byte) (err error) {
+	*m, err = ParseMaskGenerator(string(text))
+	return
+}
+
+func (m MaskGenerator) MarshalTTLVEnum() uint32 {
+	return uint32(m)
 }

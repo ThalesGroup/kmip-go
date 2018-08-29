@@ -23,6 +23,14 @@ func NewDecoder(r io.Reader) *Decoder {
 	}
 }
 
+func (dec *Decoder) Reset(r io.Reader) {
+	*dec = Decoder{
+		r:    r,
+		bufr: dec.bufr,
+	}
+	dec.bufr.Reset(r)
+}
+
 func (dec *Decoder) DisallowExtraValues() { dec.disallowExtraValues = true }
 
 func (dec *Decoder) Decode(v interface{}) error {

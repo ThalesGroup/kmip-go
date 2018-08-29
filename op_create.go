@@ -1,0 +1,60 @@
+package kmip
+
+import "context"
+
+// TODO: should request and response payloads implement validation?
+// Sort of makes sense to run validation over the request at this level, at least for spec
+// compliance, though perhaps handlers may want to be more relaxed with validation.
+//
+// Should the response object run through validation?  What is a valid response may change as
+// the spec changes.  Maybe this should just be handled by spec compliance tests.
+
+// 4.1
+//
+// This operation requests the server to generate a new symmetric key as a Managed Cryptographic Object.
+// This operation is not used to create a Template object (see Register operation, Section 4.3).
+//
+// The request contains information about the type of object being created, and some of the attributes to be
+// assigned to the object (e.g., Cryptographic Algorithm, Cryptographic Length, etc.). This information MAY be
+// specified by the names of Template objects that already exist.
+//
+// The response contains the Unique Identifier of the created object. The server SHALL copy the Unique Identifier
+// returned by this operation into the ID Placeholder variable.
+
+// CreateRequestPayload 4.1 Table 163
+//
+// TemplateAttribute MUST include CryptographicAlgorithm (3.4) and CryptographicUsageMask (3.19).
+type CreateRequestPayload struct {
+	ObjectType        ObjectType
+	TemplateAttribute TemplateAttribute
+}
+
+// CreateResponsePayload 4.1 Table 164
+type CreateResponsePayload struct {
+	ObjectType        ObjectType
+	UniqueIdentifier  string
+	TemplateAttribute *TemplateAttribute
+}
+
+type CreateHandler struct {
+	Create func(payload *CreateRequestPayload) (*CreateResponsePayload, error)
+}
+
+func (h *CreateHandler) HandleItem(ctx context.Context, req *Request) (*ResponseBatchItem, error) {
+	var payload CreateRequestPayload
+	err := req.DecodePayload(&payload)
+	if err != nil {
+		return nil, err
+	}
+
+	respPayload, err := h.Create(&payload)
+	if err != nil {
+		return nil, err
+	}
+
+	req.IDPlaceholder = respPayload.TemplateAttribute.Get(TagUniqueIdentifier.String()).(string)
+
+	return &ResponseBatchItem{
+		ResponsePayload: respPayload,
+	}, nil
+}

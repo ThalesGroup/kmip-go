@@ -5,9 +5,58 @@ import (
 	"encoding/hex"
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/ansel1/merry"
 )
+
+var enumRegistry = sync.Map{}
+
+func ParseEnum(tag Tag, s string) (EnumValuer, error) {
+	v, _ := enumRegistry.Load(tag)
+	if v != nil {
+		return v.(EnumTypeDef).Parse(s)
+	}
+	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+		b, err := hex.DecodeString(s[2:])
+		if err != nil {
+			return nil, merry.WithCause(ErrInvalidHexString, err)
+		}
+		return EnumInt(binary.BigEndian.Uint32(b)), nil
+	}
+	return nil, merry.New("unable to parse enum value")
+}
+
+func EnumToString(tag Tag, i EnumValuer) string {
+	v, _ := enumRegistry.Load(tag)
+	if v != nil {
+		s := v.(EnumTypeDef).String(i)
+		if s != "" {
+			return s
+		}
+	}
+	return fmt.Sprintf("%#08x", byte(i.EnumValue()))
+}
+
+type EnumTypeDef struct {
+	Parse  func(s string) (EnumValuer, error)
+	String func(v EnumValuer) string
+}
+
+func RegisterEnum(tag Tag, def EnumTypeDef) {
+	enumRegistry.Store(tag, def)
+}
+
+func init() {
+	RegisterEnum(TagOperation, EnumTypeDef{
+		Parse: func(s string) (EnumValuer, error) {
+			return ParseOperation(s)
+		},
+		String: func(v EnumValuer) string {
+			return Operation(v.EnumValue()).String()
+		},
+	})
+}
 
 func (t Tag) String() string {
 	if s, ok := _TagValueToNameMap[t]; ok {

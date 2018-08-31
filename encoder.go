@@ -103,8 +103,8 @@ func (e *Encoder) encodeInterfaceValue(tag Tag, v interface{}) error {
 	// reflection altogether, which does provide a good boost
 
 	switch t := v.(type) {
-	case MarshalerEnum:
-		e.encBuf.encodeEnum2(tag, t.MarshalTTLVEnum())
+	case EnumValuer:
+		e.encBuf.encodeEnum2(tag, t.EnumValue())
 	case TTLV:
 		// raw TTLV value
 		e.encBuf.Write(t)
@@ -181,7 +181,7 @@ var uint64Type = reflect.TypeOf((*uint64)(nil)).Elem()
 var bigIntPtrType = reflect.TypeOf((*big.Int)(nil))
 var bigIntType = bigIntPtrType.Elem()
 var durationType = reflect.TypeOf(time.Nanosecond)
-var marshalerEnumType = reflect.TypeOf((*MarshalerEnum)(nil)).Elem()
+var marshalerEnumType = reflect.TypeOf((*EnumValuer)(nil)).Elem()
 var ttlvType = reflect.TypeOf((*TTLV)(nil)).Elem()
 
 var invalidValue = reflect.Value{}
@@ -310,7 +310,7 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 		if flags&fOmitEmpty != 0 && isEmptyValue(v) {
 			return nil
 		}
-		e.encBuf.encodeEnum2(tag, v.Interface().(MarshalerEnum).MarshalTTLVEnum())
+		e.encBuf.encodeEnum2(tag, v.Interface().(EnumValuer).EnumValue())
 		return nil
 	case v.CanAddr():
 		pv := v.Addr()
@@ -325,7 +325,7 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 			if flags&fOmitEmpty != 0 && isEmptyValue(v) {
 				return nil
 			}
-			e.encBuf.encodeEnum2(tag, pv.Interface().(MarshalerEnum).MarshalTTLVEnum())
+			e.encBuf.encodeEnum2(tag, pv.Interface().(EnumValuer).EnumValue())
 			return nil
 		}
 	}

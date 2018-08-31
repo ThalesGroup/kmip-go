@@ -174,6 +174,8 @@ func (h *StandardProtocolHandler) handleRequest(ctx context.Context, req *Reques
 	// this in this higher level handler, since we (the protocol/message handlers) don't unmarshal the payload.
 	// That's done by a particular item handler.
 	req.DisallowExtraValues = req.Message.RequestHeader.ProtocolVersion.ProtocolVersionMinor == h.ProtocolVersion.ProtocolVersionMinor
+	req.decoder = NewDecoder(nil)
+	req.decoder.disallowExtraValues = req.DisallowExtraValues
 
 	h.MessageHandler.HandleMessage(ctx, req, resp)
 

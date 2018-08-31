@@ -506,7 +506,11 @@ func (r *Request) DecodePayload(v interface{}) error {
 	if r.CurrentItem == nil {
 		return nil
 	}
-	return r.Unmarshal(coerceToTTLV(r.CurrentItem.RequestPayload))
+	ttlv, err := coerceToTTLV(r.CurrentItem.RequestPayload)
+	if err != nil {
+		return err
+	}
+	return r.Unmarshal(ttlv, v)
 }
 
 // onceCloseListener wraps a net.Listener, protecting it from

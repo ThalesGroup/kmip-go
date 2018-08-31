@@ -148,7 +148,7 @@ func (dec *Decoder) unmarshal(val reflect.Value, ttlv TTLV) error {
 			}
 			val.SetInt(i)
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-			i := uint64(ttlv.ValueInteger())
+			i := uint64(ttlv.ValueEnumeration())
 			if val.OverflowUint(i) {
 				return dec.newUnmarshalerError(ttlv, val.Type(), ErrIntOverflow)
 			}

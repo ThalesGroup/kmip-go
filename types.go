@@ -43,35 +43,14 @@ func (t TaggedValue) MarshalTTLV(e *Encoder, tag Tag) error {
 	return e.EncodeValue(tag, t.Value)
 }
 
-type MarshalerEnum interface {
-	MarshalTTLVEnum() uint32
+type EnumValuer interface {
+	EnumValue() uint32
 }
 
 type EnumInt uint32
 
-func (i EnumInt) MarshalTTLVEnum() uint32 {
+func (i EnumInt) EnumValue() uint32 {
 	return uint32(i)
-}
-
-type EnumLiteral struct {
-	IntValue    uint32
-	StringValue string
-}
-
-func (e *EnumLiteral) UnmarshalText(text []byte) error {
-	if e == nil {
-		*e = EnumLiteral{}
-	}
-	e.StringValue = string(text)
-	return nil
-}
-
-func (e *EnumLiteral) MarshalText() (text []byte, err error) {
-	return []byte(e.StringValue), nil
-}
-
-func (e EnumLiteral) MarshalTTLVEnum() uint32 {
-	return e.IntValue
 }
 
 type Authentication struct {

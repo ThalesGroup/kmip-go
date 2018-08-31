@@ -131,8 +131,8 @@ func (t TTLV) ValueBigInteger() *big.Int {
 	return i
 }
 
-func (t TTLV) ValueEnumeration() uint32 {
-	return binary.BigEndian.Uint32(t.ValueRaw())
+func (t TTLV) ValueEnumeration() EnumInt {
+	return EnumInt(binary.BigEndian.Uint32(t.ValueRaw()))
 }
 
 func (t TTLV) ValueBoolean() bool {
@@ -279,6 +279,8 @@ func Print(w io.Writer, indent string, t TTLV) (err error) {
 			}
 			s = s.Next()
 		}
+	case TypeEnumeration:
+		fmt.Fprint(w, " ", EnumToString(tag, t.ValueEnumeration()))
 	default:
 		fmt.Fprintf(w, " %v", t.Value())
 	}

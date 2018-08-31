@@ -25,8 +25,8 @@ type RequestHeader struct {
 	AttestationCapableIndicator  bool   `kmip:",omitempty"`
 	AttestationType              []AttestationType
 	Authentication               *Authentication
-	BatchErrorContinuationOption BatchErrorContinuation `kmip:",omitempty"`
-	BatchOrderOption             bool                   `kmip:",omitempty"`
+	BatchErrorContinuationOption BatchErrorContinuationOption `kmip:",omitempty"`
+	BatchOrderOption             bool                         `kmip:",omitempty"`
 	TimeStamp                    *time.Time
 	BatchCount                   int
 }

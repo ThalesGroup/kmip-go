@@ -376,49 +376,49 @@ func (*MarshalableSlicePtr) MarshalTTLV(e *Encoder, tag Tag) error {
 
 type MarshalerEnumFloat32 float32
 
-func (MarshalerEnumFloat32) MarshalTTLVEnum() uint32 {
+func (MarshalerEnumFloat32) EnumValue() uint32 {
 	return 5
 }
 
 type MarshalerEnumFloat32Ptr float32
 
-func (*MarshalerEnumFloat32Ptr) MarshalTTLVEnum() uint32 {
+func (*MarshalerEnumFloat32Ptr) EnumValue() uint32 {
 	return 5
 }
 
 type MarshalerEnumFloat64 float64
 
-func (MarshalerEnumFloat64) MarshalTTLVEnum() uint32 {
+func (MarshalerEnumFloat64) EnumValue() uint32 {
 	return 5
 }
 
 type MarshalerEnumFloat64Ptr float64
 
-func (*MarshalerEnumFloat64Ptr) MarshalTTLVEnum() uint32 {
+func (*MarshalerEnumFloat64Ptr) EnumValue() uint32 {
 	return 5
 }
 
 type MarshalerEnumMap map[string]string
 
-func (MarshalerEnumMap) MarshalTTLVEnum() uint32 {
+func (MarshalerEnumMap) EnumValue() uint32 {
 	return 5
 }
 
 type MarshalerEnumMapPtr map[string]string
 
-func (*MarshalerEnumMapPtr) MarshalTTLVEnum() uint32 {
+func (*MarshalerEnumMapPtr) EnumValue() uint32 {
 	return 5
 }
 
 type MarshalerEnumSlice []string
 
-func (MarshalerEnumSlice) MarshalTTLVEnum() uint32 {
+func (MarshalerEnumSlice) EnumValue() uint32 {
 	return 5
 }
 
 type MarshalerEnumSlicePtr []string
 
-func (*MarshalerEnumSlicePtr) MarshalTTLVEnum() uint32 {
+func (*MarshalerEnumSlicePtr) EnumValue() uint32 {
 	return 5
 }
 
@@ -551,7 +551,7 @@ func TestEncoder_EncodeValue(t *testing.T) {
 		{
 			name:     "enum",
 			v:        CredentialTypeAttestation,
-			expected: TaggedValue{Tag: TagCancellationResult, Value: EnumLiteral{IntValue: 0x03}},
+			expected: TaggedValue{Tag: TagCancellationResult, Value: EnumInt(0x03)},
 		},
 		// slice
 		{
@@ -1023,8 +1023,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
 				TaggedValue{Tag: TagAttribute, Value: int32(5)},
 				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
-				TaggedValue{Tag: TagBatchCount, Value: EnumLiteral{IntValue: 5}},
-				TaggedValue{Tag: TagBatchItem, Value: EnumLiteral{IntValue: 5}},
+				TaggedValue{Tag: TagBatchCount, Value: EnumInt(5)},
+				TaggedValue{Tag: TagBatchItem, Value: EnumInt(5)},
 			}},
 		},
 		{
@@ -1043,8 +1043,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
 				TaggedValue{Tag: TagAttribute, Value: int32(5)},
 				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
-				TaggedValue{Tag: TagBatchCount, Value: EnumLiteral{IntValue: 5}},
-				TaggedValue{Tag: TagBatchItem, Value: EnumLiteral{IntValue: 5}},
+				TaggedValue{Tag: TagBatchCount, Value: EnumInt(5)},
+				TaggedValue{Tag: TagBatchItem, Value: EnumInt(5)},
 			}},
 		},
 		{
@@ -1063,8 +1063,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
 				TaggedValue{Tag: TagAttribute, Value: int32(5)},
 				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
-				TaggedValue{Tag: TagBatchCount, Value: EnumLiteral{IntValue: 5}},
-				TaggedValue{Tag: TagBatchItem, Value: EnumLiteral{IntValue: 5}},
+				TaggedValue{Tag: TagBatchCount, Value: EnumInt(5)},
+				TaggedValue{Tag: TagBatchItem, Value: EnumInt(5)},
 			}},
 		},
 		{
@@ -1083,8 +1083,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
 				TaggedValue{Tag: TagAttribute, Value: int32(5)},
 				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
-				TaggedValue{Tag: TagBatchCount, Value: EnumLiteral{IntValue: 5}},
-				TaggedValue{Tag: TagBatchItem, Value: EnumLiteral{IntValue: 5}},
+				TaggedValue{Tag: TagBatchCount, Value: EnumInt(5)},
+				TaggedValue{Tag: TagBatchItem, Value: EnumInt(5)},
 			}},
 		},
 		{
@@ -1109,8 +1109,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
 				TaggedValue{Tag: TagAttribute, Value: int32(5)},
 				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
-				TaggedValue{Tag: TagBatchCount, Value: EnumLiteral{IntValue: 5}},
-				TaggedValue{Tag: TagBatchItem, Value: EnumLiteral{IntValue: 5}},
+				TaggedValue{Tag: TagBatchCount, Value: EnumInt(5)},
+				TaggedValue{Tag: TagBatchItem, Value: EnumInt(5)},
 			}},
 		},
 		{
@@ -1135,8 +1135,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
 				TaggedValue{Tag: TagAttribute, Value: int32(5)},
 				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
-				TaggedValue{Tag: TagBatchCount, Value: EnumLiteral{IntValue: 5}},
-				TaggedValue{Tag: TagBatchItem, Value: EnumLiteral{IntValue: 5}},
+				TaggedValue{Tag: TagBatchCount, Value: EnumInt(5)},
+				TaggedValue{Tag: TagBatchItem, Value: EnumInt(5)},
 			}},
 		},
 		{
@@ -1161,8 +1161,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
 				TaggedValue{Tag: TagAttribute, Value: int32(5)},
 				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
-				TaggedValue{Tag: TagBatchCount, Value: EnumLiteral{IntValue: 5}},
-				TaggedValue{Tag: TagBatchItem, Value: EnumLiteral{IntValue: 5}},
+				TaggedValue{Tag: TagBatchCount, Value: EnumInt(5)},
+				TaggedValue{Tag: TagBatchItem, Value: EnumInt(5)},
 			}},
 		},
 		{
@@ -1187,8 +1187,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
 				TaggedValue{Tag: TagAttribute, Value: int32(5)},
 				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
-				TaggedValue{Tag: TagBatchCount, Value: EnumLiteral{IntValue: 5}},
-				TaggedValue{Tag: TagBatchItem, Value: EnumLiteral{IntValue: 5}},
+				TaggedValue{Tag: TagBatchCount, Value: EnumInt(5)},
+				TaggedValue{Tag: TagBatchItem, Value: EnumInt(5)},
 			}},
 		},
 		{
@@ -1219,17 +1219,17 @@ func TestEncoder_EncodeValue(t *testing.T) {
 				Uint64:  11,
 			},
 			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
-				TaggedValue{Tag: TagComment, Value: EnumLiteral{IntValue: 1}},
-				TaggedValue{Tag: TagCommonTemplateAttribute, Value: EnumLiteral{IntValue: 2}},
-				TaggedValue{Tag: TagCompromiseDate, Value: EnumLiteral{IntValue: 3}},
-				TaggedValue{Tag: TagCompromiseOccurrenceDate, Value: EnumLiteral{IntValue: 4}},
-				TaggedValue{Tag: TagContactInformation, Value: EnumLiteral{IntValue: 5}},
-				TaggedValue{Tag: TagCorrelationValue, Value: EnumLiteral{IntValue: 6}},
-				TaggedValue{Tag: TagCounterLength, Value: EnumLiteral{IntValue: 7}},
-				TaggedValue{Tag: TagCredential, Value: EnumLiteral{IntValue: 8}},
-				TaggedValue{Tag: TagCredentialType, Value: EnumLiteral{IntValue: 9}},
-				TaggedValue{Tag: TagCredentialValue, Value: EnumLiteral{IntValue: 10}},
-				TaggedValue{Tag: TagCriticalityIndicator, Value: EnumLiteral{IntValue: 11}},
+				TaggedValue{Tag: TagComment, Value: EnumInt(1)},
+				TaggedValue{Tag: TagCommonTemplateAttribute, Value: EnumInt(2)},
+				TaggedValue{Tag: TagCompromiseDate, Value: EnumInt(3)},
+				TaggedValue{Tag: TagCompromiseOccurrenceDate, Value: EnumInt(4)},
+				TaggedValue{Tag: TagContactInformation, Value: EnumInt(5)},
+				TaggedValue{Tag: TagCorrelationValue, Value: EnumInt(6)},
+				TaggedValue{Tag: TagCounterLength, Value: EnumInt(7)},
+				TaggedValue{Tag: TagCredential, Value: EnumInt(8)},
+				TaggedValue{Tag: TagCredentialType, Value: EnumInt(9)},
+				TaggedValue{Tag: TagCredentialValue, Value: EnumInt(10)},
+				TaggedValue{Tag: TagCriticalityIndicator, Value: EnumInt(11)},
 			}},
 		},
 		{
@@ -1277,10 +1277,10 @@ func TestEncoder_EncodeValue(t *testing.T) {
 					Structure{Tag: TagCertificateIssuer, Values: []interface{}{
 						TaggedValue{Tag: TagCertificateIssuerAlternativeName, Value: "rick"},
 						TaggedValue{Tag: TagCertificateIssuerC, Value: "bob"},
-						TaggedValue{Tag: TagCertificateIssuerEmail, Value: EnumLiteral{IntValue: 0}},
-						TaggedValue{Tag: TagCertificateIssuerCN, Value: EnumLiteral{IntValue: 2}},
-						TaggedValue{Tag: TagCertificateIssuerUID, Value: EnumLiteral{IntValue: 3}},
-						TaggedValue{Tag: TagCertificateLength, Value: EnumLiteral{IntValue: 10}},
+						TaggedValue{Tag: TagCertificateIssuerEmail, Value: EnumInt(0)},
+						TaggedValue{Tag: TagCertificateIssuerCN, Value: EnumInt(2)},
+						TaggedValue{Tag: TagCertificateIssuerUID, Value: EnumInt(3)},
+						TaggedValue{Tag: TagCertificateLength, Value: EnumInt(10)},
 					}},
 				}},
 				TaggedValue{Tag: TagBlockCipherMode, Value: int32(5)},

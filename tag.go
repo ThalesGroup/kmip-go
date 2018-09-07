@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
+	"gitlab.protectv.local/regan/kmip.git/internal/kmiputil"
 	"strings"
 	"sync"
 
@@ -47,15 +48,11 @@ func RegisterEnum(tag Tag, def EnumTypeDef) {
 	enumRegistry.Store(tag, def)
 }
 
-func init() {
-	RegisterEnum(TagOperation, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseOperation(s)
-		},
-		String: func(v EnumValuer) string {
-			return Operation(v.EnumValue()).String()
-		},
-	})
+func RegisterTag(tag Tag, name string) {
+	_TagValueToFullNameMap[tag] = name
+	name = kmiputil.NormalizeName(name)
+	_TagNameToValueMap[name] = tag
+	_TagValueToNameMap[tag] = name
 }
 
 func (t Tag) String() string {
@@ -63,6 +60,20 @@ func (t Tag) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#06x", uint32(t))
+}
+
+func (t Tag) FullName() string {
+	if s, ok := _TagValueToFullNameMap[t]; ok {
+		return s
+	}
+	return fmt.Sprintf("%#06x", uint32(t))
+}
+
+func TagByFullName(s string) (Tag, error) {
+	if t, ok := _TagFullNameToValueMap[s]; ok {
+		return t, nil
+	}
+	return TagNone, merry.New("no tag found")
 }
 
 // returns TagNone if not found.

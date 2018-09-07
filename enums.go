@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
+	"gitlab.protectv.local/regan/kmip.git/internal/kmiputil"
 	"strings"
 )
 
@@ -901,6 +902,598 @@ var _TagValueToNameMap = map[Tag]string{
 	TagReplaceExisting:                       "ReplaceExisting",
 }
 
+var _TagValueToFullNameMap = map[Tag]string{
+	TagNone:                                  "None",
+	TagActivationDate:                        "Activation Date",
+	TagApplicationData:                       "Application Data",
+	TagApplicationNamespace:                  "Application Namespace",
+	TagApplicationSpecificInformation:        "Application Specific Information",
+	TagArchiveDate:                           "Archive Date",
+	TagAsynchronousCorrelationValue:          "Asynchronous Correlation Value",
+	TagAsynchronousIndicator:                 "Asynchronous Indicator",
+	TagAttribute:                             "Attribute",
+	TagAttributeIndex:                        "Attribute Index",
+	TagAttributeName:                         "Attribute Name",
+	TagAttributeValue:                        "Attribute Value",
+	TagAuthentication:                        "Authentication",
+	TagBatchCount:                            "Batch Count",
+	TagBatchErrorContinuationOption:          "Batch Error Continuation Option",
+	TagBatchItem:                             "Batch Item",
+	TagBatchOrderOption:                      "Batch Order Option",
+	TagBlockCipherMode:                       "Block Cipher Mode",
+	TagCancellationResult:                    "Cancellation Result",
+	TagCertificate:                           "Certificate",
+	TagCertificateIdentifier:                 "Certificate Identifier",
+	TagCertificateIssuer:                     "Certificate Issuer",
+	TagCertificateIssuerAlternativeName:      "Certificate Issuer Alternative Name",
+	TagCertificateIssuerDistinguishedName:    "Certificate Issuer Distinguished Name",
+	TagCertificateRequest:                    "Certificate Request",
+	TagCertificateRequestType:                "Certificate Request Type",
+	TagCertificateSubject:                    "Certificate Subject",
+	TagCertificateSubjectAlternativeName:     "Certificate Subject Alternative Name",
+	TagCertificateSubjectDistinguishedName:   "Certificate Subject Distinguished Name",
+	TagCertificateType:                       "Certificate Type",
+	TagCertificateValue:                      "Certificate Value",
+	TagCommonTemplateAttribute:               "Common Template-Attribute",
+	TagCompromiseDate:                        "Compromise  Date",
+	TagCompromiseOccurrenceDate:              "Compromise Occurrence Date",
+	TagContactInformation:                    "Contact Information",
+	TagCredential:                            "Credential",
+	TagCredentialType:                        "Credential Type",
+	TagCredentialValue:                       "Credential Value",
+	TagCriticalityIndicator:                  "Criticality Indicator",
+	TagCRTCoefficient:                        "CRT Coefficient",
+	TagCryptographicAlgorithm:                "Cryptographic Algorithm",
+	TagCryptographicDomainParameters:         "Cryptographic Domain Parameters",
+	TagCryptographicLength:                   "Cryptographic Length",
+	TagCryptographicParameters:               "Cryptographic Parameters",
+	TagCryptographicUsageMask:                "Cryptographic Usage Mask",
+	TagCustomAttribute:                       "Custom Attribute",
+	TagD:                                     "D",
+	TagDeactivationDate:                      "Deactivation Date",
+	TagDerivationData:                        "Derivation Data",
+	TagDerivationMethod:                      "Derivation Method",
+	TagDerivationParameters:                  "Derivation Parameters",
+	TagDestroyDate:                           "Destroy Date",
+	TagDigest:                                "Digest",
+	TagDigestValue:                           "Digest Value",
+	TagEncryptionKeyInformation:              "Encryption Key Information",
+	TagG:                                     "G",
+	TagHashingAlgorithm:                      "Hashing Algorithm",
+	TagInitialDate:                           "Initial Date",
+	TagInitializationVector:                  "Initialization Vector",
+	TagIssuer:                                "Issuer",
+	TagIterationCount:                        "Iteration Count",
+	TagIVCounterNonce:                        "IV/Counter/Nonce",
+	TagJ:                                     "J",
+	TagKey:                                   "Key",
+	TagKeyBlock:                              "Key Block",
+	TagKeyCompressionType:                    "Key Compression Type",
+	TagKeyFormatType:                         "Key Format Type",
+	TagKeyMaterial:                           "Key Material",
+	TagKeyPartIdentifier:                     "Key Part Identifier",
+	TagKeyValue:                              "Key Value",
+	TagKeyWrappingData:                       "Key Wrapping Data",
+	TagKeyWrappingSpecification:              "Key Wrapping Specification",
+	TagLastChangeDate:                        "Last Change Date",
+	TagLeaseTime:                             "Lease Time",
+	TagLink:                                  "Link",
+	TagLinkType:                              "Link Type",
+	TagLinkedObjectIdentifier:                "Linked Object Identifier",
+	TagMACSignature:                          "MAC/Signature",
+	TagMACSignatureKeyInformation:            "MAC/Signature Key Information",
+	TagMaximumItems:                          "Maximum Items",
+	TagMaximumResponseSize:                   "Maximum Response Size",
+	TagMessageExtension:                      "Message Extension",
+	TagModulus:                               "Modulus",
+	TagName:                                  "Name",
+	TagNameType:                              "Name Type",
+	TagNameValue:                             "Name Value",
+	TagObjectGroup:                           "Object Group",
+	TagObjectType:                            "Object Type",
+	TagOffset:                                "Offset",
+	TagOpaqueDataType:                        "Opaque Data Type",
+	TagOpaqueDataValue:                       "Opaque Data Value",
+	TagOpaqueObject:                          "Opaque Object",
+	TagOperation:                             "Operation",
+	TagOperationPolicyName:                   "Operation Policy Name",
+	TagP:                                     "P",
+	TagPaddingMethod:                         "Padding Method",
+	TagPrimeExponentP:                        "Prime Exponent P",
+	TagPrimeExponentQ:                        "Prime Exponent Q",
+	TagPrimeFieldSize:                        "Prime Field Size",
+	TagPrivateExponent:                       "Private Exponent",
+	TagPrivateKey:                            "Private Key",
+	TagPrivateKeyTemplateAttribute:           "Private Key Template-Attribute",
+	TagPrivateKeyUniqueIdentifier:            "Private Key Unique Identifier",
+	TagProcessStartDate:                      "Process Start Date",
+	TagProtectStopDate:                       "Protect Stop Date",
+	TagProtocolVersion:                       "Protocol Version",
+	TagProtocolVersionMajor:                  "Protocol Version Major",
+	TagProtocolVersionMinor:                  "Protocol Version Minor",
+	TagPublicExponent:                        "Public Exponent",
+	TagPublicKey:                             "Public Key",
+	TagPublicKeyTemplateAttribute:            "Public Key Template-Attribute",
+	TagPublicKeyUniqueIdentifier:             "Public Key Unique Identifier",
+	TagPutFunction:                           "Put Function",
+	TagQ:                                     "Q",
+	TagQString:                               "Q String",
+	TagQlength:                               "Qlength",
+	TagQueryFunction:                         "Query Function",
+	TagRecommendedCurve:                      "Recommended Curve",
+	TagReplacedUniqueIdentifier:              "Replaced Unique Identifier",
+	TagRequestHeader:                         "Request Header",
+	TagRequestMessage:                        "Request Message",
+	TagRequestPayload:                        "Request Payload",
+	TagResponseHeader:                        "Response Header",
+	TagResponseMessage:                       "Response Message",
+	TagResponsePayload:                       "Response Payload",
+	TagResultMessage:                         "Result Message",
+	TagResultReason:                          "Result Reason",
+	TagResultStatus:                          "Result Status",
+	TagRevocationMessage:                     "Revocation Message",
+	TagRevocationReason:                      "Revocation Reason",
+	TagRevocationReasonCode:                  "Revocation Reason Code",
+	TagKeyRoleType:                           "Key Role Type",
+	TagSalt:                                  "Salt",
+	TagSecretData:                            "Secret Data",
+	TagSecretDataType:                        "Secret Data Type",
+	TagSerialNumber:                          "Serial Number",
+	TagServerInformation:                     "Server Information",
+	TagSplitKey:                              "Split Key",
+	TagSplitKeyMethod:                        "Split Key Method",
+	TagSplitKeyParts:                         "Split Key Parts",
+	TagSplitKeyThreshold:                     "Split Key Threshold",
+	TagState:                                 "State",
+	TagStorageStatusMask:                     "Storage Status Mask",
+	TagSymmetricKey:                          "Symmetric Key",
+	TagTemplate:                              "Template",
+	TagTemplateAttribute:                     "Template-Attribute",
+	TagTimeStamp:                             "Time Stamp",
+	TagUniqueBatchItemID:                     "Unique Batch Item ID",
+	TagUniqueIdentifier:                      "Unique Identifier",
+	TagUsageLimits:                           "Usage Limits",
+	TagUsageLimitsCount:                      "Usage Limits Count",
+	TagUsageLimitsTotal:                      "Usage Limits Total",
+	TagUsageLimitsUnit:                       "Usage Limits Unit",
+	TagUsername:                              "Username",
+	TagValidityDate:                          "Validity Date",
+	TagValidityIndicator:                     "Validity Indicator",
+	TagVendorExtension:                       "Vendor Extension",
+	TagVendorIdentification:                  "Vendor Identification",
+	TagWrappingMethod:                        "Wrapping Method",
+	TagX:                                     "X",
+	TagY:                                     "Y",
+	TagPassword:                              "Password",
+	TagDeviceIdentifier:                      "Device Identifier",
+	TagEncodingOption:                        "Encoding Option",
+	TagExtensionInformation:                  "Extension Information",
+	TagExtensionName:                         "Extension Name",
+	TagExtensionTag:                          "Extension Tag",
+	TagExtensionType:                         "Extension Type",
+	TagFresh:                                 "Fresh",
+	TagMachineIdentifier:                     "Machine Identifier",
+	TagMediaIdentifier:                       "Media Identifier",
+	TagNetworkIdentifier:                     "Network Identifier",
+	TagObjectGroupMember:                     "Object Group Member",
+	TagCertificateLength:                     "Certificate Length",
+	TagDigitalSignatureAlgorithm:             "Digital Signature Algorithm",
+	TagCertificateSerialNumber:               "Certificate Serial Number",
+	TagDeviceSerialNumber:                    "Device Serial Number",
+	TagIssuerAlternativeName:                 "Issuer Alternative Name",
+	TagIssuerDistinguishedName:               "Issuer Distinguished Name",
+	TagSubjectAlternativeName:                "Subject Alternative Name",
+	TagSubjectDistinguishedName:              "Subject Distinguished Name",
+	TagX_509CertificateIdentifier:            "X.509 Certificate Identifier",
+	TagX_509CertificateIssuer:                "X.509 Certificate Issuer",
+	TagX_509CertificateSubject:               "X.509 Certificate Subject",
+	TagKeyValueLocation:                      "Key Value Location",
+	TagKeyValueLocationValue:                 "Key Value Location Value",
+	TagKeyValueLocationType:                  "Key Value Location Type",
+	TagKeyValuePresent:                       "Key Value Present",
+	TagOriginalCreationDate:                  "Original Creation Date",
+	TagPGPKey:                                "PGP Key",
+	TagPGPKeyVersion:                         "PGP Key Version",
+	TagAlternativeName:                       "Alternative Name",
+	TagAlternativeNameValue:                  "Alternative Name Value",
+	TagAlternativeNameType:                   "Alternative Name Type",
+	TagData:                                  "Data",
+	TagSignatureData:                         "Signature Data",
+	TagDataLength:                            "Data Length",
+	TagRandomIV:                              "Random IV",
+	TagMACData:                               "MAC Data",
+	TagAttestationType:                       "Attestation Type",
+	TagNonce:                                 "Nonce",
+	TagNonceID:                               "Nonce ID",
+	TagNonceValue:                            "Nonce Value",
+	TagAttestationMeasurement:                "Attestation Measurement",
+	TagAttestationAssertion:                  "Attestation Assertion",
+	TagIVLength:                              "IV Length",
+	TagTagLength:                             "Tag Length",
+	TagFixedFieldLength:                      "Fixed Field Length",
+	TagCounterLength:                         "Counter Length",
+	TagInitialCounterValue:                   "Initial Counter Value",
+	TagInvocationFieldLength:                 "Invocation Field Length",
+	TagAttestationCapableIndicator:           "Attestation Capable Indicator",
+	TagOffsetItems:                           "Offset Items",
+	TagLocatedItems:                          "Located Items",
+	TagCorrelationValue:                      "Correlation Value",
+	TagInitIndicator:                         "Init Indicator",
+	TagFinalIndicator:                        "Final Indicator",
+	TagRNGParameters:                         "RNG Parameters",
+	TagRNGAlgorithm:                          "RNG Algorithm",
+	TagDRBGAlgorithm:                         "DRBG Algorithm",
+	TagFIPS186Variation:                      "FIPS186 Variation",
+	TagPredictionResistance:                  "Prediction Resistance",
+	TagRandomNumberGenerator:                 "Random Number Generator",
+	TagValidationInformation:                 "Validation Information",
+	TagValidationAuthorityType:               "Validation Authority Type",
+	TagValidationAuthorityCountry:            "Validation Authority Country",
+	TagValidationAuthorityURI:                "Validation Authority URI",
+	TagValidationVersionMajor:                "Validation Version Major",
+	TagValidationVersionMinor:                "Validation Version Minor",
+	TagValidationType:                        "Validation Type",
+	TagValidationLevel:                       "Validation Level",
+	TagValidationCertificateIdentifier:       "Validation Certificate Identifier",
+	TagValidationCertificateURI:              "Validation Certificate URI",
+	TagValidationVendorURI:                   "Validation Vendor URI",
+	TagValidationProfile:                     "Validation Profile",
+	TagProfileInformation:                    "Profile Information",
+	TagProfileName:                           "Profile Name",
+	TagServerURI:                             "Server URI",
+	TagServerPort:                            "Server Port",
+	TagStreamingCapability:                   "Streaming Capability",
+	TagAsynchronousCapability:                "Asynchronous Capability",
+	TagAttestationCapability:                 "Attestation Capability",
+	TagUnwrapMode:                            "Unwrap Mode",
+	TagDestroyAction:                         "Destroy Action",
+	TagShreddingAlgorithm:                    "Shredding Algorithm",
+	TagRNGMode:                               "RNG Mode",
+	TagClientRegistrationMethod:              "Client Registration Method",
+	TagCapabilityInformation:                 "Capability Information",
+	TagKeyWrapType:                           "Key Wrap Type",
+	TagBatchUndoCapability:                   "Batch Undo Capability",
+	TagBatchContinueCapability:               "Batch Continue Capability",
+	TagPKCS_12FriendlyName:                   "PKCS#12 Friendly Name",
+	TagDescription:                           "Description",
+	TagComment:                               "Comment",
+	TagAuthenticatedEncryptionAdditionalData: "Authenticated Encryption Additional Data",
+	TagAuthenticatedEncryptionTag:            "Authenticated Encryption Tag",
+	TagSaltLength:                            "Salt Length",
+	TagMaskGenerator:                         "Mask Generator",
+	TagMaskGeneratorHashingAlgorithm:         "Mask Generator Hashing Algorithm",
+	TagPSource:                               "P Source",
+	TagTrailerField:                          "Trailer Field",
+	TagClientCorrelationValue:                "Client Correlation Value",
+	TagServerCorrelationValue:                "Server Correlation Value",
+	TagDigestedData:                          "Digested Data",
+	TagCertificateSubjectCN:                  "Certificate Subject CN",
+	TagCertificateSubjectO:                   "Certificate Subject O",
+	TagCertificateSubjectOU:                  "Certificate Subject OU",
+	TagCertificateSubjectEmail:               "Certificate Subject Email",
+	TagCertificateSubjectC:                   "Certificate Subject C",
+	TagCertificateSubjectST:                  "Certificate Subject ST",
+	TagCertificateSubjectL:                   "Certificate Subject L",
+	TagCertificateSubjectUID:                 "Certificate Subject UID",
+	TagCertificateSubjectSerialNumber:        "Certificate Subject Serial Number",
+	TagCertificateSubjectTitle:               "Certificate Subject Title",
+	TagCertificateSubjectDC:                  "Certificate Subject DC",
+	TagCertificateSubjectDNQualifier:         "Certificate Subject DN Qualifier",
+	TagCertificateIssuerCN:                   "Certificate Issuer CN",
+	TagCertificateIssuerO:                    "Certificate Issuer O",
+	TagCertificateIssuerOU:                   "Certificate Issuer OU",
+	TagCertificateIssuerEmail:                "Certificate Issuer Email",
+	TagCertificateIssuerC:                    "Certificate Issuer C",
+	TagCertificateIssuerST:                   "Certificate Issuer ST",
+	TagCertificateIssuerL:                    "Certificate Issuer L",
+	TagCertificateIssuerUID:                  "Certificate Issuer UID",
+	TagCertificateIssuerSerialNumber:         "Certificate Issuer Serial Number",
+	TagCertificateIssuerTitle:                "Certificate Issuer Title",
+	TagCertificateIssuerDC:                   "Certificate Issuer DC",
+	TagCertificateIssuerDNQualifier:          "Certificate Issuer DN Qualifier",
+	TagSensitive:                             "Sensitive",
+	TagAlwaysSensitive:                       "Always Sensitive",
+	TagExtractable:                           "Extractable",
+	TagNeverExtractable:                      "Never Extractable",
+	TagReplaceExisting:                       "Replace Existing",
+}
+
+var _TagFullNameToValueMap = map[string]Tag{
+	"None":                                     TagNone,
+	"Activation Date":                          TagActivationDate,
+	"Application Data":                         TagApplicationData,
+	"Application Namespace":                    TagApplicationNamespace,
+	"Application Specific Information":         TagApplicationSpecificInformation,
+	"Archive Date":                             TagArchiveDate,
+	"Asynchronous Correlation Value":           TagAsynchronousCorrelationValue,
+	"Asynchronous Indicator":                   TagAsynchronousIndicator,
+	"Attribute":                                TagAttribute,
+	"Attribute Index":                          TagAttributeIndex,
+	"Attribute Name":                           TagAttributeName,
+	"Attribute Value":                          TagAttributeValue,
+	"Authentication":                           TagAuthentication,
+	"Batch Count":                              TagBatchCount,
+	"Batch Error Continuation Option":          TagBatchErrorContinuationOption,
+	"Batch Item":                               TagBatchItem,
+	"Batch Order Option":                       TagBatchOrderOption,
+	"Block Cipher Mode":                        TagBlockCipherMode,
+	"Cancellation Result":                      TagCancellationResult,
+	"Certificate":                              TagCertificate,
+	"Certificate Identifier":                   TagCertificateIdentifier,
+	"Certificate Issuer":                       TagCertificateIssuer,
+	"Certificate Issuer Alternative Name":      TagCertificateIssuerAlternativeName,
+	"Certificate Issuer Distinguished Name":    TagCertificateIssuerDistinguishedName,
+	"Certificate Request":                      TagCertificateRequest,
+	"Certificate Request Type":                 TagCertificateRequestType,
+	"Certificate Subject":                      TagCertificateSubject,
+	"Certificate Subject Alternative Name":     TagCertificateSubjectAlternativeName,
+	"Certificate Subject Distinguished Name":   TagCertificateSubjectDistinguishedName,
+	"Certificate Type":                         TagCertificateType,
+	"Certificate Value":                        TagCertificateValue,
+	"Common Template-Attribute":                TagCommonTemplateAttribute,
+	"Compromise  Date":                         TagCompromiseDate,
+	"Compromise Occurrence Date":               TagCompromiseOccurrenceDate,
+	"Contact Information":                      TagContactInformation,
+	"Credential":                               TagCredential,
+	"Credential Type":                          TagCredentialType,
+	"Credential Value":                         TagCredentialValue,
+	"Criticality Indicator":                    TagCriticalityIndicator,
+	"CRT Coefficient":                          TagCRTCoefficient,
+	"Cryptographic Algorithm":                  TagCryptographicAlgorithm,
+	"Cryptographic Domain Parameters":          TagCryptographicDomainParameters,
+	"Cryptographic Length":                     TagCryptographicLength,
+	"Cryptographic Parameters":                 TagCryptographicParameters,
+	"Cryptographic Usage Mask":                 TagCryptographicUsageMask,
+	"Custom Attribute":                         TagCustomAttribute,
+	"D":                                        TagD,
+	"Deactivation Date":                        TagDeactivationDate,
+	"Derivation Data":                          TagDerivationData,
+	"Derivation Method":                        TagDerivationMethod,
+	"Derivation Parameters":                    TagDerivationParameters,
+	"Destroy Date":                             TagDestroyDate,
+	"Digest":                                   TagDigest,
+	"Digest Value":                             TagDigestValue,
+	"Encryption Key Information":               TagEncryptionKeyInformation,
+	"G":                                        TagG,
+	"Hashing Algorithm":                        TagHashingAlgorithm,
+	"Initial Date":                             TagInitialDate,
+	"Initialization Vector":                    TagInitializationVector,
+	"Issuer":                                   TagIssuer,
+	"Iteration Count":                          TagIterationCount,
+	"IV/Counter/Nonce":                         TagIVCounterNonce,
+	"J":                                        TagJ,
+	"Key":                                      TagKey,
+	"Key Block":                                TagKeyBlock,
+	"Key Compression Type":                     TagKeyCompressionType,
+	"Key Format Type":                          TagKeyFormatType,
+	"Key Material":                             TagKeyMaterial,
+	"Key Part Identifier":                      TagKeyPartIdentifier,
+	"Key Value":                                TagKeyValue,
+	"Key Wrapping Data":                        TagKeyWrappingData,
+	"Key Wrapping Specification":               TagKeyWrappingSpecification,
+	"Last Change Date":                         TagLastChangeDate,
+	"Lease Time":                               TagLeaseTime,
+	"Link":                                     TagLink,
+	"Link Type":                                TagLinkType,
+	"Linked Object Identifier":                 TagLinkedObjectIdentifier,
+	"MAC/Signature":                            TagMACSignature,
+	"MAC/Signature Key Information":            TagMACSignatureKeyInformation,
+	"Maximum Items":                            TagMaximumItems,
+	"Maximum Response Size":                    TagMaximumResponseSize,
+	"Message Extension":                        TagMessageExtension,
+	"Modulus":                                  TagModulus,
+	"Name":                                     TagName,
+	"Name Type":                                TagNameType,
+	"Name Value":                               TagNameValue,
+	"Object Group":                             TagObjectGroup,
+	"Object Type":                              TagObjectType,
+	"Offset":                                   TagOffset,
+	"Opaque Data Type":                         TagOpaqueDataType,
+	"Opaque Data Value":                        TagOpaqueDataValue,
+	"Opaque Object":                            TagOpaqueObject,
+	"Operation":                                TagOperation,
+	"Operation Policy Name":                    TagOperationPolicyName,
+	"P":                                        TagP,
+	"Padding Method":                           TagPaddingMethod,
+	"Prime Exponent P":                         TagPrimeExponentP,
+	"Prime Exponent Q":                         TagPrimeExponentQ,
+	"Prime Field Size":                         TagPrimeFieldSize,
+	"Private Exponent":                         TagPrivateExponent,
+	"Private Key":                              TagPrivateKey,
+	"Private Key Template-Attribute":           TagPrivateKeyTemplateAttribute,
+	"Private Key Unique Identifier":            TagPrivateKeyUniqueIdentifier,
+	"Process Start Date":                       TagProcessStartDate,
+	"Protect Stop Date":                        TagProtectStopDate,
+	"Protocol Version":                         TagProtocolVersion,
+	"Protocol Version Major":                   TagProtocolVersionMajor,
+	"Protocol Version Minor":                   TagProtocolVersionMinor,
+	"Public Exponent":                          TagPublicExponent,
+	"Public Key":                               TagPublicKey,
+	"Public Key Template-Attribute":            TagPublicKeyTemplateAttribute,
+	"Public Key Unique Identifier":             TagPublicKeyUniqueIdentifier,
+	"Put Function":                             TagPutFunction,
+	"Q":                                        TagQ,
+	"Q String":                                 TagQString,
+	"Qlength":                                  TagQlength,
+	"Query Function":                           TagQueryFunction,
+	"Recommended Curve":                        TagRecommendedCurve,
+	"Replaced Unique Identifier":               TagReplacedUniqueIdentifier,
+	"Request Header":                           TagRequestHeader,
+	"Request Message":                          TagRequestMessage,
+	"Request Payload":                          TagRequestPayload,
+	"Response Header":                          TagResponseHeader,
+	"Response Message":                         TagResponseMessage,
+	"Response Payload":                         TagResponsePayload,
+	"Result Message":                           TagResultMessage,
+	"Result Reason":                            TagResultReason,
+	"Result Status":                            TagResultStatus,
+	"Revocation Message":                       TagRevocationMessage,
+	"Revocation Reason":                        TagRevocationReason,
+	"Revocation Reason Code":                   TagRevocationReasonCode,
+	"Key Role Type":                            TagKeyRoleType,
+	"Salt":                                     TagSalt,
+	"Secret Data":                              TagSecretData,
+	"Secret Data Type":                         TagSecretDataType,
+	"Serial Number":                            TagSerialNumber,
+	"Server Information":                       TagServerInformation,
+	"Split Key":                                TagSplitKey,
+	"Split Key Method":                         TagSplitKeyMethod,
+	"Split Key Parts":                          TagSplitKeyParts,
+	"Split Key Threshold":                      TagSplitKeyThreshold,
+	"State":                                    TagState,
+	"Storage Status Mask":                      TagStorageStatusMask,
+	"Symmetric Key":                            TagSymmetricKey,
+	"Template":                                 TagTemplate,
+	"Template-Attribute":                       TagTemplateAttribute,
+	"Time Stamp":                               TagTimeStamp,
+	"Unique Batch Item ID":                     TagUniqueBatchItemID,
+	"Unique Identifier":                        TagUniqueIdentifier,
+	"Usage Limits":                             TagUsageLimits,
+	"Usage Limits Count":                       TagUsageLimitsCount,
+	"Usage Limits Total":                       TagUsageLimitsTotal,
+	"Usage Limits Unit":                        TagUsageLimitsUnit,
+	"Username":                                 TagUsername,
+	"Validity Date":                            TagValidityDate,
+	"Validity Indicator":                       TagValidityIndicator,
+	"Vendor Extension":                         TagVendorExtension,
+	"Vendor Identification":                    TagVendorIdentification,
+	"Wrapping Method":                          TagWrappingMethod,
+	"X":                                        TagX,
+	"Y":                                        TagY,
+	"Password":                                 TagPassword,
+	"Device Identifier":                        TagDeviceIdentifier,
+	"Encoding Option":                          TagEncodingOption,
+	"Extension Information":                    TagExtensionInformation,
+	"Extension Name":                           TagExtensionName,
+	"Extension Tag":                            TagExtensionTag,
+	"Extension Type":                           TagExtensionType,
+	"Fresh":                                    TagFresh,
+	"Machine Identifier":                       TagMachineIdentifier,
+	"Media Identifier":                         TagMediaIdentifier,
+	"Network Identifier":                       TagNetworkIdentifier,
+	"Object Group Member":                      TagObjectGroupMember,
+	"Certificate Length":                       TagCertificateLength,
+	"Digital Signature Algorithm":              TagDigitalSignatureAlgorithm,
+	"Certificate Serial Number":                TagCertificateSerialNumber,
+	"Device Serial Number":                     TagDeviceSerialNumber,
+	"Issuer Alternative Name":                  TagIssuerAlternativeName,
+	"Issuer Distinguished Name":                TagIssuerDistinguishedName,
+	"Subject Alternative Name":                 TagSubjectAlternativeName,
+	"Subject Distinguished Name":               TagSubjectDistinguishedName,
+	"X.509 Certificate Identifier":             TagX_509CertificateIdentifier,
+	"X.509 Certificate Issuer":                 TagX_509CertificateIssuer,
+	"X.509 Certificate Subject":                TagX_509CertificateSubject,
+	"Key Value Location":                       TagKeyValueLocation,
+	"Key Value Location Value":                 TagKeyValueLocationValue,
+	"Key Value Location Type":                  TagKeyValueLocationType,
+	"Key Value Present":                        TagKeyValuePresent,
+	"Original Creation Date":                   TagOriginalCreationDate,
+	"PGP Key":                                  TagPGPKey,
+	"PGP Key Version":                          TagPGPKeyVersion,
+	"Alternative Name":                         TagAlternativeName,
+	"Alternative Name Value":                   TagAlternativeNameValue,
+	"Alternative Name Type":                    TagAlternativeNameType,
+	"Data":                                     TagData,
+	"Signature Data":                           TagSignatureData,
+	"Data Length":                              TagDataLength,
+	"Random IV":                                TagRandomIV,
+	"MAC Data":                                 TagMACData,
+	"Attestation Type":                         TagAttestationType,
+	"Nonce":                                    TagNonce,
+	"Nonce ID":                                 TagNonceID,
+	"Nonce Value":                              TagNonceValue,
+	"Attestation Measurement":                  TagAttestationMeasurement,
+	"Attestation Assertion":                    TagAttestationAssertion,
+	"IV Length":                                TagIVLength,
+	"Tag Length":                               TagTagLength,
+	"Fixed Field Length":                       TagFixedFieldLength,
+	"Counter Length":                           TagCounterLength,
+	"Initial Counter Value":                    TagInitialCounterValue,
+	"Invocation Field Length":                  TagInvocationFieldLength,
+	"Attestation Capable Indicator":            TagAttestationCapableIndicator,
+	"Offset Items":                             TagOffsetItems,
+	"Located Items":                            TagLocatedItems,
+	"Correlation Value":                        TagCorrelationValue,
+	"Init Indicator":                           TagInitIndicator,
+	"Final Indicator":                          TagFinalIndicator,
+	"RNG Parameters":                           TagRNGParameters,
+	"RNG Algorithm":                            TagRNGAlgorithm,
+	"DRBG Algorithm":                           TagDRBGAlgorithm,
+	"FIPS186 Variation":                        TagFIPS186Variation,
+	"Prediction Resistance":                    TagPredictionResistance,
+	"Random Number Generator":                  TagRandomNumberGenerator,
+	"Validation Information":                   TagValidationInformation,
+	"Validation Authority Type":                TagValidationAuthorityType,
+	"Validation Authority Country":             TagValidationAuthorityCountry,
+	"Validation Authority URI":                 TagValidationAuthorityURI,
+	"Validation Version Major":                 TagValidationVersionMajor,
+	"Validation Version Minor":                 TagValidationVersionMinor,
+	"Validation Type":                          TagValidationType,
+	"Validation Level":                         TagValidationLevel,
+	"Validation Certificate Identifier":        TagValidationCertificateIdentifier,
+	"Validation Certificate URI":               TagValidationCertificateURI,
+	"Validation Vendor URI":                    TagValidationVendorURI,
+	"Validation Profile":                       TagValidationProfile,
+	"Profile Information":                      TagProfileInformation,
+	"Profile Name":                             TagProfileName,
+	"Server URI":                               TagServerURI,
+	"Server Port":                              TagServerPort,
+	"Streaming Capability":                     TagStreamingCapability,
+	"Asynchronous Capability":                  TagAsynchronousCapability,
+	"Attestation Capability":                   TagAttestationCapability,
+	"Unwrap Mode":                              TagUnwrapMode,
+	"Destroy Action":                           TagDestroyAction,
+	"Shredding Algorithm":                      TagShreddingAlgorithm,
+	"RNG Mode":                                 TagRNGMode,
+	"Client Registration Method":               TagClientRegistrationMethod,
+	"Capability Information":                   TagCapabilityInformation,
+	"Key Wrap Type":                            TagKeyWrapType,
+	"Batch Undo Capability":                    TagBatchUndoCapability,
+	"Batch Continue Capability":                TagBatchContinueCapability,
+	"PKCS#12 Friendly Name":                    TagPKCS_12FriendlyName,
+	"Description":                              TagDescription,
+	"Comment":                                  TagComment,
+	"Authenticated Encryption Additional Data": TagAuthenticatedEncryptionAdditionalData,
+	"Authenticated Encryption Tag":             TagAuthenticatedEncryptionTag,
+	"Salt Length":                              TagSaltLength,
+	"Mask Generator":                           TagMaskGenerator,
+	"Mask Generator Hashing Algorithm":         TagMaskGeneratorHashingAlgorithm,
+	"P Source":                                 TagPSource,
+	"Trailer Field":                            TagTrailerField,
+	"Client Correlation Value":                 TagClientCorrelationValue,
+	"Server Correlation Value":                 TagServerCorrelationValue,
+	"Digested Data":                            TagDigestedData,
+	"Certificate Subject CN":                   TagCertificateSubjectCN,
+	"Certificate Subject O":                    TagCertificateSubjectO,
+	"Certificate Subject OU":                   TagCertificateSubjectOU,
+	"Certificate Subject Email":                TagCertificateSubjectEmail,
+	"Certificate Subject C":                    TagCertificateSubjectC,
+	"Certificate Subject ST":                   TagCertificateSubjectST,
+	"Certificate Subject L":                    TagCertificateSubjectL,
+	"Certificate Subject UID":                  TagCertificateSubjectUID,
+	"Certificate Subject Serial Number":        TagCertificateSubjectSerialNumber,
+	"Certificate Subject Title":                TagCertificateSubjectTitle,
+	"Certificate Subject DC":                   TagCertificateSubjectDC,
+	"Certificate Subject DN Qualifier":         TagCertificateSubjectDNQualifier,
+	"Certificate Issuer CN":                    TagCertificateIssuerCN,
+	"Certificate Issuer O":                     TagCertificateIssuerO,
+	"Certificate Issuer OU":                    TagCertificateIssuerOU,
+	"Certificate Issuer Email":                 TagCertificateIssuerEmail,
+	"Certificate Issuer C":                     TagCertificateIssuerC,
+	"Certificate Issuer ST":                    TagCertificateIssuerST,
+	"Certificate Issuer L":                     TagCertificateIssuerL,
+	"Certificate Issuer UID":                   TagCertificateIssuerUID,
+	"Certificate Issuer Serial Number":         TagCertificateIssuerSerialNumber,
+	"Certificate Issuer Title":                 TagCertificateIssuerTitle,
+	"Certificate Issuer DC":                    TagCertificateIssuerDC,
+	"Certificate Issuer DN Qualifier":          TagCertificateIssuerDNQualifier,
+	"Sensitive":                                TagSensitive,
+	"Always Sensitive":                         TagAlwaysSensitive,
+	"Extractable":                              TagExtractable,
+	"Never Extractable":                        TagNeverExtractable,
+	"Replace Existing":                         TagReplaceExisting,
+}
+
 // Credential Type Enumeration
 // 9.1.3.2.1 Table 289
 type CredentialType uint32
@@ -957,6 +1550,12 @@ func (c *CredentialType) UnmarshalText(text []byte) (err error) {
 
 func (c CredentialType) EnumValue() uint32 {
 	return uint32(c)
+}
+
+func RegisterCredentialType(c CredentialType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_CredentialTypeNameToValueMap[name] = c
+	_CredentialTypeValueToNameMap[c] = name
 }
 
 func init() {
@@ -1034,6 +1633,12 @@ func (k *KeyCompressionType) UnmarshalText(text []byte) (err error) {
 
 func (k KeyCompressionType) EnumValue() uint32 {
 	return uint32(k)
+}
+
+func RegisterKeyCompressionType(k KeyCompressionType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_KeyCompressionTypeNameToValueMap[name] = k
+	_KeyCompressionTypeValueToNameMap[k] = name
 }
 
 func init() {
@@ -1167,6 +1772,12 @@ func (k KeyFormatType) EnumValue() uint32 {
 	return uint32(k)
 }
 
+func RegisterKeyFormatType(k KeyFormatType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_KeyFormatTypeNameToValueMap[name] = k
+	_KeyFormatTypeValueToNameMap[k] = name
+}
+
 func init() {
 	RegisterEnum(TagKeyFormatType, EnumTypeDef{
 		Parse: func(s string) (EnumValuer, error) {
@@ -1245,6 +1856,12 @@ func (w *WrappingMethod) UnmarshalText(text []byte) (err error) {
 
 func (w WrappingMethod) EnumValue() uint32 {
 	return uint32(w)
+}
+
+func RegisterWrappingMethod(w WrappingMethod, name string) {
+	name = kmiputil.NormalizeName(name)
+	_WrappingMethodNameToValueMap[name] = w
+	_WrappingMethodValueToNameMap[w] = name
 }
 
 func init() {
@@ -1516,6 +2133,12 @@ func (r RecommendedCurve) EnumValue() uint32 {
 	return uint32(r)
 }
 
+func RegisterRecommendedCurve(r RecommendedCurve, name string) {
+	name = kmiputil.NormalizeName(name)
+	_RecommendedCurveNameToValueMap[name] = r
+	_RecommendedCurveValueToNameMap[r] = name
+}
+
 func init() {
 	RegisterEnum(TagRecommendedCurve, EnumTypeDef{
 		Parse: func(s string) (EnumValuer, error) {
@@ -1585,6 +2208,12 @@ func (c *CertificateType) UnmarshalText(text []byte) (err error) {
 
 func (c CertificateType) EnumValue() uint32 {
 	return uint32(c)
+}
+
+func RegisterCertificateType(c CertificateType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_CertificateTypeNameToValueMap[name] = c
+	_CertificateTypeValueToNameMap[c] = name
 }
 
 func init() {
@@ -1709,6 +2338,12 @@ func (d DigitalSignatureAlgorithm) EnumValue() uint32 {
 	return uint32(d)
 }
 
+func RegisterDigitalSignatureAlgorithm(d DigitalSignatureAlgorithm, name string) {
+	name = kmiputil.NormalizeName(name)
+	_DigitalSignatureAlgorithmNameToValueMap[name] = d
+	_DigitalSignatureAlgorithmValueToNameMap[d] = name
+}
+
 func init() {
 	RegisterEnum(TagDigitalSignatureAlgorithm, EnumTypeDef{
 		Parse: func(s string) (EnumValuer, error) {
@@ -1786,6 +2421,12 @@ func (s SplitKeyMethod) EnumValue() uint32 {
 	return uint32(s)
 }
 
+func RegisterSplitKeyMethod(s SplitKeyMethod, name string) {
+	name = kmiputil.NormalizeName(name)
+	_SplitKeyMethodNameToValueMap[name] = s
+	_SplitKeyMethodValueToNameMap[s] = name
+}
+
 func init() {
 	RegisterEnum(TagSplitKeyMethod, EnumTypeDef{
 		Parse: func(s string) (EnumValuer, error) {
@@ -1857,6 +2498,12 @@ func (s SecretDataType) EnumValue() uint32 {
 	return uint32(s)
 }
 
+func RegisterSecretDataType(s SecretDataType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_SecretDataTypeNameToValueMap[name] = s
+	_SecretDataTypeValueToNameMap[s] = name
+}
+
 func init() {
 	RegisterEnum(TagSecretDataType, EnumTypeDef{
 		Parse: func(s string) (EnumValuer, error) {
@@ -1917,6 +2564,12 @@ func (o *OpaqueDataType) UnmarshalText(text []byte) (err error) {
 
 func (o OpaqueDataType) EnumValue() uint32 {
 	return uint32(o)
+}
+
+func RegisterOpaqueDataType(o OpaqueDataType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_OpaqueDataTypeNameToValueMap[name] = o
+	_OpaqueDataTypeValueToNameMap[o] = name
 }
 
 func init() {
@@ -1988,6 +2641,12 @@ func (n *NameType) UnmarshalText(text []byte) (err error) {
 
 func (n NameType) EnumValue() uint32 {
 	return uint32(n)
+}
+
+func RegisterNameType(n NameType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_NameTypeNameToValueMap[name] = n
+	_NameTypeValueToNameMap[n] = name
 }
 
 func init() {
@@ -2080,6 +2739,12 @@ func (o *ObjectType) UnmarshalText(text []byte) (err error) {
 
 func (o ObjectType) EnumValue() uint32 {
 	return uint32(o)
+}
+
+func RegisterObjectType(o ObjectType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_ObjectTypeNameToValueMap[name] = o
+	_ObjectTypeValueToNameMap[o] = name
 }
 
 func init() {
@@ -2267,6 +2932,12 @@ func (c CryptographicAlgorithm) EnumValue() uint32 {
 	return uint32(c)
 }
 
+func RegisterCryptographicAlgorithm(c CryptographicAlgorithm, name string) {
+	name = kmiputil.NormalizeName(name)
+	_CryptographicAlgorithmNameToValueMap[name] = c
+	_CryptographicAlgorithmValueToNameMap[c] = name
+}
+
 func init() {
 	RegisterEnum(TagCryptographicAlgorithm, EnumTypeDef{
 		Parse: func(s string) (EnumValuer, error) {
@@ -2386,6 +3057,12 @@ func (b BlockCipherMode) EnumValue() uint32 {
 	return uint32(b)
 }
 
+func RegisterBlockCipherMode(b BlockCipherMode, name string) {
+	name = kmiputil.NormalizeName(name)
+	_BlockCipherModeNameToValueMap[name] = b
+	_BlockCipherModeValueToNameMap[b] = name
+}
+
 func init() {
 	RegisterEnum(TagBlockCipherMode, EnumTypeDef{
 		Parse: func(s string) (EnumValuer, error) {
@@ -2479,6 +3156,12 @@ func (p *PaddingMethod) UnmarshalText(text []byte) (err error) {
 
 func (p PaddingMethod) EnumValue() uint32 {
 	return uint32(p)
+}
+
+func RegisterPaddingMethod(p PaddingMethod, name string) {
+	name = kmiputil.NormalizeName(name)
+	_PaddingMethodNameToValueMap[name] = p
+	_PaddingMethodValueToNameMap[p] = name
 }
 
 func init() {
@@ -2595,6 +3278,12 @@ func (h *HashingAlgorithm) UnmarshalText(text []byte) (err error) {
 
 func (h HashingAlgorithm) EnumValue() uint32 {
 	return uint32(h)
+}
+
+func RegisterHashingAlgorithm(h HashingAlgorithm, name string) {
+	name = kmiputil.NormalizeName(name)
+	_HashingAlgorithmNameToValueMap[name] = h
+	_HashingAlgorithmValueToNameMap[h] = name
 }
 
 func init() {
@@ -2747,6 +3436,12 @@ func (k KeyRoleType) EnumValue() uint32 {
 	return uint32(k)
 }
 
+func RegisterKeyRoleType(k KeyRoleType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_KeyRoleTypeNameToValueMap[name] = k
+	_KeyRoleTypeValueToNameMap[k] = name
+}
+
 func init() {
 	RegisterEnum(TagKeyRoleType, EnumTypeDef{
 		Parse: func(s string) (EnumValuer, error) {
@@ -2828,6 +3523,12 @@ func (s *State) UnmarshalText(text []byte) (err error) {
 
 func (s State) EnumValue() uint32 {
 	return uint32(s)
+}
+
+func RegisterState(s State, name string) {
+	name = kmiputil.NormalizeName(name)
+	_StateNameToValueMap[name] = s
+	_StateValueToNameMap[s] = name
 }
 
 func init() {
@@ -2914,6 +3615,12 @@ func (r *RevocationReasonCode) UnmarshalText(text []byte) (err error) {
 
 func (r RevocationReasonCode) EnumValue() uint32 {
 	return uint32(r)
+}
+
+func RegisterRevocationReasonCode(r RevocationReasonCode, name string) {
+	name = kmiputil.NormalizeName(name)
+	_RevocationReasonCodeNameToValueMap[name] = r
+	_RevocationReasonCodeValueToNameMap[r] = name
 }
 
 func init() {
@@ -3020,6 +3727,12 @@ func (l LinkType) EnumValue() uint32 {
 	return uint32(l)
 }
 
+func RegisterLinkType(l LinkType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_LinkTypeNameToValueMap[name] = l
+	_LinkTypeValueToNameMap[l] = name
+}
+
 func init() {
 	RegisterEnum(TagLinkType, EnumTypeDef{
 		Parse: func(s string) (EnumValuer, error) {
@@ -3109,6 +3822,12 @@ func (d DerivationMethod) EnumValue() uint32 {
 	return uint32(d)
 }
 
+func RegisterDerivationMethod(d DerivationMethod, name string) {
+	name = kmiputil.NormalizeName(name)
+	_DerivationMethodNameToValueMap[name] = d
+	_DerivationMethodValueToNameMap[d] = name
+}
+
 func init() {
 	RegisterEnum(TagDerivationMethod, EnumTypeDef{
 		Parse: func(s string) (EnumValuer, error) {
@@ -3186,6 +3905,12 @@ func (c CertificateRequestType) EnumValue() uint32 {
 	return uint32(c)
 }
 
+func RegisterCertificateRequestType(c CertificateRequestType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_CertificateRequestTypeNameToValueMap[name] = c
+	_CertificateRequestTypeValueToNameMap[c] = name
+}
+
 func init() {
 	RegisterEnum(TagCertificateRequestType, EnumTypeDef{
 		Parse: func(s string) (EnumValuer, error) {
@@ -3258,6 +3983,12 @@ func (v *ValidityIndicator) UnmarshalText(text []byte) (err error) {
 
 func (v ValidityIndicator) EnumValue() uint32 {
 	return uint32(v)
+}
+
+func RegisterValidityIndicator(v ValidityIndicator, name string) {
+	name = kmiputil.NormalizeName(name)
+	_ValidityIndicatorNameToValueMap[name] = v
+	_ValidityIndicatorValueToNameMap[v] = name
 }
 
 func init() {
@@ -3361,6 +4092,12 @@ func (q QueryFunction) EnumValue() uint32 {
 	return uint32(q)
 }
 
+func RegisterQueryFunction(q QueryFunction, name string) {
+	name = kmiputil.NormalizeName(name)
+	_QueryFunctionNameToValueMap[name] = q
+	_QueryFunctionValueToNameMap[q] = name
+}
+
 func init() {
 	RegisterEnum(TagQueryFunction, EnumTypeDef{
 		Parse: func(s string) (EnumValuer, error) {
@@ -3441,6 +4178,12 @@ func (c CancellationResult) EnumValue() uint32 {
 	return uint32(c)
 }
 
+func RegisterCancellationResult(c CancellationResult, name string) {
+	name = kmiputil.NormalizeName(name)
+	_CancellationResultNameToValueMap[name] = c
+	_CancellationResultValueToNameMap[c] = name
+}
+
 func init() {
 	RegisterEnum(TagCancellationResult, EnumTypeDef{
 		Parse: func(s string) (EnumValuer, error) {
@@ -3510,6 +4253,12 @@ func (p *PutFunction) UnmarshalText(text []byte) (err error) {
 
 func (p PutFunction) EnumValue() uint32 {
 	return uint32(p)
+}
+
+func RegisterPutFunction(p PutFunction, name string) {
+	name = kmiputil.NormalizeName(name)
+	_PutFunctionNameToValueMap[name] = p
+	_PutFunctionValueToNameMap[p] = name
 }
 
 func init() {
@@ -3706,6 +4455,12 @@ func (o Operation) EnumValue() uint32 {
 	return uint32(o)
 }
 
+func RegisterOperation(o Operation, name string) {
+	name = kmiputil.NormalizeName(name)
+	_OperationNameToValueMap[name] = o
+	_OperationValueToNameMap[o] = name
+}
+
 func init() {
 	RegisterEnum(TagOperation, EnumTypeDef{
 		Parse: func(s string) (EnumValuer, error) {
@@ -3781,6 +4536,12 @@ func (r *ResultStatus) UnmarshalText(text []byte) (err error) {
 
 func (r ResultStatus) EnumValue() uint32 {
 	return uint32(r)
+}
+
+func RegisterResultStatus(r ResultStatus, name string) {
+	name = kmiputil.NormalizeName(name)
+	_ResultStatusNameToValueMap[name] = r
+	_ResultStatusValueToNameMap[r] = name
 }
 
 func init() {
@@ -3923,6 +4684,12 @@ func (r ResultReason) EnumValue() uint32 {
 	return uint32(r)
 }
 
+func RegisterResultReason(r ResultReason, name string) {
+	name = kmiputil.NormalizeName(name)
+	_ResultReasonNameToValueMap[name] = r
+	_ResultReasonValueToNameMap[r] = name
+}
+
 func init() {
 	RegisterEnum(TagResultReason, EnumTypeDef{
 		Parse: func(s string) (EnumValuer, error) {
@@ -3997,6 +4764,12 @@ func (b BatchErrorContinuationOption) EnumValue() uint32 {
 	return uint32(b)
 }
 
+func RegisterBatchErrorContinuationOption(b BatchErrorContinuationOption, name string) {
+	name = kmiputil.NormalizeName(name)
+	_BatchErrorContinuationOptionNameToValueMap[name] = b
+	_BatchErrorContinuationOptionValueToNameMap[b] = name
+}
+
 func init() {
 	RegisterEnum(TagBatchErrorContinuationOption, EnumTypeDef{
 		Parse: func(s string) (EnumValuer, error) {
@@ -4066,6 +4839,12 @@ func (u *UsageLimitsUnit) UnmarshalText(text []byte) (err error) {
 
 func (u UsageLimitsUnit) EnumValue() uint32 {
 	return uint32(u)
+}
+
+func RegisterUsageLimitsUnit(u UsageLimitsUnit, name string) {
+	name = kmiputil.NormalizeName(name)
+	_UsageLimitsUnitNameToValueMap[name] = u
+	_UsageLimitsUnitValueToNameMap[u] = name
 }
 
 func init() {
@@ -4139,6 +4918,12 @@ func (e EncodingOption) EnumValue() uint32 {
 	return uint32(e)
 }
 
+func RegisterEncodingOption(e EncodingOption, name string) {
+	name = kmiputil.NormalizeName(name)
+	_EncodingOptionNameToValueMap[name] = e
+	_EncodingOptionValueToNameMap[e] = name
+}
+
 func init() {
 	RegisterEnum(TagEncodingOption, EnumTypeDef{
 		Parse: func(s string) (EnumValuer, error) {
@@ -4208,6 +4993,12 @@ func (o *ObjectGroupMember) UnmarshalText(text []byte) (err error) {
 
 func (o ObjectGroupMember) EnumValue() uint32 {
 	return uint32(o)
+}
+
+func RegisterObjectGroupMember(o ObjectGroupMember, name string) {
+	name = kmiputil.NormalizeName(name)
+	_ObjectGroupMemberNameToValueMap[name] = o
+	_ObjectGroupMemberValueToNameMap[o] = name
 }
 
 func init() {
@@ -4296,6 +5087,12 @@ func (a AlternativeNameType) EnumValue() uint32 {
 	return uint32(a)
 }
 
+func RegisterAlternativeNameType(a AlternativeNameType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_AlternativeNameTypeNameToValueMap[name] = a
+	_AlternativeNameTypeValueToNameMap[a] = name
+}
+
 func init() {
 	RegisterEnum(TagAlternativeNameType, EnumTypeDef{
 		Parse: func(s string) (EnumValuer, error) {
@@ -4365,6 +5162,12 @@ func (k *KeyValueLocationType) UnmarshalText(text []byte) (err error) {
 
 func (k KeyValueLocationType) EnumValue() uint32 {
 	return uint32(k)
+}
+
+func RegisterKeyValueLocationType(k KeyValueLocationType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_KeyValueLocationTypeNameToValueMap[name] = k
+	_KeyValueLocationTypeValueToNameMap[k] = name
 }
 
 func init() {
@@ -4439,6 +5242,12 @@ func (a *AttestationType) UnmarshalText(text []byte) (err error) {
 
 func (a AttestationType) EnumValue() uint32 {
 	return uint32(a)
+}
+
+func RegisterAttestationType(a AttestationType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_AttestationTypeNameToValueMap[name] = a
+	_AttestationTypeValueToNameMap[a] = name
 }
 
 func init() {
@@ -4524,6 +5333,12 @@ func (r RNGAlgorithm) EnumValue() uint32 {
 	return uint32(r)
 }
 
+func RegisterRNGAlgorithm(r RNGAlgorithm, name string) {
+	name = kmiputil.NormalizeName(name)
+	_RNGAlgorithmNameToValueMap[name] = r
+	_RNGAlgorithmValueToNameMap[r] = name
+}
+
 func init() {
 	RegisterEnum(TagRNGAlgorithm, EnumTypeDef{
 		Parse: func(s string) (EnumValuer, error) {
@@ -4602,6 +5417,12 @@ func (d *DRBGAlgorithm) UnmarshalText(text []byte) (err error) {
 
 func (d DRBGAlgorithm) EnumValue() uint32 {
 	return uint32(d)
+}
+
+func RegisterDRBGAlgorithm(d DRBGAlgorithm, name string) {
+	name = kmiputil.NormalizeName(name)
+	_DRBGAlgorithmNameToValueMap[name] = d
+	_DRBGAlgorithmValueToNameMap[d] = name
 }
 
 func init() {
@@ -4690,6 +5511,12 @@ func (f FIPS186Variation) EnumValue() uint32 {
 	return uint32(f)
 }
 
+func RegisterFIPS186Variation(f FIPS186Variation, name string) {
+	name = kmiputil.NormalizeName(name)
+	_FIPS186VariationNameToValueMap[name] = f
+	_FIPS186VariationValueToNameMap[f] = name
+}
+
 func init() {
 	RegisterEnum(TagFIPS186Variation, EnumTypeDef{
 		Parse: func(s string) (EnumValuer, error) {
@@ -4762,6 +5589,12 @@ func (v *ValidationAuthorityType) UnmarshalText(text []byte) (err error) {
 
 func (v ValidationAuthorityType) EnumValue() uint32 {
 	return uint32(v)
+}
+
+func RegisterValidationAuthorityType(v ValidationAuthorityType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_ValidationAuthorityTypeNameToValueMap[name] = v
+	_ValidationAuthorityTypeValueToNameMap[v] = name
 }
 
 func init() {
@@ -4842,6 +5675,12 @@ func (v *ValidationType) UnmarshalText(text []byte) (err error) {
 
 func (v ValidationType) EnumValue() uint32 {
 	return uint32(v)
+}
+
+func RegisterValidationType(v ValidationType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_ValidationTypeNameToValueMap[name] = v
+	_ValidationTypeValueToNameMap[v] = name
 }
 
 func init() {
@@ -5377,6 +6216,12 @@ func (p ProfileName) EnumValue() uint32 {
 	return uint32(p)
 }
 
+func RegisterProfileName(p ProfileName, name string) {
+	name = kmiputil.NormalizeName(name)
+	_ProfileNameNameToValueMap[name] = p
+	_ProfileNameValueToNameMap[p] = name
+}
+
 func init() {
 	RegisterEnum(TagProfileName, EnumTypeDef{
 		Parse: func(s string) (EnumValuer, error) {
@@ -5449,6 +6294,12 @@ func (u *UnwrapMode) UnmarshalText(text []byte) (err error) {
 
 func (u UnwrapMode) EnumValue() uint32 {
 	return uint32(u)
+}
+
+func RegisterUnwrapMode(u UnwrapMode, name string) {
+	name = kmiputil.NormalizeName(name)
+	_UnwrapModeNameToValueMap[name] = u
+	_UnwrapModeValueToNameMap[u] = name
 }
 
 func init() {
@@ -5537,6 +6388,12 @@ func (d DestroyAction) EnumValue() uint32 {
 	return uint32(d)
 }
 
+func RegisterDestroyAction(d DestroyAction, name string) {
+	name = kmiputil.NormalizeName(name)
+	_DestroyActionNameToValueMap[name] = d
+	_DestroyActionValueToNameMap[d] = name
+}
+
 func init() {
 	RegisterEnum(TagDestroyAction, EnumTypeDef{
 		Parse: func(s string) (EnumValuer, error) {
@@ -5611,6 +6468,12 @@ func (s ShreddingAlgorithm) EnumValue() uint32 {
 	return uint32(s)
 }
 
+func RegisterShreddingAlgorithm(s ShreddingAlgorithm, name string) {
+	name = kmiputil.NormalizeName(name)
+	_ShreddingAlgorithmNameToValueMap[name] = s
+	_ShreddingAlgorithmValueToNameMap[s] = name
+}
+
 func init() {
 	RegisterEnum(TagShreddingAlgorithm, EnumTypeDef{
 		Parse: func(s string) (EnumValuer, error) {
@@ -5683,6 +6546,12 @@ func (r *RNGMode) UnmarshalText(text []byte) (err error) {
 
 func (r RNGMode) EnumValue() uint32 {
 	return uint32(r)
+}
+
+func RegisterRNGMode(r RNGMode, name string) {
+	name = kmiputil.NormalizeName(name)
+	_RNGModeNameToValueMap[name] = r
+	_RNGModeValueToNameMap[r] = name
 }
 
 func init() {
@@ -5765,6 +6634,12 @@ func (c ClientRegistrationMethod) EnumValue() uint32 {
 	return uint32(c)
 }
 
+func RegisterClientRegistrationMethod(c ClientRegistrationMethod, name string) {
+	name = kmiputil.NormalizeName(name)
+	_ClientRegistrationMethodNameToValueMap[name] = c
+	_ClientRegistrationMethodValueToNameMap[c] = name
+}
+
 func init() {
 	RegisterEnum(TagClientRegistrationMethod, EnumTypeDef{
 		Parse: func(s string) (EnumValuer, error) {
@@ -5836,6 +6711,12 @@ func (k KeyWrapType) EnumValue() uint32 {
 	return uint32(k)
 }
 
+func RegisterKeyWrapType(k KeyWrapType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_KeyWrapTypeNameToValueMap[name] = k
+	_KeyWrapTypeValueToNameMap[k] = name
+}
+
 func init() {
 	RegisterEnum(TagKeyWrapType, EnumTypeDef{
 		Parse: func(s string) (EnumValuer, error) {
@@ -5902,6 +6783,12 @@ func (m *MaskGenerator) UnmarshalText(text []byte) (err error) {
 
 func (m MaskGenerator) EnumValue() uint32 {
 	return uint32(m)
+}
+
+func RegisterMaskGenerator(m MaskGenerator, name string) {
+	name = kmiputil.NormalizeName(name)
+	_MaskGeneratorNameToValueMap[name] = m
+	_MaskGeneratorValueToNameMap[m] = name
 }
 
 func init() {

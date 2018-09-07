@@ -49,8 +49,9 @@ func main() {
 }
 
 type enumVal struct {
-	Name  string
-	Value uint32
+	FullName string
+	Name     string
+	Value    uint32
 }
 
 func gen(d EnumDef) string {
@@ -77,7 +78,7 @@ func gen(d EnumDef) string {
 	// normalize all the value names
 	for key, value := range d.Values {
 		n := kmiputil.NormalizeName(key)
-		input.Vals = append(input.Vals, enumVal{n, value})
+		input.Vals = append(input.Vals, enumVal{key, n, value})
 	}
 
 	// sort the vals by value order
@@ -128,7 +129,7 @@ func genTag(d map[string]uint32) string {
 
 	// normalize all the value names
 	for key, value := range d {
-		inputs.Vals = append(inputs.Vals, enumVal{kmiputil.NormalizeName(key), value})
+		inputs.Vals = append(inputs.Vals, enumVal{key, kmiputil.NormalizeName(key), value})
 	}
 
 	sort.Slice(inputs.Vals, func(i, j int) bool {
@@ -165,6 +166,7 @@ import (
 	"strings"
 	"encoding/binary"
 	"encoding/hex"
+	"gitlab.protectv.local/regan/kmip.git/internal/kmiputil"
 )
 
 // Tag
@@ -181,6 +183,14 @@ var _TagNameToValueMap = map[string]Tag { {{range .Vals}}
 
 var _TagValueToNameMap = map[Tag]string { {{range .Vals}}
 	Tag{{.Name}}: "{{.Name}}",{{end}}
+}
+
+var _TagValueToFullNameMap = map[Tag]string { {{range .Vals}}
+	Tag{{.Name}}: "{{.FullName}}",{{end}}
+}
+
+var _TagFullNameToValueMap = map[string]Tag { {{range .Vals}}
+	"{{.FullName}}": Tag{{.Name}},{{end}}
 }
 `
 
@@ -238,6 +248,12 @@ func ({{.Var}} *{{.TypeName}}) UnmarshalText(text []byte) (err error) {
 func ({{.Var}} {{.TypeName}}) EnumValue() uint32 {
 	return uint32({{.Var}})
 }{{if .Tags}}
+
+func Register{{.TypeName}}({{.Var}} {{.TypeName}}, name string) {
+	name = kmiputil.NormalizeName(name)
+	_{{.TypeName}}NameToValueMap[name] = {{.Var}}
+	_{{.TypeName}}ValueToNameMap[{{.Var}}] = name
+}
 
 func init() { {{range .Tags}}
 	RegisterEnum({{.}}, EnumTypeDef{

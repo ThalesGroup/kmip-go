@@ -69,13 +69,6 @@ func (t Tag) FullName() string {
 	return fmt.Sprintf("%#06x", uint32(t))
 }
 
-func TagByFullName(s string) (Tag, error) {
-	if t, ok := _TagFullNameToValueMap[s]; ok {
-		return t, nil
-	}
-	return TagNone, merry.New("no tag found")
-}
-
 // returns TagNone if not found.
 // returns error if s is a malformed hex string, or a hex string of incorrect length
 func ParseTag(s string) (Tag, error) {

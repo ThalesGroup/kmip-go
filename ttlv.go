@@ -3,10 +3,14 @@ package kmip
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"github.com/ansel1/merry"
 	"io"
 	"math/big"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -21,6 +25,134 @@ const lenBool = 8
 const lenHeader = lenTag + 1 + lenLen // tag + type + len
 
 type TTLV []byte
+
+type tval struct {
+	Tag   string          `json:"tag"`
+	Type  string          `json:"type,omitempty"`
+	Value json.RawMessage `json:"value"`
+}
+
+var maxJSONInt = int64(1) << 52
+var maxJSONBigInt = big.NewInt(maxJSONInt)
+
+func (t TTLV) MarshalJSON() ([]byte, error) {
+	if len(t) == 0 {
+		return []byte("null"), nil
+	}
+	if err := t.Valid(); err != nil {
+		return nil, err
+	}
+
+	var sb strings.Builder
+
+	sb.WriteString(`{"tag":"`)
+	sb.WriteString(t.Tag().String())
+	if t.Type() != TypeStructure {
+		sb.WriteString(`","type":"`)
+		sb.WriteString(t.Type().String())
+	}
+	sb.WriteString(`","value":`)
+
+	switch t.Type() {
+	case TypeBoolean:
+		if t.ValueBoolean() {
+			sb.WriteString("true")
+			//val = json.RawMessage("true")
+		} else {
+			sb.WriteString("false")
+			//val = json.RawMessage("false")
+		}
+	case TypeEnumeration:
+		// TODO: enum to string mapping inside attributes
+		s := EnumToString(t.Tag(), t.ValueEnumeration())
+		sb.WriteString(`"`)
+		sb.WriteString(s)
+		sb.WriteString(`"`)
+		//val = json.RawMessage(s)
+	case TypeInteger:
+		// TODO: handle masks
+		sb.WriteString(strconv.Itoa(t.ValueInteger()))
+		//val, err = json.Marshal(t.ValueInteger())
+	case TypeLongInteger:
+		v := t.ValueLongInteger()
+		if v <= -maxJSONInt || v >= maxJSONInt {
+			sb.WriteString(`"0x`)
+			sb.WriteString(hex.EncodeToString(t.ValueRaw()))
+			sb.WriteString(`"`)
+			//val = json.RawMessage("0x" + hex.EncodeToString(t.ValueRaw()))
+		} else {
+			sb.WriteString(strconv.FormatInt(v, 10))
+			//val, err = json.Marshal(v)
+		}
+	case TypeBigInteger:
+		v := t.ValueBigInteger()
+		if v.IsInt64() && v.CmpAbs(maxJSONBigInt) < 0 {
+			val, err := v.MarshalJSON()
+			if err != nil {
+				return nil, err
+			}
+			sb.Write(val)
+		} else {
+			sb.WriteString(`"0x`)
+			sb.WriteString(hex.EncodeToString(t.ValueRaw()))
+			sb.WriteString(`"`)
+			//val = t.ValueRaw()
+		}
+	case TypeTextString:
+		val, err := json.Marshal(t.ValueTextString())
+		if err != nil {
+			return nil, err
+		}
+		sb.Write(val)
+	case TypeByteString:
+		sb.WriteString(`"`)
+		sb.WriteString(hex.EncodeToString(t.ValueRaw()))
+		sb.WriteString(`"`)
+		//val = []byte(hex.EncodeToString(t.ValueRaw()))
+	case TypeStructure:
+		sb.WriteString("[")
+		c := t.ValueStructure()
+		var attrTag Tag
+		for len(c) > 0 {
+			// if the struct contains an attribute name, followed by an
+			// attribute value, use the name to try and map enumeration values
+			// to their string variants
+			if c.Tag() == TagAttributeName {
+				// try to map the attribute name to a tag
+				attrTag, _ = ParseTag(NormalizeName(c.ValueTextString()))
+			}
+			if c.Tag() == TagAttributeValue && c.Type() == TypeEnumeration {
+				sb.WriteString(`{"tag":"AttributeValue","type":"Enumeration","value":"`)
+				sb.WriteString(EnumToString(attrTag, c.ValueEnumeration()))
+				sb.WriteString(`"}`)
+			} else {
+				v, err := c.MarshalJSON()
+				if err != nil {
+					return nil, err
+				}
+				sb.Write(v)
+			}
+			c = c.Next()
+			if len(c) > 0 {
+				sb.WriteString(",")
+			}
+		}
+		sb.WriteString("]")
+	case TypeDateTime:
+		val, err := t.ValueDateTime().MarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+		sb.Write(val)
+	case TypeInterval:
+		sb.WriteString(strconv.FormatUint(uint64(binary.BigEndian.Uint32(t.ValueRaw())), 10))
+		//val, err = json.Marshal(binary.BigEndian.Uint32(t.ValueRaw()))
+	}
+
+	sb.WriteString(`}`)
+	return []byte(sb.String()), nil
+	//return json.Marshal(&tval{Tag: t.Tag().String(), Type: t.Type().String(), Value: val})
+}
 
 func (t *TTLV) UnmarshalTTLV(ttlv TTLV, disallowUnknownFields bool) error {
 	if ttlv == nil {

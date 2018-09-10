@@ -1198,302 +1198,6 @@ var _TagValueToFullNameMap = map[Tag]string{
 	TagReplaceExisting:                       "Replace Existing",
 }
 
-var _TagFullNameToValueMap = map[string]Tag{
-	"None":                                     TagNone,
-	"Activation Date":                          TagActivationDate,
-	"Application Data":                         TagApplicationData,
-	"Application Namespace":                    TagApplicationNamespace,
-	"Application Specific Information":         TagApplicationSpecificInformation,
-	"Archive Date":                             TagArchiveDate,
-	"Asynchronous Correlation Value":           TagAsynchronousCorrelationValue,
-	"Asynchronous Indicator":                   TagAsynchronousIndicator,
-	"Attribute":                                TagAttribute,
-	"Attribute Index":                          TagAttributeIndex,
-	"Attribute Name":                           TagAttributeName,
-	"Attribute Value":                          TagAttributeValue,
-	"Authentication":                           TagAuthentication,
-	"Batch Count":                              TagBatchCount,
-	"Batch Error Continuation Option":          TagBatchErrorContinuationOption,
-	"Batch Item":                               TagBatchItem,
-	"Batch Order Option":                       TagBatchOrderOption,
-	"Block Cipher Mode":                        TagBlockCipherMode,
-	"Cancellation Result":                      TagCancellationResult,
-	"Certificate":                              TagCertificate,
-	"Certificate Identifier":                   TagCertificateIdentifier,
-	"Certificate Issuer":                       TagCertificateIssuer,
-	"Certificate Issuer Alternative Name":      TagCertificateIssuerAlternativeName,
-	"Certificate Issuer Distinguished Name":    TagCertificateIssuerDistinguishedName,
-	"Certificate Request":                      TagCertificateRequest,
-	"Certificate Request Type":                 TagCertificateRequestType,
-	"Certificate Subject":                      TagCertificateSubject,
-	"Certificate Subject Alternative Name":     TagCertificateSubjectAlternativeName,
-	"Certificate Subject Distinguished Name":   TagCertificateSubjectDistinguishedName,
-	"Certificate Type":                         TagCertificateType,
-	"Certificate Value":                        TagCertificateValue,
-	"Common Template-Attribute":                TagCommonTemplateAttribute,
-	"Compromise  Date":                         TagCompromiseDate,
-	"Compromise Occurrence Date":               TagCompromiseOccurrenceDate,
-	"Contact Information":                      TagContactInformation,
-	"Credential":                               TagCredential,
-	"Credential Type":                          TagCredentialType,
-	"Credential Value":                         TagCredentialValue,
-	"Criticality Indicator":                    TagCriticalityIndicator,
-	"CRT Coefficient":                          TagCRTCoefficient,
-	"Cryptographic Algorithm":                  TagCryptographicAlgorithm,
-	"Cryptographic Domain Parameters":          TagCryptographicDomainParameters,
-	"Cryptographic Length":                     TagCryptographicLength,
-	"Cryptographic Parameters":                 TagCryptographicParameters,
-	"Cryptographic Usage Mask":                 TagCryptographicUsageMask,
-	"Custom Attribute":                         TagCustomAttribute,
-	"D":                                        TagD,
-	"Deactivation Date":                        TagDeactivationDate,
-	"Derivation Data":                          TagDerivationData,
-	"Derivation Method":                        TagDerivationMethod,
-	"Derivation Parameters":                    TagDerivationParameters,
-	"Destroy Date":                             TagDestroyDate,
-	"Digest":                                   TagDigest,
-	"Digest Value":                             TagDigestValue,
-	"Encryption Key Information":               TagEncryptionKeyInformation,
-	"G":                                        TagG,
-	"Hashing Algorithm":                        TagHashingAlgorithm,
-	"Initial Date":                             TagInitialDate,
-	"Initialization Vector":                    TagInitializationVector,
-	"Issuer":                                   TagIssuer,
-	"Iteration Count":                          TagIterationCount,
-	"IV/Counter/Nonce":                         TagIVCounterNonce,
-	"J":                                        TagJ,
-	"Key":                                      TagKey,
-	"Key Block":                                TagKeyBlock,
-	"Key Compression Type":                     TagKeyCompressionType,
-	"Key Format Type":                          TagKeyFormatType,
-	"Key Material":                             TagKeyMaterial,
-	"Key Part Identifier":                      TagKeyPartIdentifier,
-	"Key Value":                                TagKeyValue,
-	"Key Wrapping Data":                        TagKeyWrappingData,
-	"Key Wrapping Specification":               TagKeyWrappingSpecification,
-	"Last Change Date":                         TagLastChangeDate,
-	"Lease Time":                               TagLeaseTime,
-	"Link":                                     TagLink,
-	"Link Type":                                TagLinkType,
-	"Linked Object Identifier":                 TagLinkedObjectIdentifier,
-	"MAC/Signature":                            TagMACSignature,
-	"MAC/Signature Key Information":            TagMACSignatureKeyInformation,
-	"Maximum Items":                            TagMaximumItems,
-	"Maximum Response Size":                    TagMaximumResponseSize,
-	"Message Extension":                        TagMessageExtension,
-	"Modulus":                                  TagModulus,
-	"Name":                                     TagName,
-	"Name Type":                                TagNameType,
-	"Name Value":                               TagNameValue,
-	"Object Group":                             TagObjectGroup,
-	"Object Type":                              TagObjectType,
-	"Offset":                                   TagOffset,
-	"Opaque Data Type":                         TagOpaqueDataType,
-	"Opaque Data Value":                        TagOpaqueDataValue,
-	"Opaque Object":                            TagOpaqueObject,
-	"Operation":                                TagOperation,
-	"Operation Policy Name":                    TagOperationPolicyName,
-	"P":                                        TagP,
-	"Padding Method":                           TagPaddingMethod,
-	"Prime Exponent P":                         TagPrimeExponentP,
-	"Prime Exponent Q":                         TagPrimeExponentQ,
-	"Prime Field Size":                         TagPrimeFieldSize,
-	"Private Exponent":                         TagPrivateExponent,
-	"Private Key":                              TagPrivateKey,
-	"Private Key Template-Attribute":           TagPrivateKeyTemplateAttribute,
-	"Private Key Unique Identifier":            TagPrivateKeyUniqueIdentifier,
-	"Process Start Date":                       TagProcessStartDate,
-	"Protect Stop Date":                        TagProtectStopDate,
-	"Protocol Version":                         TagProtocolVersion,
-	"Protocol Version Major":                   TagProtocolVersionMajor,
-	"Protocol Version Minor":                   TagProtocolVersionMinor,
-	"Public Exponent":                          TagPublicExponent,
-	"Public Key":                               TagPublicKey,
-	"Public Key Template-Attribute":            TagPublicKeyTemplateAttribute,
-	"Public Key Unique Identifier":             TagPublicKeyUniqueIdentifier,
-	"Put Function":                             TagPutFunction,
-	"Q":                                        TagQ,
-	"Q String":                                 TagQString,
-	"Qlength":                                  TagQlength,
-	"Query Function":                           TagQueryFunction,
-	"Recommended Curve":                        TagRecommendedCurve,
-	"Replaced Unique Identifier":               TagReplacedUniqueIdentifier,
-	"Request Header":                           TagRequestHeader,
-	"Request Message":                          TagRequestMessage,
-	"Request Payload":                          TagRequestPayload,
-	"Response Header":                          TagResponseHeader,
-	"Response Message":                         TagResponseMessage,
-	"Response Payload":                         TagResponsePayload,
-	"Result Message":                           TagResultMessage,
-	"Result Reason":                            TagResultReason,
-	"Result Status":                            TagResultStatus,
-	"Revocation Message":                       TagRevocationMessage,
-	"Revocation Reason":                        TagRevocationReason,
-	"Revocation Reason Code":                   TagRevocationReasonCode,
-	"Key Role Type":                            TagKeyRoleType,
-	"Salt":                                     TagSalt,
-	"Secret Data":                              TagSecretData,
-	"Secret Data Type":                         TagSecretDataType,
-	"Serial Number":                            TagSerialNumber,
-	"Server Information":                       TagServerInformation,
-	"Split Key":                                TagSplitKey,
-	"Split Key Method":                         TagSplitKeyMethod,
-	"Split Key Parts":                          TagSplitKeyParts,
-	"Split Key Threshold":                      TagSplitKeyThreshold,
-	"State":                                    TagState,
-	"Storage Status Mask":                      TagStorageStatusMask,
-	"Symmetric Key":                            TagSymmetricKey,
-	"Template":                                 TagTemplate,
-	"Template-Attribute":                       TagTemplateAttribute,
-	"Time Stamp":                               TagTimeStamp,
-	"Unique Batch Item ID":                     TagUniqueBatchItemID,
-	"Unique Identifier":                        TagUniqueIdentifier,
-	"Usage Limits":                             TagUsageLimits,
-	"Usage Limits Count":                       TagUsageLimitsCount,
-	"Usage Limits Total":                       TagUsageLimitsTotal,
-	"Usage Limits Unit":                        TagUsageLimitsUnit,
-	"Username":                                 TagUsername,
-	"Validity Date":                            TagValidityDate,
-	"Validity Indicator":                       TagValidityIndicator,
-	"Vendor Extension":                         TagVendorExtension,
-	"Vendor Identification":                    TagVendorIdentification,
-	"Wrapping Method":                          TagWrappingMethod,
-	"X":                                        TagX,
-	"Y":                                        TagY,
-	"Password":                                 TagPassword,
-	"Device Identifier":                        TagDeviceIdentifier,
-	"Encoding Option":                          TagEncodingOption,
-	"Extension Information":                    TagExtensionInformation,
-	"Extension Name":                           TagExtensionName,
-	"Extension Tag":                            TagExtensionTag,
-	"Extension Type":                           TagExtensionType,
-	"Fresh":                                    TagFresh,
-	"Machine Identifier":                       TagMachineIdentifier,
-	"Media Identifier":                         TagMediaIdentifier,
-	"Network Identifier":                       TagNetworkIdentifier,
-	"Object Group Member":                      TagObjectGroupMember,
-	"Certificate Length":                       TagCertificateLength,
-	"Digital Signature Algorithm":              TagDigitalSignatureAlgorithm,
-	"Certificate Serial Number":                TagCertificateSerialNumber,
-	"Device Serial Number":                     TagDeviceSerialNumber,
-	"Issuer Alternative Name":                  TagIssuerAlternativeName,
-	"Issuer Distinguished Name":                TagIssuerDistinguishedName,
-	"Subject Alternative Name":                 TagSubjectAlternativeName,
-	"Subject Distinguished Name":               TagSubjectDistinguishedName,
-	"X.509 Certificate Identifier":             TagX_509CertificateIdentifier,
-	"X.509 Certificate Issuer":                 TagX_509CertificateIssuer,
-	"X.509 Certificate Subject":                TagX_509CertificateSubject,
-	"Key Value Location":                       TagKeyValueLocation,
-	"Key Value Location Value":                 TagKeyValueLocationValue,
-	"Key Value Location Type":                  TagKeyValueLocationType,
-	"Key Value Present":                        TagKeyValuePresent,
-	"Original Creation Date":                   TagOriginalCreationDate,
-	"PGP Key":                                  TagPGPKey,
-	"PGP Key Version":                          TagPGPKeyVersion,
-	"Alternative Name":                         TagAlternativeName,
-	"Alternative Name Value":                   TagAlternativeNameValue,
-	"Alternative Name Type":                    TagAlternativeNameType,
-	"Data":                                     TagData,
-	"Signature Data":                           TagSignatureData,
-	"Data Length":                              TagDataLength,
-	"Random IV":                                TagRandomIV,
-	"MAC Data":                                 TagMACData,
-	"Attestation Type":                         TagAttestationType,
-	"Nonce":                                    TagNonce,
-	"Nonce ID":                                 TagNonceID,
-	"Nonce Value":                              TagNonceValue,
-	"Attestation Measurement":                  TagAttestationMeasurement,
-	"Attestation Assertion":                    TagAttestationAssertion,
-	"IV Length":                                TagIVLength,
-	"Tag Length":                               TagTagLength,
-	"Fixed Field Length":                       TagFixedFieldLength,
-	"Counter Length":                           TagCounterLength,
-	"Initial Counter Value":                    TagInitialCounterValue,
-	"Invocation Field Length":                  TagInvocationFieldLength,
-	"Attestation Capable Indicator":            TagAttestationCapableIndicator,
-	"Offset Items":                             TagOffsetItems,
-	"Located Items":                            TagLocatedItems,
-	"Correlation Value":                        TagCorrelationValue,
-	"Init Indicator":                           TagInitIndicator,
-	"Final Indicator":                          TagFinalIndicator,
-	"RNG Parameters":                           TagRNGParameters,
-	"RNG Algorithm":                            TagRNGAlgorithm,
-	"DRBG Algorithm":                           TagDRBGAlgorithm,
-	"FIPS186 Variation":                        TagFIPS186Variation,
-	"Prediction Resistance":                    TagPredictionResistance,
-	"Random Number Generator":                  TagRandomNumberGenerator,
-	"Validation Information":                   TagValidationInformation,
-	"Validation Authority Type":                TagValidationAuthorityType,
-	"Validation Authority Country":             TagValidationAuthorityCountry,
-	"Validation Authority URI":                 TagValidationAuthorityURI,
-	"Validation Version Major":                 TagValidationVersionMajor,
-	"Validation Version Minor":                 TagValidationVersionMinor,
-	"Validation Type":                          TagValidationType,
-	"Validation Level":                         TagValidationLevel,
-	"Validation Certificate Identifier":        TagValidationCertificateIdentifier,
-	"Validation Certificate URI":               TagValidationCertificateURI,
-	"Validation Vendor URI":                    TagValidationVendorURI,
-	"Validation Profile":                       TagValidationProfile,
-	"Profile Information":                      TagProfileInformation,
-	"Profile Name":                             TagProfileName,
-	"Server URI":                               TagServerURI,
-	"Server Port":                              TagServerPort,
-	"Streaming Capability":                     TagStreamingCapability,
-	"Asynchronous Capability":                  TagAsynchronousCapability,
-	"Attestation Capability":                   TagAttestationCapability,
-	"Unwrap Mode":                              TagUnwrapMode,
-	"Destroy Action":                           TagDestroyAction,
-	"Shredding Algorithm":                      TagShreddingAlgorithm,
-	"RNG Mode":                                 TagRNGMode,
-	"Client Registration Method":               TagClientRegistrationMethod,
-	"Capability Information":                   TagCapabilityInformation,
-	"Key Wrap Type":                            TagKeyWrapType,
-	"Batch Undo Capability":                    TagBatchUndoCapability,
-	"Batch Continue Capability":                TagBatchContinueCapability,
-	"PKCS#12 Friendly Name":                    TagPKCS_12FriendlyName,
-	"Description":                              TagDescription,
-	"Comment":                                  TagComment,
-	"Authenticated Encryption Additional Data": TagAuthenticatedEncryptionAdditionalData,
-	"Authenticated Encryption Tag":             TagAuthenticatedEncryptionTag,
-	"Salt Length":                              TagSaltLength,
-	"Mask Generator":                           TagMaskGenerator,
-	"Mask Generator Hashing Algorithm":         TagMaskGeneratorHashingAlgorithm,
-	"P Source":                                 TagPSource,
-	"Trailer Field":                            TagTrailerField,
-	"Client Correlation Value":                 TagClientCorrelationValue,
-	"Server Correlation Value":                 TagServerCorrelationValue,
-	"Digested Data":                            TagDigestedData,
-	"Certificate Subject CN":                   TagCertificateSubjectCN,
-	"Certificate Subject O":                    TagCertificateSubjectO,
-	"Certificate Subject OU":                   TagCertificateSubjectOU,
-	"Certificate Subject Email":                TagCertificateSubjectEmail,
-	"Certificate Subject C":                    TagCertificateSubjectC,
-	"Certificate Subject ST":                   TagCertificateSubjectST,
-	"Certificate Subject L":                    TagCertificateSubjectL,
-	"Certificate Subject UID":                  TagCertificateSubjectUID,
-	"Certificate Subject Serial Number":        TagCertificateSubjectSerialNumber,
-	"Certificate Subject Title":                TagCertificateSubjectTitle,
-	"Certificate Subject DC":                   TagCertificateSubjectDC,
-	"Certificate Subject DN Qualifier":         TagCertificateSubjectDNQualifier,
-	"Certificate Issuer CN":                    TagCertificateIssuerCN,
-	"Certificate Issuer O":                     TagCertificateIssuerO,
-	"Certificate Issuer OU":                    TagCertificateIssuerOU,
-	"Certificate Issuer Email":                 TagCertificateIssuerEmail,
-	"Certificate Issuer C":                     TagCertificateIssuerC,
-	"Certificate Issuer ST":                    TagCertificateIssuerST,
-	"Certificate Issuer L":                     TagCertificateIssuerL,
-	"Certificate Issuer UID":                   TagCertificateIssuerUID,
-	"Certificate Issuer Serial Number":         TagCertificateIssuerSerialNumber,
-	"Certificate Issuer Title":                 TagCertificateIssuerTitle,
-	"Certificate Issuer DC":                    TagCertificateIssuerDC,
-	"Certificate Issuer DN Qualifier":          TagCertificateIssuerDNQualifier,
-	"Sensitive":                                TagSensitive,
-	"Always Sensitive":                         TagAlwaysSensitive,
-	"Extractable":                              TagExtractable,
-	"Never Extractable":                        TagNeverExtractable,
-	"Replace Existing":                         TagReplaceExisting,
-}
-
 // Credential Type Enumeration
 // 9.1.3.2.1 Table 289
 type CredentialType uint32
@@ -1520,7 +1224,7 @@ func (c CredentialType) String() string {
 	if s, ok := _CredentialTypeValueToNameMap[c]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", c)
+	return fmt.Sprintf("%#08x", uint32(c))
 }
 
 func ParseCredentialType(s string) (CredentialType, error) {
@@ -1603,7 +1307,7 @@ func (k KeyCompressionType) String() string {
 	if s, ok := _KeyCompressionTypeValueToNameMap[k]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", k)
+	return fmt.Sprintf("%#08x", uint32(k))
 }
 
 func ParseKeyCompressionType(s string) (KeyCompressionType, error) {
@@ -1740,7 +1444,7 @@ func (k KeyFormatType) String() string {
 	if s, ok := _KeyFormatTypeValueToNameMap[k]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", k)
+	return fmt.Sprintf("%#08x", uint32(k))
 }
 
 func ParseKeyFormatType(s string) (KeyFormatType, error) {
@@ -1826,7 +1530,7 @@ func (w WrappingMethod) String() string {
 	if s, ok := _WrappingMethodValueToNameMap[w]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", w)
+	return fmt.Sprintf("%#08x", uint32(w))
 }
 
 func ParseWrappingMethod(s string) (WrappingMethod, error) {
@@ -2101,7 +1805,7 @@ func (r RecommendedCurve) String() string {
 	if s, ok := _RecommendedCurveValueToNameMap[r]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", r)
+	return fmt.Sprintf("%#08x", uint32(r))
 }
 
 func ParseRecommendedCurve(s string) (RecommendedCurve, error) {
@@ -2178,7 +1882,7 @@ func (c CertificateType) String() string {
 	if s, ok := _CertificateTypeValueToNameMap[c]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", c)
+	return fmt.Sprintf("%#08x", uint32(c))
 }
 
 func ParseCertificateType(s string) (CertificateType, error) {
@@ -2306,7 +2010,7 @@ func (d DigitalSignatureAlgorithm) String() string {
 	if s, ok := _DigitalSignatureAlgorithmValueToNameMap[d]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", d)
+	return fmt.Sprintf("%#08x", uint32(d))
 }
 
 func ParseDigitalSignatureAlgorithm(s string) (DigitalSignatureAlgorithm, error) {
@@ -2389,7 +2093,7 @@ func (s SplitKeyMethod) String() string {
 	if s, ok := _SplitKeyMethodValueToNameMap[s]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", s)
+	return fmt.Sprintf("%#08x", uint32(s))
 }
 
 func ParseSplitKeyMethod(s string) (SplitKeyMethod, error) {
@@ -2466,7 +2170,7 @@ func (s SecretDataType) String() string {
 	if s, ok := _SecretDataTypeValueToNameMap[s]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", s)
+	return fmt.Sprintf("%#08x", uint32(s))
 }
 
 func ParseSecretDataType(s string) (SecretDataType, error) {
@@ -2534,7 +2238,7 @@ func (o OpaqueDataType) String() string {
 	if s, ok := _OpaqueDataTypeValueToNameMap[o]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", o)
+	return fmt.Sprintf("%#08x", uint32(o))
 }
 
 func ParseOpaqueDataType(s string) (OpaqueDataType, error) {
@@ -2611,7 +2315,7 @@ func (n NameType) String() string {
 	if s, ok := _NameTypeValueToNameMap[n]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", n)
+	return fmt.Sprintf("%#08x", uint32(n))
 }
 
 func ParseNameType(s string) (NameType, error) {
@@ -2709,7 +2413,7 @@ func (o ObjectType) String() string {
 	if s, ok := _ObjectTypeValueToNameMap[o]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", o)
+	return fmt.Sprintf("%#08x", uint32(o))
 }
 
 func ParseObjectType(s string) (ObjectType, error) {
@@ -2900,7 +2604,7 @@ func (c CryptographicAlgorithm) String() string {
 	if s, ok := _CryptographicAlgorithmValueToNameMap[c]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", c)
+	return fmt.Sprintf("%#08x", uint32(c))
 }
 
 func ParseCryptographicAlgorithm(s string) (CryptographicAlgorithm, error) {
@@ -3025,7 +2729,7 @@ func (b BlockCipherMode) String() string {
 	if s, ok := _BlockCipherModeValueToNameMap[b]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", b)
+	return fmt.Sprintf("%#08x", uint32(b))
 }
 
 func ParseBlockCipherMode(s string) (BlockCipherMode, error) {
@@ -3126,7 +2830,7 @@ func (p PaddingMethod) String() string {
 	if s, ok := _PaddingMethodValueToNameMap[p]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", p)
+	return fmt.Sprintf("%#08x", uint32(p))
 }
 
 func ParsePaddingMethod(s string) (PaddingMethod, error) {
@@ -3248,7 +2952,7 @@ func (h HashingAlgorithm) String() string {
 	if s, ok := _HashingAlgorithmValueToNameMap[h]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", h)
+	return fmt.Sprintf("%#08x", uint32(h))
 }
 
 func ParseHashingAlgorithm(s string) (HashingAlgorithm, error) {
@@ -3404,7 +3108,7 @@ func (k KeyRoleType) String() string {
 	if s, ok := _KeyRoleTypeValueToNameMap[k]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", k)
+	return fmt.Sprintf("%#08x", uint32(k))
 }
 
 func ParseKeyRoleType(s string) (KeyRoleType, error) {
@@ -3493,7 +3197,7 @@ func (s State) String() string {
 	if s, ok := _StateValueToNameMap[s]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", s)
+	return fmt.Sprintf("%#08x", uint32(s))
 }
 
 func ParseState(s string) (State, error) {
@@ -3585,7 +3289,7 @@ func (r RevocationReasonCode) String() string {
 	if s, ok := _RevocationReasonCodeValueToNameMap[r]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", r)
+	return fmt.Sprintf("%#08x", uint32(r))
 }
 
 func ParseRevocationReasonCode(s string) (RevocationReasonCode, error) {
@@ -3695,7 +3399,7 @@ func (l LinkType) String() string {
 	if s, ok := _LinkTypeValueToNameMap[l]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", l)
+	return fmt.Sprintf("%#08x", uint32(l))
 }
 
 func ParseLinkType(s string) (LinkType, error) {
@@ -3790,7 +3494,7 @@ func (d DerivationMethod) String() string {
 	if s, ok := _DerivationMethodValueToNameMap[d]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", d)
+	return fmt.Sprintf("%#08x", uint32(d))
 }
 
 func ParseDerivationMethod(s string) (DerivationMethod, error) {
@@ -3873,7 +3577,7 @@ func (c CertificateRequestType) String() string {
 	if s, ok := _CertificateRequestTypeValueToNameMap[c]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", c)
+	return fmt.Sprintf("%#08x", uint32(c))
 }
 
 func ParseCertificateRequestType(s string) (CertificateRequestType, error) {
@@ -3953,7 +3657,7 @@ func (v ValidityIndicator) String() string {
 	if s, ok := _ValidityIndicatorValueToNameMap[v]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", v)
+	return fmt.Sprintf("%#08x", uint32(v))
 }
 
 func ParseValidityIndicator(s string) (ValidityIndicator, error) {
@@ -4060,7 +3764,7 @@ func (q QueryFunction) String() string {
 	if s, ok := _QueryFunctionValueToNameMap[q]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", q)
+	return fmt.Sprintf("%#08x", uint32(q))
 }
 
 func ParseQueryFunction(s string) (QueryFunction, error) {
@@ -4146,7 +3850,7 @@ func (c CancellationResult) String() string {
 	if s, ok := _CancellationResultValueToNameMap[c]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", c)
+	return fmt.Sprintf("%#08x", uint32(c))
 }
 
 func ParseCancellationResult(s string) (CancellationResult, error) {
@@ -4223,7 +3927,7 @@ func (p PutFunction) String() string {
 	if s, ok := _PutFunctionValueToNameMap[p]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", p)
+	return fmt.Sprintf("%#08x", uint32(p))
 }
 
 func ParsePutFunction(s string) (PutFunction, error) {
@@ -4423,7 +4127,7 @@ func (o Operation) String() string {
 	if s, ok := _OperationValueToNameMap[o]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", o)
+	return fmt.Sprintf("%#08x", uint32(o))
 }
 
 func ParseOperation(s string) (Operation, error) {
@@ -4506,7 +4210,7 @@ func (r ResultStatus) String() string {
 	if s, ok := _ResultStatusValueToNameMap[r]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", r)
+	return fmt.Sprintf("%#08x", uint32(r))
 }
 
 func ParseResultStatus(s string) (ResultStatus, error) {
@@ -4652,7 +4356,7 @@ func (r ResultReason) String() string {
 	if s, ok := _ResultReasonValueToNameMap[r]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", r)
+	return fmt.Sprintf("%#08x", uint32(r))
 }
 
 func ParseResultReason(s string) (ResultReason, error) {
@@ -4732,7 +4436,7 @@ func (b BatchErrorContinuationOption) String() string {
 	if s, ok := _BatchErrorContinuationOptionValueToNameMap[b]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", b)
+	return fmt.Sprintf("%#08x", uint32(b))
 }
 
 func ParseBatchErrorContinuationOption(s string) (BatchErrorContinuationOption, error) {
@@ -4809,7 +4513,7 @@ func (u UsageLimitsUnit) String() string {
 	if s, ok := _UsageLimitsUnitValueToNameMap[u]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", u)
+	return fmt.Sprintf("%#08x", uint32(u))
 }
 
 func ParseUsageLimitsUnit(s string) (UsageLimitsUnit, error) {
@@ -4886,7 +4590,7 @@ func (e EncodingOption) String() string {
 	if s, ok := _EncodingOptionValueToNameMap[e]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", e)
+	return fmt.Sprintf("%#08x", uint32(e))
 }
 
 func ParseEncodingOption(s string) (EncodingOption, error) {
@@ -4963,7 +4667,7 @@ func (o ObjectGroupMember) String() string {
 	if s, ok := _ObjectGroupMemberValueToNameMap[o]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", o)
+	return fmt.Sprintf("%#08x", uint32(o))
 }
 
 func ParseObjectGroupMember(s string) (ObjectGroupMember, error) {
@@ -5055,7 +4759,7 @@ func (a AlternativeNameType) String() string {
 	if s, ok := _AlternativeNameTypeValueToNameMap[a]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", a)
+	return fmt.Sprintf("%#08x", uint32(a))
 }
 
 func ParseAlternativeNameType(s string) (AlternativeNameType, error) {
@@ -5132,7 +4836,7 @@ func (k KeyValueLocationType) String() string {
 	if s, ok := _KeyValueLocationTypeValueToNameMap[k]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", k)
+	return fmt.Sprintf("%#08x", uint32(k))
 }
 
 func ParseKeyValueLocationType(s string) (KeyValueLocationType, error) {
@@ -5212,7 +4916,7 @@ func (a AttestationType) String() string {
 	if s, ok := _AttestationTypeValueToNameMap[a]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", a)
+	return fmt.Sprintf("%#08x", uint32(a))
 }
 
 func ParseAttestationType(s string) (AttestationType, error) {
@@ -5301,7 +5005,7 @@ func (r RNGAlgorithm) String() string {
 	if s, ok := _RNGAlgorithmValueToNameMap[r]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", r)
+	return fmt.Sprintf("%#08x", uint32(r))
 }
 
 func ParseRNGAlgorithm(s string) (RNGAlgorithm, error) {
@@ -5387,7 +5091,7 @@ func (d DRBGAlgorithm) String() string {
 	if s, ok := _DRBGAlgorithmValueToNameMap[d]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", d)
+	return fmt.Sprintf("%#08x", uint32(d))
 }
 
 func ParseDRBGAlgorithm(s string) (DRBGAlgorithm, error) {
@@ -5479,7 +5183,7 @@ func (f FIPS186Variation) String() string {
 	if s, ok := _FIPS186VariationValueToNameMap[f]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", f)
+	return fmt.Sprintf("%#08x", uint32(f))
 }
 
 func ParseFIPS186Variation(s string) (FIPS186Variation, error) {
@@ -5559,7 +5263,7 @@ func (v ValidationAuthorityType) String() string {
 	if s, ok := _ValidationAuthorityTypeValueToNameMap[v]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", v)
+	return fmt.Sprintf("%#08x", uint32(v))
 }
 
 func ParseValidationAuthorityType(s string) (ValidationAuthorityType, error) {
@@ -5645,7 +5349,7 @@ func (v ValidationType) String() string {
 	if s, ok := _ValidationTypeValueToNameMap[v]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", v)
+	return fmt.Sprintf("%#08x", uint32(v))
 }
 
 func ParseValidationType(s string) (ValidationType, error) {
@@ -6184,7 +5888,7 @@ func (p ProfileName) String() string {
 	if s, ok := _ProfileNameValueToNameMap[p]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", p)
+	return fmt.Sprintf("%#08x", uint32(p))
 }
 
 func ParseProfileName(s string) (ProfileName, error) {
@@ -6264,7 +5968,7 @@ func (u UnwrapMode) String() string {
 	if s, ok := _UnwrapModeValueToNameMap[u]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", u)
+	return fmt.Sprintf("%#08x", uint32(u))
 }
 
 func ParseUnwrapMode(s string) (UnwrapMode, error) {
@@ -6356,7 +6060,7 @@ func (d DestroyAction) String() string {
 	if s, ok := _DestroyActionValueToNameMap[d]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", d)
+	return fmt.Sprintf("%#08x", uint32(d))
 }
 
 func ParseDestroyAction(s string) (DestroyAction, error) {
@@ -6436,7 +6140,7 @@ func (s ShreddingAlgorithm) String() string {
 	if s, ok := _ShreddingAlgorithmValueToNameMap[s]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", s)
+	return fmt.Sprintf("%#08x", uint32(s))
 }
 
 func ParseShreddingAlgorithm(s string) (ShreddingAlgorithm, error) {
@@ -6516,7 +6220,7 @@ func (r RNGMode) String() string {
 	if s, ok := _RNGModeValueToNameMap[r]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", r)
+	return fmt.Sprintf("%#08x", uint32(r))
 }
 
 func ParseRNGMode(s string) (RNGMode, error) {
@@ -6602,7 +6306,7 @@ func (c ClientRegistrationMethod) String() string {
 	if s, ok := _ClientRegistrationMethodValueToNameMap[c]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", c)
+	return fmt.Sprintf("%#08x", uint32(c))
 }
 
 func ParseClientRegistrationMethod(s string) (ClientRegistrationMethod, error) {
@@ -6679,7 +6383,7 @@ func (k KeyWrapType) String() string {
 	if s, ok := _KeyWrapTypeValueToNameMap[k]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", k)
+	return fmt.Sprintf("%#08x", uint32(k))
 }
 
 func ParseKeyWrapType(s string) (KeyWrapType, error) {
@@ -6753,7 +6457,7 @@ func (m MaskGenerator) String() string {
 	if s, ok := _MaskGeneratorValueToNameMap[m]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", m)
+	return fmt.Sprintf("%#08x", uint32(m))
 }
 
 func ParseMaskGenerator(s string) (MaskGenerator, error) {

@@ -188,10 +188,6 @@ var _TagValueToNameMap = map[Tag]string { {{range .Vals}}
 var _TagValueToFullNameMap = map[Tag]string { {{range .Vals}}
 	Tag{{.Name}}: "{{.FullName}}",{{end}}
 }
-
-var _TagFullNameToValueMap = map[string]Tag { {{range .Vals}}
-	"{{.FullName}}": Tag{{.Name}},{{end}}
-}
 `
 
 const enumTmpl = `
@@ -217,7 +213,7 @@ func ({{.Var}} {{.TypeName}}) String() string {
 	if s, ok := _{{.TypeName}}ValueToNameMap[{{.Var}}]; ok {
 		return s
 	}
-	return fmt.Sprintf("%#08x", {{.Var}})
+	return fmt.Sprintf("%#08x", uint32({{.Var}}))
 }
 
 func Parse{{.TypeName}}(s string) ({{.TypeName}}, error) {

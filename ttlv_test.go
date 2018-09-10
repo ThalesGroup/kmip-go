@@ -4,10 +4,13 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"math"
 	"math/big"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -194,6 +197,141 @@ func TestTTLV_UnmarshalTTLV(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, TTLV(buf.Bytes()), ttlv)
 
+}
+
+func TestTTLV_MarshalJSON(t *testing.T) {
+	tests := []struct {
+		in  interface{}
+		exp string
+	}{
+		{
+			in:  TaggedValue{Tag: TagBatchCount, Value: 10},
+			exp: `{"tag":"BatchCount","type":"Integer","value":10}`,
+		},
+		{
+			in:  TaggedValue{Tag: Tag(0x540002), Value: 10},
+			exp: `{"tag":"0x540002","type":"Integer","value":10}`,
+		},
+		{
+			in:  TaggedValue{Tag: TagBatchCount, Value: `"Red Rover"`},
+			exp: `{"tag":"BatchCount","type":"TextString","value":"\"Red Rover\""}`,
+		},
+		{
+			in:  TaggedValue{Tag: TagBatchCount, Value: true},
+			exp: `{"tag":"BatchCount","type":"Boolean","value":true}`,
+		},
+		{
+			in:  TaggedValue{Tag: TagBatchCount, Value: false},
+			exp: `{"tag":"BatchCount","type":"Boolean","value":false}`,
+		},
+		{
+			in:  TaggedValue{Tag: TagBatchCount, Value: math.MaxInt32},
+			exp: `{"tag":"BatchCount","type":"Integer","value":` + strconv.Itoa(math.MaxInt32) + `}`,
+		},
+		{
+			in:  TaggedValue{Tag: TagBatchCount, Value: int64(math.MaxInt32) + 1},
+			exp: `{"tag":"BatchCount","type":"LongInteger","value":` + strconv.FormatInt(int64(math.MaxInt32)+1, 10) + `}`,
+		},
+		{
+			// test values higher than max json number, should be encoded in hex
+			in: TaggedValue{Tag: TagBatchCount, Value: int64(1) << 53},
+			exp: func() string {
+				ttlv, err := Marshal(TaggedValue{Tag: TagBatchCount, Value: int64(1) << 53})
+				require.NoError(t, err)
+				return `{"tag":"BatchCount","type":"LongInteger","value":"0x` + hex.EncodeToString(TTLV(ttlv).ValueRaw()) + `"}`
+			}(),
+		},
+		{
+			in:  TaggedValue{Tag: TagBatchCount, Value: big.NewInt(10)},
+			exp: `{"tag":"BatchCount","type":"BigInteger","value":10}`,
+		},
+		{
+			// test values higher than max json number, should be encoded in hex
+			in: TaggedValue{Tag: TagBatchCount, Value: big.NewInt(int64(1) << 53)},
+			exp: func() string {
+				ttlv, err := Marshal(TaggedValue{Tag: TagBatchCount, Value: big.NewInt(int64(1) << 53)})
+				require.NoError(t, err)
+				return `{"tag":"BatchCount","type":"BigInteger","value":"0x` + hex.EncodeToString(TTLV(ttlv).ValueRaw()) + `"}`
+			}(),
+		},
+		{
+			in:  TaggedValue{Tag: TagBatchCount, Value: WrappingMethodMACSign},
+			exp: `{"tag":"BatchCount","type":"Enumeration","value":"0x00000002"}`,
+		},
+		{
+			in:  TaggedValue{Tag: TagKeyFormatType, Value: KeyFormatTypeX_509},
+			exp: `{"tag":"KeyFormatType","type":"Enumeration","value":"X_509"}`,
+		},
+		{
+			in:  TaggedValue{Tag: TagKeyFormatType, Value: EnumInt(0x00050000)},
+			exp: `{"tag":"KeyFormatType","type":"Enumeration","value":"0x00050000"}`,
+		},
+		{
+			in: TaggedValue{Tag: TagBatchCount, Value: func() time.Time {
+				d, err := time.Parse(time.RFC3339, "2006-01-02T15:04:05+04:00")
+				require.NoError(t, err)
+				return d
+			}()},
+			exp: `{"tag":"BatchCount","type":"DateTime","value":"2006-01-02T11:04:05Z"}`,
+		},
+		{
+			in:  TaggedValue{Tag: TagKeyFormatType, Value: 10 * time.Second},
+			exp: `{"tag":"KeyFormatType","type":"Interval","value":10}`,
+		},
+		{
+			in: Structure{Tag: TagKeyFormatType, Values: []interface{}{
+				TaggedValue{Tag: TagBatchCount, Value: 10},
+				TaggedValue{Tag: Tag(0x540002), Value: 10},
+				TaggedValue{Tag: TagBatchItem, Value: true},
+			}},
+			exp: `{"tag":"KeyFormatType","value":[
+				{"tag":"BatchCount","type":"Integer","value":10},
+				{"tag":"0x540002","type":"Integer","value":10},
+				{"tag":"BatchItem","type":"Boolean","value":true}
+			]}`,
+		},
+		{
+			in: Structure{Tag: TagAttribute, Values: []interface{}{
+				TaggedValue{Tag: TagAttributeName, Value: "Key Format Type"},
+				TaggedValue{Tag: TagAttributeValue, Value: KeyFormatTypeX_509},
+			}},
+			exp: `{"tag":"Attribute","value":[
+				{"tag":"AttributeName","type":"TextString","value":"Key Format Type"},
+				{"tag":"AttributeValue","type":"Enumeration","value":"X_509"}
+			]}`,
+		},
+		{
+			in: Structure{Tag: TagAttribute, Values: []interface{}{
+				TaggedValue{Tag: TagAttributeName, Value: "Key Format Type"},
+				TaggedValue{Tag: TagAttributeValue, Value: "X_509"},
+			}},
+			exp: `{"tag":"Attribute","value":[
+				{"tag":"AttributeName","type":"TextString","value":"Key Format Type"},
+				{"tag":"AttributeValue","type":"TextString","value":"X_509"}
+			]}`,
+		},
+		{
+			in: Structure{Tag: TagAttribute, Values: []interface{}{
+				TaggedValue{Tag: TagAttributeName, Value: "Key Format Type"},
+				TaggedValue{Tag: TagAttributeValue, Value: EnumInt(0x00000300)},
+			}},
+			exp: `{"tag":"Attribute","value":[
+				{"tag":"AttributeName","type":"TextString","value":"Key Format Type"},
+				{"tag":"AttributeValue","type":"Enumeration","value":"0x00000300"}
+			]}`,
+		},
+	}
+
+	for _, testcase := range tests {
+		t.Run("", func(t *testing.T) {
+			b, err := Marshal(testcase.in)
+			require.NoError(t, err)
+			ttlv := TTLV(b)
+			j, err := json.Marshal(ttlv)
+			require.NoError(t, err)
+			require.JSONEq(t, testcase.exp, string(j))
+		})
+	}
 }
 
 // hex2bytes converts hex string to bytes.  Any non-hex characters in the string are stripped first.

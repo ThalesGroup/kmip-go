@@ -320,6 +320,10 @@ func TestTTLV_MarshalJSON(t *testing.T) {
 				{"tag":"AttributeValue","type":"Enumeration","value":"0x00000300"}
 			]}`,
 		},
+		{
+			in:  TaggedValue{Tag: TagCryptographicUsageMask, Value: 10 * time.Second},
+			exp: `{"tag":"CryptographicUsageMask","type":"Integer","value":10}`,
+		},
 	}
 
 	for _, testcase := range tests {

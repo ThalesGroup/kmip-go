@@ -13,6 +13,8 @@ import (
 
 var enumRegistry = sync.Map{}
 
+var maskRegistry = sync.Map{}
+
 func ParseEnum(tag Tag, s string) (EnumValuer, error) {
 	v, _ := enumRegistry.Load(tag)
 	if v != nil {
@@ -46,6 +48,18 @@ type EnumTypeDef struct {
 
 func RegisterEnum(tag Tag, def EnumTypeDef) {
 	enumRegistry.Store(tag, def)
+}
+
+func RegisterBitMask(tag Tag, values map[string]int) {
+	enumRegistry.Store(tag, values)
+}
+
+func maskValues(tag Tag) map[string]int {
+	v, ok := enumRegistry.Load(tag)
+	if ok && v != nil {
+		return v.(map[string]int)
+	}
+	return nil
 }
 
 func RegisterTag(tag Tag, name string) {

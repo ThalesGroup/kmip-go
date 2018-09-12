@@ -18,6 +18,7 @@ type EnumDef struct {
 	Name    string
 	Values  map[string]uint32
 	Tags    []string
+	BitMask bool
 }
 
 func main() {
@@ -1512,6 +1513,44 @@ var enumDefs = []EnumDef{
 		Comment: "9.1.3.2.49",
 		Values: map[string]uint32{
 			"MGF1": 0x00000001,
+		},
+	},
+	{
+		Name:    "Cryptographic Usage Mask",
+		Tags:    []string{"Cryptographic Usage Mask"},
+		Comment: "9.1.3.3.1",
+		BitMask:true,
+		Values: map[string]uint32{
+			"Sign":         0x00000001,
+			"Verify":       0x00000002,
+			"Encrypt":      0x00000004,
+			"Decrypt":      0x00000008,
+			"Wrap Key":     0x00000010,
+			"Unwrap Key":   0x00000020,
+			"Export":       0x00000040,
+			"MAC Generate": 0x00000080,
+			"MAC Verify":   0x00000100,
+			"Derive Key":   0x00000200,
+			"Content Commitment (Non Repudiation)": 0x00000400,
+			"Key Agreement": 0x00000800,
+			"Certificate Sign": 0x00001000,
+			"CRL Sign": 0x00002000,
+			"Generate Cryptogram": 0x00004000,
+			"Validate Cryptogram": 0x00008000,
+			"Translate Encrypt": 0x00010000,
+			"Translate Decrypt": 0x00020000,
+			"Translate Wrap": 0x00040000,
+			"Translate Unwrap": 0x00080000,
+		},
+	},
+	{
+		Name:    "Storage Status Mask",
+		Tags:    []string{"Storage Status Mask"},
+		Comment: "9.1.3.3.2",
+		BitMask: true,
+		Values: map[string]uint32{
+			"On-line storage":  0x00000001,
+			"Archival storage": 0x00000002,
 		},
 	},
 }

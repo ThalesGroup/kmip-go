@@ -1286,6 +1286,56 @@ func TestEncoder_EncodeValue(t *testing.T) {
 				TaggedValue{Tag: TagBlockCipherMode, Value: int32(5)},
 			}},
 		},
+		{
+			name:     "intenum",
+			v:        TaggedValue{Tag: TagWrappingMethod, Value: int(WrappingMethodMACSign)},
+			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
+		},
+		{
+			name:     "int8enum",
+			v:        TaggedValue{Tag: TagWrappingMethod, Value: int8(WrappingMethodMACSign)},
+			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
+		},
+		{
+			name:     "int16enum",
+			v:        TaggedValue{Tag: TagWrappingMethod, Value: int16(WrappingMethodMACSign)},
+			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
+		},
+		{
+			name:     "int32enum",
+			v:        TaggedValue{Tag: TagWrappingMethod, Value: int32(WrappingMethodMACSign)},
+			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
+		},
+		{
+			name:     "int64enum",
+			v:        TaggedValue{Tag: TagWrappingMethod, Value: int64(WrappingMethodMACSign)},
+			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
+		},
+		{
+			name:     "uintenum",
+			v:        TaggedValue{Tag: TagWrappingMethod, Value: uint(WrappingMethodMACSign)},
+			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
+		},
+		{
+			name:     "uint8enum",
+			v:        TaggedValue{Tag: TagWrappingMethod, Value: uint8(WrappingMethodMACSign)},
+			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
+		},
+		{
+			name:     "uint16enum",
+			v:        TaggedValue{Tag: TagWrappingMethod, Value: uint16(WrappingMethodMACSign)},
+			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
+		},
+		{
+			name:     "uint32enum",
+			v:        TaggedValue{Tag: TagWrappingMethod, Value: uint32(WrappingMethodMACSign)},
+			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
+		},
+		{
+			name:     "uint64enum",
+			v:        TaggedValue{Tag: TagWrappingMethod, Value: uint64(WrappingMethodMACSign)},
+			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
+		},
 	}
 
 	// test cases for all the int base types

@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"gitlab.protectv.local/regan/kmip.git/internal/kmiputil"
+	"sort"
 	"strings"
 )
 
@@ -1199,6 +1200,7 @@ var _TagValueToFullNameMap = map[Tag]string{
 }
 
 // Credential Type Enumeration
+
 // 9.1.3.2.1 Table 289
 type CredentialType uint32
 
@@ -1218,6 +1220,40 @@ var _CredentialTypeValueToNameMap = map[CredentialType]string{
 	CredentialTypeUsernameAndPassword: "UsernameAndPassword",
 	CredentialTypeDevice:              "Device",
 	CredentialTypeAttestation:         "Attestation",
+}
+
+func (c CredentialType) MarshalText() (text []byte, err error) {
+	return []byte(c.String()), nil
+}
+
+func (c *CredentialType) UnmarshalText(text []byte) (err error) {
+	*c, err = ParseCredentialType(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagCredentialType, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseCredentialType(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return CredentialType(v).String()
+		},
+	})
+}
+
+func (c CredentialType) EnumValue() uint32 {
+	return uint32(c)
+}
+
+func RegisterCredentialType(c CredentialType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_CredentialTypeNameToValueMap[name] = c
+	_CredentialTypeValueToNameMap[c] = name
 }
 
 func (c CredentialType) String() string {
@@ -1243,42 +1279,8 @@ func ParseCredentialType(s string) (CredentialType, error) {
 	}
 }
 
-func (c CredentialType) MarshalText() (text []byte, err error) {
-	return []byte(c.String()), nil
-}
-
-func (c *CredentialType) UnmarshalText(text []byte) (err error) {
-	*c, err = ParseCredentialType(string(text))
-	return
-}
-
-func (c CredentialType) EnumValue() uint32 {
-	return uint32(c)
-}
-
-func RegisterCredentialType(c CredentialType, name string) {
-	name = kmiputil.NormalizeName(name)
-	_CredentialTypeNameToValueMap[name] = c
-	_CredentialTypeValueToNameMap[c] = name
-}
-
-func init() {
-	RegisterEnum(TagCredentialType, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseCredentialType(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case CredentialType:
-				return t.String()
-			default:
-				return CredentialType(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Key Compression Type Enumeration
+
 // 9.1.3.2.2 Table 290
 type KeyCompressionType uint32
 
@@ -1301,6 +1303,40 @@ var _KeyCompressionTypeValueToNameMap = map[KeyCompressionType]string{
 	KeyCompressionTypeECPublicKeyTypeX9_62CompressedPrime: "ECPublicKeyTypeX9_62CompressedPrime",
 	KeyCompressionTypeECPublicKeyTypeX9_62CompressedChar2: "ECPublicKeyTypeX9_62CompressedChar2",
 	KeyCompressionTypeECPublicKeyTypeX9_62Hybrid:          "ECPublicKeyTypeX9_62Hybrid",
+}
+
+func (k KeyCompressionType) MarshalText() (text []byte, err error) {
+	return []byte(k.String()), nil
+}
+
+func (k *KeyCompressionType) UnmarshalText(text []byte) (err error) {
+	*k, err = ParseKeyCompressionType(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagKeyCompressionType, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseKeyCompressionType(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return KeyCompressionType(v).String()
+		},
+	})
+}
+
+func (k KeyCompressionType) EnumValue() uint32 {
+	return uint32(k)
+}
+
+func RegisterKeyCompressionType(k KeyCompressionType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_KeyCompressionTypeNameToValueMap[name] = k
+	_KeyCompressionTypeValueToNameMap[k] = name
 }
 
 func (k KeyCompressionType) String() string {
@@ -1326,42 +1362,8 @@ func ParseKeyCompressionType(s string) (KeyCompressionType, error) {
 	}
 }
 
-func (k KeyCompressionType) MarshalText() (text []byte, err error) {
-	return []byte(k.String()), nil
-}
-
-func (k *KeyCompressionType) UnmarshalText(text []byte) (err error) {
-	*k, err = ParseKeyCompressionType(string(text))
-	return
-}
-
-func (k KeyCompressionType) EnumValue() uint32 {
-	return uint32(k)
-}
-
-func RegisterKeyCompressionType(k KeyCompressionType, name string) {
-	name = kmiputil.NormalizeName(name)
-	_KeyCompressionTypeNameToValueMap[name] = k
-	_KeyCompressionTypeValueToNameMap[k] = name
-}
-
-func init() {
-	RegisterEnum(TagKeyCompressionType, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseKeyCompressionType(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case KeyCompressionType:
-				return t.String()
-			default:
-				return KeyCompressionType(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Key Format Type Enumeration
+
 // 9.1.3.2.3 Table 291
 type KeyFormatType uint32
 
@@ -1440,6 +1442,40 @@ var _KeyFormatTypeValueToNameMap = map[KeyFormatType]string{
 	KeyFormatTypePKCS_12:                    "PKCS_12",
 }
 
+func (k KeyFormatType) MarshalText() (text []byte, err error) {
+	return []byte(k.String()), nil
+}
+
+func (k *KeyFormatType) UnmarshalText(text []byte) (err error) {
+	*k, err = ParseKeyFormatType(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagKeyFormatType, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseKeyFormatType(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return KeyFormatType(v).String()
+		},
+	})
+}
+
+func (k KeyFormatType) EnumValue() uint32 {
+	return uint32(k)
+}
+
+func RegisterKeyFormatType(k KeyFormatType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_KeyFormatTypeNameToValueMap[name] = k
+	_KeyFormatTypeValueToNameMap[k] = name
+}
+
 func (k KeyFormatType) String() string {
 	if s, ok := _KeyFormatTypeValueToNameMap[k]; ok {
 		return s
@@ -1463,42 +1499,8 @@ func ParseKeyFormatType(s string) (KeyFormatType, error) {
 	}
 }
 
-func (k KeyFormatType) MarshalText() (text []byte, err error) {
-	return []byte(k.String()), nil
-}
-
-func (k *KeyFormatType) UnmarshalText(text []byte) (err error) {
-	*k, err = ParseKeyFormatType(string(text))
-	return
-}
-
-func (k KeyFormatType) EnumValue() uint32 {
-	return uint32(k)
-}
-
-func RegisterKeyFormatType(k KeyFormatType, name string) {
-	name = kmiputil.NormalizeName(name)
-	_KeyFormatTypeNameToValueMap[name] = k
-	_KeyFormatTypeValueToNameMap[k] = name
-}
-
-func init() {
-	RegisterEnum(TagKeyFormatType, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseKeyFormatType(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case KeyFormatType:
-				return t.String()
-			default:
-				return KeyFormatType(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Wrapping Method Enumeration
+
 // 9.1.3.2.4 Table 292
 type WrappingMethod uint32
 
@@ -1526,6 +1528,40 @@ var _WrappingMethodValueToNameMap = map[WrappingMethod]string{
 	WrappingMethodTR_31:              "TR_31",
 }
 
+func (w WrappingMethod) MarshalText() (text []byte, err error) {
+	return []byte(w.String()), nil
+}
+
+func (w *WrappingMethod) UnmarshalText(text []byte) (err error) {
+	*w, err = ParseWrappingMethod(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagWrappingMethod, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseWrappingMethod(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return WrappingMethod(v).String()
+		},
+	})
+}
+
+func (w WrappingMethod) EnumValue() uint32 {
+	return uint32(w)
+}
+
+func RegisterWrappingMethod(w WrappingMethod, name string) {
+	name = kmiputil.NormalizeName(name)
+	_WrappingMethodNameToValueMap[name] = w
+	_WrappingMethodValueToNameMap[w] = name
+}
+
 func (w WrappingMethod) String() string {
 	if s, ok := _WrappingMethodValueToNameMap[w]; ok {
 		return s
@@ -1549,42 +1585,8 @@ func ParseWrappingMethod(s string) (WrappingMethod, error) {
 	}
 }
 
-func (w WrappingMethod) MarshalText() (text []byte, err error) {
-	return []byte(w.String()), nil
-}
-
-func (w *WrappingMethod) UnmarshalText(text []byte) (err error) {
-	*w, err = ParseWrappingMethod(string(text))
-	return
-}
-
-func (w WrappingMethod) EnumValue() uint32 {
-	return uint32(w)
-}
-
-func RegisterWrappingMethod(w WrappingMethod, name string) {
-	name = kmiputil.NormalizeName(name)
-	_WrappingMethodNameToValueMap[name] = w
-	_WrappingMethodValueToNameMap[w] = name
-}
-
-func init() {
-	RegisterEnum(TagWrappingMethod, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseWrappingMethod(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case WrappingMethod:
-				return t.String()
-			default:
-				return WrappingMethod(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Recommended Curve Enumeration
+
 // 9.1.3.2.5 Table 293
 type RecommendedCurve uint32
 
@@ -1801,6 +1803,40 @@ var _RecommendedCurveValueToNameMap = map[RecommendedCurve]string{
 	RecommendedCurveBRAINPOOLP512T1:  "BRAINPOOLP512T1",
 }
 
+func (r RecommendedCurve) MarshalText() (text []byte, err error) {
+	return []byte(r.String()), nil
+}
+
+func (r *RecommendedCurve) UnmarshalText(text []byte) (err error) {
+	*r, err = ParseRecommendedCurve(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagRecommendedCurve, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseRecommendedCurve(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return RecommendedCurve(v).String()
+		},
+	})
+}
+
+func (r RecommendedCurve) EnumValue() uint32 {
+	return uint32(r)
+}
+
+func RegisterRecommendedCurve(r RecommendedCurve, name string) {
+	name = kmiputil.NormalizeName(name)
+	_RecommendedCurveNameToValueMap[name] = r
+	_RecommendedCurveValueToNameMap[r] = name
+}
+
 func (r RecommendedCurve) String() string {
 	if s, ok := _RecommendedCurveValueToNameMap[r]; ok {
 		return s
@@ -1824,42 +1860,8 @@ func ParseRecommendedCurve(s string) (RecommendedCurve, error) {
 	}
 }
 
-func (r RecommendedCurve) MarshalText() (text []byte, err error) {
-	return []byte(r.String()), nil
-}
-
-func (r *RecommendedCurve) UnmarshalText(text []byte) (err error) {
-	*r, err = ParseRecommendedCurve(string(text))
-	return
-}
-
-func (r RecommendedCurve) EnumValue() uint32 {
-	return uint32(r)
-}
-
-func RegisterRecommendedCurve(r RecommendedCurve, name string) {
-	name = kmiputil.NormalizeName(name)
-	_RecommendedCurveNameToValueMap[name] = r
-	_RecommendedCurveValueToNameMap[r] = name
-}
-
-func init() {
-	RegisterEnum(TagRecommendedCurve, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseRecommendedCurve(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case RecommendedCurve:
-				return t.String()
-			default:
-				return RecommendedCurve(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Certificate Type Enumeration
+
 // 9.1.3.2.6 Table 294
 type CertificateType uint32
 
@@ -1876,6 +1878,40 @@ var _CertificateTypeNameToValueMap = map[string]CertificateType{
 var _CertificateTypeValueToNameMap = map[CertificateType]string{
 	CertificateTypeX_509: "X_509",
 	CertificateTypePGP:   "PGP",
+}
+
+func (c CertificateType) MarshalText() (text []byte, err error) {
+	return []byte(c.String()), nil
+}
+
+func (c *CertificateType) UnmarshalText(text []byte) (err error) {
+	*c, err = ParseCertificateType(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagCertificateType, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseCertificateType(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return CertificateType(v).String()
+		},
+	})
+}
+
+func (c CertificateType) EnumValue() uint32 {
+	return uint32(c)
+}
+
+func RegisterCertificateType(c CertificateType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_CertificateTypeNameToValueMap[name] = c
+	_CertificateTypeValueToNameMap[c] = name
 }
 
 func (c CertificateType) String() string {
@@ -1901,42 +1937,8 @@ func ParseCertificateType(s string) (CertificateType, error) {
 	}
 }
 
-func (c CertificateType) MarshalText() (text []byte, err error) {
-	return []byte(c.String()), nil
-}
-
-func (c *CertificateType) UnmarshalText(text []byte) (err error) {
-	*c, err = ParseCertificateType(string(text))
-	return
-}
-
-func (c CertificateType) EnumValue() uint32 {
-	return uint32(c)
-}
-
-func RegisterCertificateType(c CertificateType, name string) {
-	name = kmiputil.NormalizeName(name)
-	_CertificateTypeNameToValueMap[name] = c
-	_CertificateTypeValueToNameMap[c] = name
-}
-
-func init() {
-	RegisterEnum(TagCertificateType, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseCertificateType(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case CertificateType:
-				return t.String()
-			default:
-				return CertificateType(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Digital Signature Algorithm Enumeration
+
 // 9.1.3.2.7 Table 295
 type DigitalSignatureAlgorithm uint32
 
@@ -2006,6 +2008,40 @@ var _DigitalSignatureAlgorithmValueToNameMap = map[DigitalSignatureAlgorithm]str
 	DigitalSignatureAlgorithmSHA3_512WithRSAEncryption:          "SHA3_512WithRSAEncryption",
 }
 
+func (d DigitalSignatureAlgorithm) MarshalText() (text []byte, err error) {
+	return []byte(d.String()), nil
+}
+
+func (d *DigitalSignatureAlgorithm) UnmarshalText(text []byte) (err error) {
+	*d, err = ParseDigitalSignatureAlgorithm(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagDigitalSignatureAlgorithm, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseDigitalSignatureAlgorithm(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return DigitalSignatureAlgorithm(v).String()
+		},
+	})
+}
+
+func (d DigitalSignatureAlgorithm) EnumValue() uint32 {
+	return uint32(d)
+}
+
+func RegisterDigitalSignatureAlgorithm(d DigitalSignatureAlgorithm, name string) {
+	name = kmiputil.NormalizeName(name)
+	_DigitalSignatureAlgorithmNameToValueMap[name] = d
+	_DigitalSignatureAlgorithmValueToNameMap[d] = name
+}
+
 func (d DigitalSignatureAlgorithm) String() string {
 	if s, ok := _DigitalSignatureAlgorithmValueToNameMap[d]; ok {
 		return s
@@ -2029,42 +2065,8 @@ func ParseDigitalSignatureAlgorithm(s string) (DigitalSignatureAlgorithm, error)
 	}
 }
 
-func (d DigitalSignatureAlgorithm) MarshalText() (text []byte, err error) {
-	return []byte(d.String()), nil
-}
-
-func (d *DigitalSignatureAlgorithm) UnmarshalText(text []byte) (err error) {
-	*d, err = ParseDigitalSignatureAlgorithm(string(text))
-	return
-}
-
-func (d DigitalSignatureAlgorithm) EnumValue() uint32 {
-	return uint32(d)
-}
-
-func RegisterDigitalSignatureAlgorithm(d DigitalSignatureAlgorithm, name string) {
-	name = kmiputil.NormalizeName(name)
-	_DigitalSignatureAlgorithmNameToValueMap[name] = d
-	_DigitalSignatureAlgorithmValueToNameMap[d] = name
-}
-
-func init() {
-	RegisterEnum(TagDigitalSignatureAlgorithm, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseDigitalSignatureAlgorithm(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case DigitalSignatureAlgorithm:
-				return t.String()
-			default:
-				return DigitalSignatureAlgorithm(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Split Key Method Enumeration
+
 // 9.1.3.2.8 Table 296
 type SplitKeyMethod uint32
 
@@ -2087,6 +2089,40 @@ var _SplitKeyMethodValueToNameMap = map[SplitKeyMethod]string{
 	SplitKeyMethodPolynomialSharingGF2_16:     "PolynomialSharingGF2_16",
 	SplitKeyMethodPolynomialSharingPrimeField: "PolynomialSharingPrimeField",
 	SplitKeyMethodPolynomialSharingGF2_8:      "PolynomialSharingGF2_8",
+}
+
+func (s SplitKeyMethod) MarshalText() (text []byte, err error) {
+	return []byte(s.String()), nil
+}
+
+func (s *SplitKeyMethod) UnmarshalText(text []byte) (err error) {
+	*s, err = ParseSplitKeyMethod(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagSplitKeyMethod, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseSplitKeyMethod(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return SplitKeyMethod(v).String()
+		},
+	})
+}
+
+func (s SplitKeyMethod) EnumValue() uint32 {
+	return uint32(s)
+}
+
+func RegisterSplitKeyMethod(s SplitKeyMethod, name string) {
+	name = kmiputil.NormalizeName(name)
+	_SplitKeyMethodNameToValueMap[name] = s
+	_SplitKeyMethodValueToNameMap[s] = name
 }
 
 func (s SplitKeyMethod) String() string {
@@ -2112,42 +2148,8 @@ func ParseSplitKeyMethod(s string) (SplitKeyMethod, error) {
 	}
 }
 
-func (s SplitKeyMethod) MarshalText() (text []byte, err error) {
-	return []byte(s.String()), nil
-}
-
-func (s *SplitKeyMethod) UnmarshalText(text []byte) (err error) {
-	*s, err = ParseSplitKeyMethod(string(text))
-	return
-}
-
-func (s SplitKeyMethod) EnumValue() uint32 {
-	return uint32(s)
-}
-
-func RegisterSplitKeyMethod(s SplitKeyMethod, name string) {
-	name = kmiputil.NormalizeName(name)
-	_SplitKeyMethodNameToValueMap[name] = s
-	_SplitKeyMethodValueToNameMap[s] = name
-}
-
-func init() {
-	RegisterEnum(TagSplitKeyMethod, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseSplitKeyMethod(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case SplitKeyMethod:
-				return t.String()
-			default:
-				return SplitKeyMethod(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Secret Data Type Enumeration
+
 // 9.1.3.2.9 Table 9
 type SecretDataType uint32
 
@@ -2164,6 +2166,40 @@ var _SecretDataTypeNameToValueMap = map[string]SecretDataType{
 var _SecretDataTypeValueToNameMap = map[SecretDataType]string{
 	SecretDataTypePassword: "Password",
 	SecretDataTypeSeed:     "Seed",
+}
+
+func (s SecretDataType) MarshalText() (text []byte, err error) {
+	return []byte(s.String()), nil
+}
+
+func (s *SecretDataType) UnmarshalText(text []byte) (err error) {
+	*s, err = ParseSecretDataType(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagSecretDataType, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseSecretDataType(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return SecretDataType(v).String()
+		},
+	})
+}
+
+func (s SecretDataType) EnumValue() uint32 {
+	return uint32(s)
+}
+
+func RegisterSecretDataType(s SecretDataType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_SecretDataTypeNameToValueMap[name] = s
+	_SecretDataTypeValueToNameMap[s] = name
 }
 
 func (s SecretDataType) String() string {
@@ -2189,42 +2225,8 @@ func ParseSecretDataType(s string) (SecretDataType, error) {
 	}
 }
 
-func (s SecretDataType) MarshalText() (text []byte, err error) {
-	return []byte(s.String()), nil
-}
-
-func (s *SecretDataType) UnmarshalText(text []byte) (err error) {
-	*s, err = ParseSecretDataType(string(text))
-	return
-}
-
-func (s SecretDataType) EnumValue() uint32 {
-	return uint32(s)
-}
-
-func RegisterSecretDataType(s SecretDataType, name string) {
-	name = kmiputil.NormalizeName(name)
-	_SecretDataTypeNameToValueMap[name] = s
-	_SecretDataTypeValueToNameMap[s] = name
-}
-
-func init() {
-	RegisterEnum(TagSecretDataType, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseSecretDataType(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case SecretDataType:
-				return t.String()
-			default:
-				return SecretDataType(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Opaque Data Type Enumeration
+
 // 9.1.3.2.10 Table 298
 type OpaqueDataType uint32
 
@@ -2233,6 +2235,40 @@ const ()
 var _OpaqueDataTypeNameToValueMap = map[string]OpaqueDataType{}
 
 var _OpaqueDataTypeValueToNameMap = map[OpaqueDataType]string{}
+
+func (o OpaqueDataType) MarshalText() (text []byte, err error) {
+	return []byte(o.String()), nil
+}
+
+func (o *OpaqueDataType) UnmarshalText(text []byte) (err error) {
+	*o, err = ParseOpaqueDataType(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagOpaqueDataType, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseOpaqueDataType(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return OpaqueDataType(v).String()
+		},
+	})
+}
+
+func (o OpaqueDataType) EnumValue() uint32 {
+	return uint32(o)
+}
+
+func RegisterOpaqueDataType(o OpaqueDataType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_OpaqueDataTypeNameToValueMap[name] = o
+	_OpaqueDataTypeValueToNameMap[o] = name
+}
 
 func (o OpaqueDataType) String() string {
 	if s, ok := _OpaqueDataTypeValueToNameMap[o]; ok {
@@ -2257,42 +2293,8 @@ func ParseOpaqueDataType(s string) (OpaqueDataType, error) {
 	}
 }
 
-func (o OpaqueDataType) MarshalText() (text []byte, err error) {
-	return []byte(o.String()), nil
-}
-
-func (o *OpaqueDataType) UnmarshalText(text []byte) (err error) {
-	*o, err = ParseOpaqueDataType(string(text))
-	return
-}
-
-func (o OpaqueDataType) EnumValue() uint32 {
-	return uint32(o)
-}
-
-func RegisterOpaqueDataType(o OpaqueDataType, name string) {
-	name = kmiputil.NormalizeName(name)
-	_OpaqueDataTypeNameToValueMap[name] = o
-	_OpaqueDataTypeValueToNameMap[o] = name
-}
-
-func init() {
-	RegisterEnum(TagOpaqueDataType, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseOpaqueDataType(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case OpaqueDataType:
-				return t.String()
-			default:
-				return OpaqueDataType(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Name Type Enumeration
+
 // 9.1.3.2.11 Table 299
 type NameType uint32
 
@@ -2309,6 +2311,40 @@ var _NameTypeNameToValueMap = map[string]NameType{
 var _NameTypeValueToNameMap = map[NameType]string{
 	NameTypeUninterpretedTextString: "UninterpretedTextString",
 	NameTypeURI:                     "URI",
+}
+
+func (n NameType) MarshalText() (text []byte, err error) {
+	return []byte(n.String()), nil
+}
+
+func (n *NameType) UnmarshalText(text []byte) (err error) {
+	*n, err = ParseNameType(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagNameType, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseNameType(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return NameType(v).String()
+		},
+	})
+}
+
+func (n NameType) EnumValue() uint32 {
+	return uint32(n)
+}
+
+func RegisterNameType(n NameType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_NameTypeNameToValueMap[name] = n
+	_NameTypeValueToNameMap[n] = name
 }
 
 func (n NameType) String() string {
@@ -2334,42 +2370,8 @@ func ParseNameType(s string) (NameType, error) {
 	}
 }
 
-func (n NameType) MarshalText() (text []byte, err error) {
-	return []byte(n.String()), nil
-}
-
-func (n *NameType) UnmarshalText(text []byte) (err error) {
-	*n, err = ParseNameType(string(text))
-	return
-}
-
-func (n NameType) EnumValue() uint32 {
-	return uint32(n)
-}
-
-func RegisterNameType(n NameType, name string) {
-	name = kmiputil.NormalizeName(name)
-	_NameTypeNameToValueMap[name] = n
-	_NameTypeValueToNameMap[n] = name
-}
-
-func init() {
-	RegisterEnum(TagNameType, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseNameType(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case NameType:
-				return t.String()
-			default:
-				return NameType(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Object Type Enumeration
+
 // 9.1.3.2.12 Table 300
 type ObjectType uint32
 
@@ -2409,6 +2411,40 @@ var _ObjectTypeValueToNameMap = map[ObjectType]string{
 	ObjectTypePGPKey:       "PGPKey",
 }
 
+func (o ObjectType) MarshalText() (text []byte, err error) {
+	return []byte(o.String()), nil
+}
+
+func (o *ObjectType) UnmarshalText(text []byte) (err error) {
+	*o, err = ParseObjectType(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagObjectType, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseObjectType(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return ObjectType(v).String()
+		},
+	})
+}
+
+func (o ObjectType) EnumValue() uint32 {
+	return uint32(o)
+}
+
+func RegisterObjectType(o ObjectType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_ObjectTypeNameToValueMap[name] = o
+	_ObjectTypeValueToNameMap[o] = name
+}
+
 func (o ObjectType) String() string {
 	if s, ok := _ObjectTypeValueToNameMap[o]; ok {
 		return s
@@ -2432,42 +2468,8 @@ func ParseObjectType(s string) (ObjectType, error) {
 	}
 }
 
-func (o ObjectType) MarshalText() (text []byte, err error) {
-	return []byte(o.String()), nil
-}
-
-func (o *ObjectType) UnmarshalText(text []byte) (err error) {
-	*o, err = ParseObjectType(string(text))
-	return
-}
-
-func (o ObjectType) EnumValue() uint32 {
-	return uint32(o)
-}
-
-func RegisterObjectType(o ObjectType, name string) {
-	name = kmiputil.NormalizeName(name)
-	_ObjectTypeNameToValueMap[name] = o
-	_ObjectTypeValueToNameMap[o] = name
-}
-
-func init() {
-	RegisterEnum(TagObjectType, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseObjectType(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case ObjectType:
-				return t.String()
-			default:
-				return ObjectType(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Cryptographic Algorithm Enumeration
+
 // 9.1.3.2.13 Table 301
 type CryptographicAlgorithm uint32
 
@@ -2600,6 +2602,40 @@ var _CryptographicAlgorithmValueToNameMap = map[CryptographicAlgorithm]string{
 	CryptographicAlgorithmSHAKE_256:        "SHAKE_256",
 }
 
+func (c CryptographicAlgorithm) MarshalText() (text []byte, err error) {
+	return []byte(c.String()), nil
+}
+
+func (c *CryptographicAlgorithm) UnmarshalText(text []byte) (err error) {
+	*c, err = ParseCryptographicAlgorithm(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagCryptographicAlgorithm, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseCryptographicAlgorithm(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return CryptographicAlgorithm(v).String()
+		},
+	})
+}
+
+func (c CryptographicAlgorithm) EnumValue() uint32 {
+	return uint32(c)
+}
+
+func RegisterCryptographicAlgorithm(c CryptographicAlgorithm, name string) {
+	name = kmiputil.NormalizeName(name)
+	_CryptographicAlgorithmNameToValueMap[name] = c
+	_CryptographicAlgorithmValueToNameMap[c] = name
+}
+
 func (c CryptographicAlgorithm) String() string {
 	if s, ok := _CryptographicAlgorithmValueToNameMap[c]; ok {
 		return s
@@ -2623,42 +2659,8 @@ func ParseCryptographicAlgorithm(s string) (CryptographicAlgorithm, error) {
 	}
 }
 
-func (c CryptographicAlgorithm) MarshalText() (text []byte, err error) {
-	return []byte(c.String()), nil
-}
-
-func (c *CryptographicAlgorithm) UnmarshalText(text []byte) (err error) {
-	*c, err = ParseCryptographicAlgorithm(string(text))
-	return
-}
-
-func (c CryptographicAlgorithm) EnumValue() uint32 {
-	return uint32(c)
-}
-
-func RegisterCryptographicAlgorithm(c CryptographicAlgorithm, name string) {
-	name = kmiputil.NormalizeName(name)
-	_CryptographicAlgorithmNameToValueMap[name] = c
-	_CryptographicAlgorithmValueToNameMap[c] = name
-}
-
-func init() {
-	RegisterEnum(TagCryptographicAlgorithm, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseCryptographicAlgorithm(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case CryptographicAlgorithm:
-				return t.String()
-			default:
-				return CryptographicAlgorithm(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Block Cipher Mode Enumeration
+
 // 9.1.3.2.14 Table 302
 type BlockCipherMode uint32
 
@@ -2725,6 +2727,40 @@ var _BlockCipherModeValueToNameMap = map[BlockCipherMode]string{
 	BlockCipherModeAEAD:              "AEAD",
 }
 
+func (b BlockCipherMode) MarshalText() (text []byte, err error) {
+	return []byte(b.String()), nil
+}
+
+func (b *BlockCipherMode) UnmarshalText(text []byte) (err error) {
+	*b, err = ParseBlockCipherMode(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagBlockCipherMode, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseBlockCipherMode(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return BlockCipherMode(v).String()
+		},
+	})
+}
+
+func (b BlockCipherMode) EnumValue() uint32 {
+	return uint32(b)
+}
+
+func RegisterBlockCipherMode(b BlockCipherMode, name string) {
+	name = kmiputil.NormalizeName(name)
+	_BlockCipherModeNameToValueMap[name] = b
+	_BlockCipherModeValueToNameMap[b] = name
+}
+
 func (b BlockCipherMode) String() string {
 	if s, ok := _BlockCipherModeValueToNameMap[b]; ok {
 		return s
@@ -2748,42 +2784,8 @@ func ParseBlockCipherMode(s string) (BlockCipherMode, error) {
 	}
 }
 
-func (b BlockCipherMode) MarshalText() (text []byte, err error) {
-	return []byte(b.String()), nil
-}
-
-func (b *BlockCipherMode) UnmarshalText(text []byte) (err error) {
-	*b, err = ParseBlockCipherMode(string(text))
-	return
-}
-
-func (b BlockCipherMode) EnumValue() uint32 {
-	return uint32(b)
-}
-
-func RegisterBlockCipherMode(b BlockCipherMode, name string) {
-	name = kmiputil.NormalizeName(name)
-	_BlockCipherModeNameToValueMap[name] = b
-	_BlockCipherModeValueToNameMap[b] = name
-}
-
-func init() {
-	RegisterEnum(TagBlockCipherMode, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseBlockCipherMode(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case BlockCipherMode:
-				return t.String()
-			default:
-				return BlockCipherMode(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Padding Method Enumeration
+
 // 9.1.3.2.15 Table 303
 type PaddingMethod uint32
 
@@ -2826,6 +2828,40 @@ var _PaddingMethodValueToNameMap = map[PaddingMethod]string{
 	PaddingMethodPSS:       "PSS",
 }
 
+func (p PaddingMethod) MarshalText() (text []byte, err error) {
+	return []byte(p.String()), nil
+}
+
+func (p *PaddingMethod) UnmarshalText(text []byte) (err error) {
+	*p, err = ParsePaddingMethod(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagPaddingMethod, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParsePaddingMethod(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return PaddingMethod(v).String()
+		},
+	})
+}
+
+func (p PaddingMethod) EnumValue() uint32 {
+	return uint32(p)
+}
+
+func RegisterPaddingMethod(p PaddingMethod, name string) {
+	name = kmiputil.NormalizeName(name)
+	_PaddingMethodNameToValueMap[name] = p
+	_PaddingMethodValueToNameMap[p] = name
+}
+
 func (p PaddingMethod) String() string {
 	if s, ok := _PaddingMethodValueToNameMap[p]; ok {
 		return s
@@ -2849,42 +2885,8 @@ func ParsePaddingMethod(s string) (PaddingMethod, error) {
 	}
 }
 
-func (p PaddingMethod) MarshalText() (text []byte, err error) {
-	return []byte(p.String()), nil
-}
-
-func (p *PaddingMethod) UnmarshalText(text []byte) (err error) {
-	*p, err = ParsePaddingMethod(string(text))
-	return
-}
-
-func (p PaddingMethod) EnumValue() uint32 {
-	return uint32(p)
-}
-
-func RegisterPaddingMethod(p PaddingMethod, name string) {
-	name = kmiputil.NormalizeName(name)
-	_PaddingMethodNameToValueMap[name] = p
-	_PaddingMethodValueToNameMap[p] = name
-}
-
-func init() {
-	RegisterEnum(TagPaddingMethod, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParsePaddingMethod(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case PaddingMethod:
-				return t.String()
-			default:
-				return PaddingMethod(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Hashing Algorithm Enumeration
+
 // 9.1.3.2.16 Table 304
 type HashingAlgorithm uint32
 
@@ -2948,6 +2950,52 @@ var _HashingAlgorithmValueToNameMap = map[HashingAlgorithm]string{
 	HashingAlgorithmSHA_3_512:   "SHA_3_512",
 }
 
+func (h HashingAlgorithm) MarshalText() (text []byte, err error) {
+	return []byte(h.String()), nil
+}
+
+func (h *HashingAlgorithm) UnmarshalText(text []byte) (err error) {
+	*h, err = ParseHashingAlgorithm(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagHashingAlgorithm, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseHashingAlgorithm(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return HashingAlgorithm(v).String()
+		},
+	})
+	RegisterEnum(TagMaskGeneratorHashingAlgorithm, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseHashingAlgorithm(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return HashingAlgorithm(v).String()
+		},
+	})
+}
+
+func (h HashingAlgorithm) EnumValue() uint32 {
+	return uint32(h)
+}
+
+func RegisterHashingAlgorithm(h HashingAlgorithm, name string) {
+	name = kmiputil.NormalizeName(name)
+	_HashingAlgorithmNameToValueMap[name] = h
+	_HashingAlgorithmValueToNameMap[h] = name
+}
+
 func (h HashingAlgorithm) String() string {
 	if s, ok := _HashingAlgorithmValueToNameMap[h]; ok {
 		return s
@@ -2971,55 +3019,8 @@ func ParseHashingAlgorithm(s string) (HashingAlgorithm, error) {
 	}
 }
 
-func (h HashingAlgorithm) MarshalText() (text []byte, err error) {
-	return []byte(h.String()), nil
-}
-
-func (h *HashingAlgorithm) UnmarshalText(text []byte) (err error) {
-	*h, err = ParseHashingAlgorithm(string(text))
-	return
-}
-
-func (h HashingAlgorithm) EnumValue() uint32 {
-	return uint32(h)
-}
-
-func RegisterHashingAlgorithm(h HashingAlgorithm, name string) {
-	name = kmiputil.NormalizeName(name)
-	_HashingAlgorithmNameToValueMap[name] = h
-	_HashingAlgorithmValueToNameMap[h] = name
-}
-
-func init() {
-	RegisterEnum(TagHashingAlgorithm, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseHashingAlgorithm(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case HashingAlgorithm:
-				return t.String()
-			default:
-				return HashingAlgorithm(v.EnumValue()).String()
-			}
-		},
-	})
-	RegisterEnum(TagMaskGeneratorHashingAlgorithm, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseHashingAlgorithm(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case HashingAlgorithm:
-				return t.String()
-			default:
-				return HashingAlgorithm(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Key Role Type Enumeration
+
 // 9.1.3.2.17 Table 305
 type KeyRoleType uint32
 
@@ -3104,6 +3105,40 @@ var _KeyRoleTypeValueToNameMap = map[KeyRoleType]string{
 	KeyRoleTypeTRKBK:    "TRKBK",
 }
 
+func (k KeyRoleType) MarshalText() (text []byte, err error) {
+	return []byte(k.String()), nil
+}
+
+func (k *KeyRoleType) UnmarshalText(text []byte) (err error) {
+	*k, err = ParseKeyRoleType(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagKeyRoleType, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseKeyRoleType(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return KeyRoleType(v).String()
+		},
+	})
+}
+
+func (k KeyRoleType) EnumValue() uint32 {
+	return uint32(k)
+}
+
+func RegisterKeyRoleType(k KeyRoleType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_KeyRoleTypeNameToValueMap[name] = k
+	_KeyRoleTypeValueToNameMap[k] = name
+}
+
 func (k KeyRoleType) String() string {
 	if s, ok := _KeyRoleTypeValueToNameMap[k]; ok {
 		return s
@@ -3127,42 +3162,8 @@ func ParseKeyRoleType(s string) (KeyRoleType, error) {
 	}
 }
 
-func (k KeyRoleType) MarshalText() (text []byte, err error) {
-	return []byte(k.String()), nil
-}
-
-func (k *KeyRoleType) UnmarshalText(text []byte) (err error) {
-	*k, err = ParseKeyRoleType(string(text))
-	return
-}
-
-func (k KeyRoleType) EnumValue() uint32 {
-	return uint32(k)
-}
-
-func RegisterKeyRoleType(k KeyRoleType, name string) {
-	name = kmiputil.NormalizeName(name)
-	_KeyRoleTypeNameToValueMap[name] = k
-	_KeyRoleTypeValueToNameMap[k] = name
-}
-
-func init() {
-	RegisterEnum(TagKeyRoleType, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseKeyRoleType(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case KeyRoleType:
-				return t.String()
-			default:
-				return KeyRoleType(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // State Enumeration
+
 // 9.1.3.2.18 Table 306
 type State uint32
 
@@ -3193,6 +3194,40 @@ var _StateValueToNameMap = map[State]string{
 	StateDestroyedCompromised: "DestroyedCompromised",
 }
 
+func (s State) MarshalText() (text []byte, err error) {
+	return []byte(s.String()), nil
+}
+
+func (s *State) UnmarshalText(text []byte) (err error) {
+	*s, err = ParseState(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagState, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseState(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return State(v).String()
+		},
+	})
+}
+
+func (s State) EnumValue() uint32 {
+	return uint32(s)
+}
+
+func RegisterState(s State, name string) {
+	name = kmiputil.NormalizeName(name)
+	_StateNameToValueMap[name] = s
+	_StateValueToNameMap[s] = name
+}
+
 func (s State) String() string {
 	if s, ok := _StateValueToNameMap[s]; ok {
 		return s
@@ -3216,42 +3251,8 @@ func ParseState(s string) (State, error) {
 	}
 }
 
-func (s State) MarshalText() (text []byte, err error) {
-	return []byte(s.String()), nil
-}
-
-func (s *State) UnmarshalText(text []byte) (err error) {
-	*s, err = ParseState(string(text))
-	return
-}
-
-func (s State) EnumValue() uint32 {
-	return uint32(s)
-}
-
-func RegisterState(s State, name string) {
-	name = kmiputil.NormalizeName(name)
-	_StateNameToValueMap[name] = s
-	_StateValueToNameMap[s] = name
-}
-
-func init() {
-	RegisterEnum(TagState, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseState(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case State:
-				return t.String()
-			default:
-				return State(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Revocation Reason Code Enumeration
+
 // 9.1.3.2.19 Table 307
 type RevocationReasonCode uint32
 
@@ -3285,6 +3286,40 @@ var _RevocationReasonCodeValueToNameMap = map[RevocationReasonCode]string{
 	RevocationReasonCodePrivilegeWithdrawn:   "PrivilegeWithdrawn",
 }
 
+func (r RevocationReasonCode) MarshalText() (text []byte, err error) {
+	return []byte(r.String()), nil
+}
+
+func (r *RevocationReasonCode) UnmarshalText(text []byte) (err error) {
+	*r, err = ParseRevocationReasonCode(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagRevocationReasonCode, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseRevocationReasonCode(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return RevocationReasonCode(v).String()
+		},
+	})
+}
+
+func (r RevocationReasonCode) EnumValue() uint32 {
+	return uint32(r)
+}
+
+func RegisterRevocationReasonCode(r RevocationReasonCode, name string) {
+	name = kmiputil.NormalizeName(name)
+	_RevocationReasonCodeNameToValueMap[name] = r
+	_RevocationReasonCodeValueToNameMap[r] = name
+}
+
 func (r RevocationReasonCode) String() string {
 	if s, ok := _RevocationReasonCodeValueToNameMap[r]; ok {
 		return s
@@ -3308,42 +3343,8 @@ func ParseRevocationReasonCode(s string) (RevocationReasonCode, error) {
 	}
 }
 
-func (r RevocationReasonCode) MarshalText() (text []byte, err error) {
-	return []byte(r.String()), nil
-}
-
-func (r *RevocationReasonCode) UnmarshalText(text []byte) (err error) {
-	*r, err = ParseRevocationReasonCode(string(text))
-	return
-}
-
-func (r RevocationReasonCode) EnumValue() uint32 {
-	return uint32(r)
-}
-
-func RegisterRevocationReasonCode(r RevocationReasonCode, name string) {
-	name = kmiputil.NormalizeName(name)
-	_RevocationReasonCodeNameToValueMap[name] = r
-	_RevocationReasonCodeValueToNameMap[r] = name
-}
-
-func init() {
-	RegisterEnum(TagRevocationReasonCode, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseRevocationReasonCode(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case RevocationReasonCode:
-				return t.String()
-			default:
-				return RevocationReasonCode(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Link Type Enumeration
+
 // 9.1.3.2.20 Table 308
 type LinkType uint32
 
@@ -3395,6 +3396,40 @@ var _LinkTypeValueToNameMap = map[LinkType]string{
 	LinkTypePKCS_12PasswordLink:      "PKCS_12PasswordLink",
 }
 
+func (l LinkType) MarshalText() (text []byte, err error) {
+	return []byte(l.String()), nil
+}
+
+func (l *LinkType) UnmarshalText(text []byte) (err error) {
+	*l, err = ParseLinkType(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagLinkType, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseLinkType(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return LinkType(v).String()
+		},
+	})
+}
+
+func (l LinkType) EnumValue() uint32 {
+	return uint32(l)
+}
+
+func RegisterLinkType(l LinkType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_LinkTypeNameToValueMap[name] = l
+	_LinkTypeValueToNameMap[l] = name
+}
+
 func (l LinkType) String() string {
 	if s, ok := _LinkTypeValueToNameMap[l]; ok {
 		return s
@@ -3418,42 +3453,8 @@ func ParseLinkType(s string) (LinkType, error) {
 	}
 }
 
-func (l LinkType) MarshalText() (text []byte, err error) {
-	return []byte(l.String()), nil
-}
-
-func (l *LinkType) UnmarshalText(text []byte) (err error) {
-	*l, err = ParseLinkType(string(text))
-	return
-}
-
-func (l LinkType) EnumValue() uint32 {
-	return uint32(l)
-}
-
-func RegisterLinkType(l LinkType, name string) {
-	name = kmiputil.NormalizeName(name)
-	_LinkTypeNameToValueMap[name] = l
-	_LinkTypeValueToNameMap[l] = name
-}
-
-func init() {
-	RegisterEnum(TagLinkType, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseLinkType(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case LinkType:
-				return t.String()
-			default:
-				return LinkType(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Derivation Method Enumeration
+
 // 9.1.3.2.21 Table 309
 type DerivationMethod uint32
 
@@ -3490,6 +3491,40 @@ var _DerivationMethodValueToNameMap = map[DerivationMethod]string{
 	DerivationMethodAsymmetricKey:   "AsymmetricKey",
 }
 
+func (d DerivationMethod) MarshalText() (text []byte, err error) {
+	return []byte(d.String()), nil
+}
+
+func (d *DerivationMethod) UnmarshalText(text []byte) (err error) {
+	*d, err = ParseDerivationMethod(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagDerivationMethod, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseDerivationMethod(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return DerivationMethod(v).String()
+		},
+	})
+}
+
+func (d DerivationMethod) EnumValue() uint32 {
+	return uint32(d)
+}
+
+func RegisterDerivationMethod(d DerivationMethod, name string) {
+	name = kmiputil.NormalizeName(name)
+	_DerivationMethodNameToValueMap[name] = d
+	_DerivationMethodValueToNameMap[d] = name
+}
+
 func (d DerivationMethod) String() string {
 	if s, ok := _DerivationMethodValueToNameMap[d]; ok {
 		return s
@@ -3513,42 +3548,8 @@ func ParseDerivationMethod(s string) (DerivationMethod, error) {
 	}
 }
 
-func (d DerivationMethod) MarshalText() (text []byte, err error) {
-	return []byte(d.String()), nil
-}
-
-func (d *DerivationMethod) UnmarshalText(text []byte) (err error) {
-	*d, err = ParseDerivationMethod(string(text))
-	return
-}
-
-func (d DerivationMethod) EnumValue() uint32 {
-	return uint32(d)
-}
-
-func RegisterDerivationMethod(d DerivationMethod, name string) {
-	name = kmiputil.NormalizeName(name)
-	_DerivationMethodNameToValueMap[name] = d
-	_DerivationMethodValueToNameMap[d] = name
-}
-
-func init() {
-	RegisterEnum(TagDerivationMethod, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseDerivationMethod(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case DerivationMethod:
-				return t.String()
-			default:
-				return DerivationMethod(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Certificate Request Type Enumeration
+
 // 9.1.3.2.22 Table 310
 type CertificateRequestType uint32
 
@@ -3571,6 +3572,40 @@ var _CertificateRequestTypeValueToNameMap = map[CertificateRequestType]string{
 	CertificateRequestTypePKCS_10: "PKCS_10",
 	CertificateRequestTypePEM:     "PEM",
 	CertificateRequestTypePGP:     "PGP",
+}
+
+func (c CertificateRequestType) MarshalText() (text []byte, err error) {
+	return []byte(c.String()), nil
+}
+
+func (c *CertificateRequestType) UnmarshalText(text []byte) (err error) {
+	*c, err = ParseCertificateRequestType(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagCertificateRequestType, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseCertificateRequestType(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return CertificateRequestType(v).String()
+		},
+	})
+}
+
+func (c CertificateRequestType) EnumValue() uint32 {
+	return uint32(c)
+}
+
+func RegisterCertificateRequestType(c CertificateRequestType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_CertificateRequestTypeNameToValueMap[name] = c
+	_CertificateRequestTypeValueToNameMap[c] = name
 }
 
 func (c CertificateRequestType) String() string {
@@ -3596,42 +3631,8 @@ func ParseCertificateRequestType(s string) (CertificateRequestType, error) {
 	}
 }
 
-func (c CertificateRequestType) MarshalText() (text []byte, err error) {
-	return []byte(c.String()), nil
-}
-
-func (c *CertificateRequestType) UnmarshalText(text []byte) (err error) {
-	*c, err = ParseCertificateRequestType(string(text))
-	return
-}
-
-func (c CertificateRequestType) EnumValue() uint32 {
-	return uint32(c)
-}
-
-func RegisterCertificateRequestType(c CertificateRequestType, name string) {
-	name = kmiputil.NormalizeName(name)
-	_CertificateRequestTypeNameToValueMap[name] = c
-	_CertificateRequestTypeValueToNameMap[c] = name
-}
-
-func init() {
-	RegisterEnum(TagCertificateRequestType, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseCertificateRequestType(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case CertificateRequestType:
-				return t.String()
-			default:
-				return CertificateRequestType(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Validity Indicator Enumeration
+
 // 9.1.3.2.23 Table 311
 type ValidityIndicator uint32
 
@@ -3651,6 +3652,40 @@ var _ValidityIndicatorValueToNameMap = map[ValidityIndicator]string{
 	ValidityIndicatorValid:   "Valid",
 	ValidityIndicatorInvalid: "Invalid",
 	ValidityIndicatorUnknown: "Unknown",
+}
+
+func (v ValidityIndicator) MarshalText() (text []byte, err error) {
+	return []byte(v.String()), nil
+}
+
+func (v *ValidityIndicator) UnmarshalText(text []byte) (err error) {
+	*v, err = ParseValidityIndicator(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagValidityIndicator, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseValidityIndicator(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return ValidityIndicator(v).String()
+		},
+	})
+}
+
+func (v ValidityIndicator) EnumValue() uint32 {
+	return uint32(v)
+}
+
+func RegisterValidityIndicator(v ValidityIndicator, name string) {
+	name = kmiputil.NormalizeName(name)
+	_ValidityIndicatorNameToValueMap[name] = v
+	_ValidityIndicatorValueToNameMap[v] = name
 }
 
 func (v ValidityIndicator) String() string {
@@ -3676,42 +3711,8 @@ func ParseValidityIndicator(s string) (ValidityIndicator, error) {
 	}
 }
 
-func (v ValidityIndicator) MarshalText() (text []byte, err error) {
-	return []byte(v.String()), nil
-}
-
-func (v *ValidityIndicator) UnmarshalText(text []byte) (err error) {
-	*v, err = ParseValidityIndicator(string(text))
-	return
-}
-
-func (v ValidityIndicator) EnumValue() uint32 {
-	return uint32(v)
-}
-
-func RegisterValidityIndicator(v ValidityIndicator, name string) {
-	name = kmiputil.NormalizeName(name)
-	_ValidityIndicatorNameToValueMap[name] = v
-	_ValidityIndicatorValueToNameMap[v] = name
-}
-
-func init() {
-	RegisterEnum(TagValidityIndicator, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseValidityIndicator(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case ValidityIndicator:
-				return t.String()
-			default:
-				return ValidityIndicator(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Query Function Enumeration
+
 // 9.1.3.2.24 Table 312
 type QueryFunction uint32
 
@@ -3760,6 +3761,40 @@ var _QueryFunctionValueToNameMap = map[QueryFunction]string{
 	QueryFunctionQueryClientRegistrationMethods: "QueryClientRegistrationMethods",
 }
 
+func (q QueryFunction) MarshalText() (text []byte, err error) {
+	return []byte(q.String()), nil
+}
+
+func (q *QueryFunction) UnmarshalText(text []byte) (err error) {
+	*q, err = ParseQueryFunction(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagQueryFunction, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseQueryFunction(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return QueryFunction(v).String()
+		},
+	})
+}
+
+func (q QueryFunction) EnumValue() uint32 {
+	return uint32(q)
+}
+
+func RegisterQueryFunction(q QueryFunction, name string) {
+	name = kmiputil.NormalizeName(name)
+	_QueryFunctionNameToValueMap[name] = q
+	_QueryFunctionValueToNameMap[q] = name
+}
+
 func (q QueryFunction) String() string {
 	if s, ok := _QueryFunctionValueToNameMap[q]; ok {
 		return s
@@ -3783,42 +3818,8 @@ func ParseQueryFunction(s string) (QueryFunction, error) {
 	}
 }
 
-func (q QueryFunction) MarshalText() (text []byte, err error) {
-	return []byte(q.String()), nil
-}
-
-func (q *QueryFunction) UnmarshalText(text []byte) (err error) {
-	*q, err = ParseQueryFunction(string(text))
-	return
-}
-
-func (q QueryFunction) EnumValue() uint32 {
-	return uint32(q)
-}
-
-func RegisterQueryFunction(q QueryFunction, name string) {
-	name = kmiputil.NormalizeName(name)
-	_QueryFunctionNameToValueMap[name] = q
-	_QueryFunctionValueToNameMap[q] = name
-}
-
-func init() {
-	RegisterEnum(TagQueryFunction, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseQueryFunction(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case QueryFunction:
-				return t.String()
-			default:
-				return QueryFunction(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Cancellation Result Enumeration
+
 // 9.1.3.2.25 Table 313
 type CancellationResult uint32
 
@@ -3846,6 +3847,40 @@ var _CancellationResultValueToNameMap = map[CancellationResult]string{
 	CancellationResultUnavailable:    "Unavailable",
 }
 
+func (c CancellationResult) MarshalText() (text []byte, err error) {
+	return []byte(c.String()), nil
+}
+
+func (c *CancellationResult) UnmarshalText(text []byte) (err error) {
+	*c, err = ParseCancellationResult(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagCancellationResult, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseCancellationResult(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return CancellationResult(v).String()
+		},
+	})
+}
+
+func (c CancellationResult) EnumValue() uint32 {
+	return uint32(c)
+}
+
+func RegisterCancellationResult(c CancellationResult, name string) {
+	name = kmiputil.NormalizeName(name)
+	_CancellationResultNameToValueMap[name] = c
+	_CancellationResultValueToNameMap[c] = name
+}
+
 func (c CancellationResult) String() string {
 	if s, ok := _CancellationResultValueToNameMap[c]; ok {
 		return s
@@ -3869,42 +3904,8 @@ func ParseCancellationResult(s string) (CancellationResult, error) {
 	}
 }
 
-func (c CancellationResult) MarshalText() (text []byte, err error) {
-	return []byte(c.String()), nil
-}
-
-func (c *CancellationResult) UnmarshalText(text []byte) (err error) {
-	*c, err = ParseCancellationResult(string(text))
-	return
-}
-
-func (c CancellationResult) EnumValue() uint32 {
-	return uint32(c)
-}
-
-func RegisterCancellationResult(c CancellationResult, name string) {
-	name = kmiputil.NormalizeName(name)
-	_CancellationResultNameToValueMap[name] = c
-	_CancellationResultValueToNameMap[c] = name
-}
-
-func init() {
-	RegisterEnum(TagCancellationResult, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseCancellationResult(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case CancellationResult:
-				return t.String()
-			default:
-				return CancellationResult(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Put Function Enumeration
+
 // 9.1.3.2.26 Table 314
 type PutFunction uint32
 
@@ -3921,6 +3922,40 @@ var _PutFunctionNameToValueMap = map[string]PutFunction{
 var _PutFunctionValueToNameMap = map[PutFunction]string{
 	PutFunctionNew:     "New",
 	PutFunctionReplace: "Replace",
+}
+
+func (p PutFunction) MarshalText() (text []byte, err error) {
+	return []byte(p.String()), nil
+}
+
+func (p *PutFunction) UnmarshalText(text []byte) (err error) {
+	*p, err = ParsePutFunction(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagPutFunction, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParsePutFunction(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return PutFunction(v).String()
+		},
+	})
+}
+
+func (p PutFunction) EnumValue() uint32 {
+	return uint32(p)
+}
+
+func RegisterPutFunction(p PutFunction, name string) {
+	name = kmiputil.NormalizeName(name)
+	_PutFunctionNameToValueMap[name] = p
+	_PutFunctionValueToNameMap[p] = name
 }
 
 func (p PutFunction) String() string {
@@ -3946,42 +3981,8 @@ func ParsePutFunction(s string) (PutFunction, error) {
 	}
 }
 
-func (p PutFunction) MarshalText() (text []byte, err error) {
-	return []byte(p.String()), nil
-}
-
-func (p *PutFunction) UnmarshalText(text []byte) (err error) {
-	*p, err = ParsePutFunction(string(text))
-	return
-}
-
-func (p PutFunction) EnumValue() uint32 {
-	return uint32(p)
-}
-
-func RegisterPutFunction(p PutFunction, name string) {
-	name = kmiputil.NormalizeName(name)
-	_PutFunctionNameToValueMap[name] = p
-	_PutFunctionValueToNameMap[p] = name
-}
-
-func init() {
-	RegisterEnum(TagPutFunction, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParsePutFunction(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case PutFunction:
-				return t.String()
-			default:
-				return PutFunction(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Operation Enumeration
+
 // 9.1.3.2.27 Table 315
 type Operation uint32
 
@@ -4123,6 +4124,40 @@ var _OperationValueToNameMap = map[Operation]string{
 	OperationExport:             "Export",
 }
 
+func (o Operation) MarshalText() (text []byte, err error) {
+	return []byte(o.String()), nil
+}
+
+func (o *Operation) UnmarshalText(text []byte) (err error) {
+	*o, err = ParseOperation(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagOperation, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseOperation(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return Operation(v).String()
+		},
+	})
+}
+
+func (o Operation) EnumValue() uint32 {
+	return uint32(o)
+}
+
+func RegisterOperation(o Operation, name string) {
+	name = kmiputil.NormalizeName(name)
+	_OperationNameToValueMap[name] = o
+	_OperationValueToNameMap[o] = name
+}
+
 func (o Operation) String() string {
 	if s, ok := _OperationValueToNameMap[o]; ok {
 		return s
@@ -4146,42 +4181,8 @@ func ParseOperation(s string) (Operation, error) {
 	}
 }
 
-func (o Operation) MarshalText() (text []byte, err error) {
-	return []byte(o.String()), nil
-}
-
-func (o *Operation) UnmarshalText(text []byte) (err error) {
-	*o, err = ParseOperation(string(text))
-	return
-}
-
-func (o Operation) EnumValue() uint32 {
-	return uint32(o)
-}
-
-func RegisterOperation(o Operation, name string) {
-	name = kmiputil.NormalizeName(name)
-	_OperationNameToValueMap[name] = o
-	_OperationValueToNameMap[o] = name
-}
-
-func init() {
-	RegisterEnum(TagOperation, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseOperation(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case Operation:
-				return t.String()
-			default:
-				return Operation(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Result Status Enumeration
+
 // 9.1.3.2.28 Table 316
 type ResultStatus uint32
 
@@ -4204,6 +4205,40 @@ var _ResultStatusValueToNameMap = map[ResultStatus]string{
 	ResultStatusOperationFailed:  "OperationFailed",
 	ResultStatusOperationPending: "OperationPending",
 	ResultStatusOperationUndone:  "OperationUndone",
+}
+
+func (r ResultStatus) MarshalText() (text []byte, err error) {
+	return []byte(r.String()), nil
+}
+
+func (r *ResultStatus) UnmarshalText(text []byte) (err error) {
+	*r, err = ParseResultStatus(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagResultStatus, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseResultStatus(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return ResultStatus(v).String()
+		},
+	})
+}
+
+func (r ResultStatus) EnumValue() uint32 {
+	return uint32(r)
+}
+
+func RegisterResultStatus(r ResultStatus, name string) {
+	name = kmiputil.NormalizeName(name)
+	_ResultStatusNameToValueMap[name] = r
+	_ResultStatusValueToNameMap[r] = name
 }
 
 func (r ResultStatus) String() string {
@@ -4229,42 +4264,8 @@ func ParseResultStatus(s string) (ResultStatus, error) {
 	}
 }
 
-func (r ResultStatus) MarshalText() (text []byte, err error) {
-	return []byte(r.String()), nil
-}
-
-func (r *ResultStatus) UnmarshalText(text []byte) (err error) {
-	*r, err = ParseResultStatus(string(text))
-	return
-}
-
-func (r ResultStatus) EnumValue() uint32 {
-	return uint32(r)
-}
-
-func RegisterResultStatus(r ResultStatus, name string) {
-	name = kmiputil.NormalizeName(name)
-	_ResultStatusNameToValueMap[name] = r
-	_ResultStatusValueToNameMap[r] = name
-}
-
-func init() {
-	RegisterEnum(TagResultStatus, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseResultStatus(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case ResultStatus:
-				return t.String()
-			default:
-				return ResultStatus(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Result Reason Enumeration
+
 // 9.1.3.2.29 Table 317
 type ResultReason uint32
 
@@ -4352,6 +4353,40 @@ var _ResultReasonValueToNameMap = map[ResultReason]string{
 	ResultReasonGeneralFailure:                   "GeneralFailure",
 }
 
+func (r ResultReason) MarshalText() (text []byte, err error) {
+	return []byte(r.String()), nil
+}
+
+func (r *ResultReason) UnmarshalText(text []byte) (err error) {
+	*r, err = ParseResultReason(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagResultReason, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseResultReason(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return ResultReason(v).String()
+		},
+	})
+}
+
+func (r ResultReason) EnumValue() uint32 {
+	return uint32(r)
+}
+
+func RegisterResultReason(r ResultReason, name string) {
+	name = kmiputil.NormalizeName(name)
+	_ResultReasonNameToValueMap[name] = r
+	_ResultReasonValueToNameMap[r] = name
+}
+
 func (r ResultReason) String() string {
 	if s, ok := _ResultReasonValueToNameMap[r]; ok {
 		return s
@@ -4375,42 +4410,8 @@ func ParseResultReason(s string) (ResultReason, error) {
 	}
 }
 
-func (r ResultReason) MarshalText() (text []byte, err error) {
-	return []byte(r.String()), nil
-}
-
-func (r *ResultReason) UnmarshalText(text []byte) (err error) {
-	*r, err = ParseResultReason(string(text))
-	return
-}
-
-func (r ResultReason) EnumValue() uint32 {
-	return uint32(r)
-}
-
-func RegisterResultReason(r ResultReason, name string) {
-	name = kmiputil.NormalizeName(name)
-	_ResultReasonNameToValueMap[name] = r
-	_ResultReasonValueToNameMap[r] = name
-}
-
-func init() {
-	RegisterEnum(TagResultReason, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseResultReason(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case ResultReason:
-				return t.String()
-			default:
-				return ResultReason(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Batch Error Continuation Option Enumeration
+
 // 9.1.3.2.30 Table 318
 type BatchErrorContinuationOption uint32
 
@@ -4430,6 +4431,40 @@ var _BatchErrorContinuationOptionValueToNameMap = map[BatchErrorContinuationOpti
 	BatchErrorContinuationOptionContinue: "Continue",
 	BatchErrorContinuationOptionStop:     "Stop",
 	BatchErrorContinuationOptionUndo:     "Undo",
+}
+
+func (b BatchErrorContinuationOption) MarshalText() (text []byte, err error) {
+	return []byte(b.String()), nil
+}
+
+func (b *BatchErrorContinuationOption) UnmarshalText(text []byte) (err error) {
+	*b, err = ParseBatchErrorContinuationOption(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagBatchErrorContinuationOption, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseBatchErrorContinuationOption(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return BatchErrorContinuationOption(v).String()
+		},
+	})
+}
+
+func (b BatchErrorContinuationOption) EnumValue() uint32 {
+	return uint32(b)
+}
+
+func RegisterBatchErrorContinuationOption(b BatchErrorContinuationOption, name string) {
+	name = kmiputil.NormalizeName(name)
+	_BatchErrorContinuationOptionNameToValueMap[name] = b
+	_BatchErrorContinuationOptionValueToNameMap[b] = name
 }
 
 func (b BatchErrorContinuationOption) String() string {
@@ -4455,42 +4490,8 @@ func ParseBatchErrorContinuationOption(s string) (BatchErrorContinuationOption, 
 	}
 }
 
-func (b BatchErrorContinuationOption) MarshalText() (text []byte, err error) {
-	return []byte(b.String()), nil
-}
-
-func (b *BatchErrorContinuationOption) UnmarshalText(text []byte) (err error) {
-	*b, err = ParseBatchErrorContinuationOption(string(text))
-	return
-}
-
-func (b BatchErrorContinuationOption) EnumValue() uint32 {
-	return uint32(b)
-}
-
-func RegisterBatchErrorContinuationOption(b BatchErrorContinuationOption, name string) {
-	name = kmiputil.NormalizeName(name)
-	_BatchErrorContinuationOptionNameToValueMap[name] = b
-	_BatchErrorContinuationOptionValueToNameMap[b] = name
-}
-
-func init() {
-	RegisterEnum(TagBatchErrorContinuationOption, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseBatchErrorContinuationOption(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case BatchErrorContinuationOption:
-				return t.String()
-			default:
-				return BatchErrorContinuationOption(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Usage Limits Unit Enumeration
+
 // 9.1.3.2.31 Table 319
 type UsageLimitsUnit uint32
 
@@ -4507,6 +4508,40 @@ var _UsageLimitsUnitNameToValueMap = map[string]UsageLimitsUnit{
 var _UsageLimitsUnitValueToNameMap = map[UsageLimitsUnit]string{
 	UsageLimitsUnitByte:   "Byte",
 	UsageLimitsUnitObject: "Object",
+}
+
+func (u UsageLimitsUnit) MarshalText() (text []byte, err error) {
+	return []byte(u.String()), nil
+}
+
+func (u *UsageLimitsUnit) UnmarshalText(text []byte) (err error) {
+	*u, err = ParseUsageLimitsUnit(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagUsageLimitsUnit, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseUsageLimitsUnit(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return UsageLimitsUnit(v).String()
+		},
+	})
+}
+
+func (u UsageLimitsUnit) EnumValue() uint32 {
+	return uint32(u)
+}
+
+func RegisterUsageLimitsUnit(u UsageLimitsUnit, name string) {
+	name = kmiputil.NormalizeName(name)
+	_UsageLimitsUnitNameToValueMap[name] = u
+	_UsageLimitsUnitValueToNameMap[u] = name
 }
 
 func (u UsageLimitsUnit) String() string {
@@ -4532,42 +4567,8 @@ func ParseUsageLimitsUnit(s string) (UsageLimitsUnit, error) {
 	}
 }
 
-func (u UsageLimitsUnit) MarshalText() (text []byte, err error) {
-	return []byte(u.String()), nil
-}
-
-func (u *UsageLimitsUnit) UnmarshalText(text []byte) (err error) {
-	*u, err = ParseUsageLimitsUnit(string(text))
-	return
-}
-
-func (u UsageLimitsUnit) EnumValue() uint32 {
-	return uint32(u)
-}
-
-func RegisterUsageLimitsUnit(u UsageLimitsUnit, name string) {
-	name = kmiputil.NormalizeName(name)
-	_UsageLimitsUnitNameToValueMap[name] = u
-	_UsageLimitsUnitValueToNameMap[u] = name
-}
-
-func init() {
-	RegisterEnum(TagUsageLimitsUnit, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseUsageLimitsUnit(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case UsageLimitsUnit:
-				return t.String()
-			default:
-				return UsageLimitsUnit(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Encoding Option Enumeration
+
 // 9.1.3.2.32 Table 320
 type EncodingOption uint32
 
@@ -4584,6 +4585,40 @@ var _EncodingOptionNameToValueMap = map[string]EncodingOption{
 var _EncodingOptionValueToNameMap = map[EncodingOption]string{
 	EncodingOptionNoEncoding:   "NoEncoding",
 	EncodingOptionTTLVEncoding: "TTLVEncoding",
+}
+
+func (e EncodingOption) MarshalText() (text []byte, err error) {
+	return []byte(e.String()), nil
+}
+
+func (e *EncodingOption) UnmarshalText(text []byte) (err error) {
+	*e, err = ParseEncodingOption(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagEncodingOption, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseEncodingOption(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return EncodingOption(v).String()
+		},
+	})
+}
+
+func (e EncodingOption) EnumValue() uint32 {
+	return uint32(e)
+}
+
+func RegisterEncodingOption(e EncodingOption, name string) {
+	name = kmiputil.NormalizeName(name)
+	_EncodingOptionNameToValueMap[name] = e
+	_EncodingOptionValueToNameMap[e] = name
 }
 
 func (e EncodingOption) String() string {
@@ -4609,42 +4644,8 @@ func ParseEncodingOption(s string) (EncodingOption, error) {
 	}
 }
 
-func (e EncodingOption) MarshalText() (text []byte, err error) {
-	return []byte(e.String()), nil
-}
-
-func (e *EncodingOption) UnmarshalText(text []byte) (err error) {
-	*e, err = ParseEncodingOption(string(text))
-	return
-}
-
-func (e EncodingOption) EnumValue() uint32 {
-	return uint32(e)
-}
-
-func RegisterEncodingOption(e EncodingOption, name string) {
-	name = kmiputil.NormalizeName(name)
-	_EncodingOptionNameToValueMap[name] = e
-	_EncodingOptionValueToNameMap[e] = name
-}
-
-func init() {
-	RegisterEnum(TagEncodingOption, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseEncodingOption(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case EncodingOption:
-				return t.String()
-			default:
-				return EncodingOption(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Object Group Member Enumeration
+
 // 9.1.3.2.33 Table 321
 type ObjectGroupMember uint32
 
@@ -4661,6 +4662,40 @@ var _ObjectGroupMemberNameToValueMap = map[string]ObjectGroupMember{
 var _ObjectGroupMemberValueToNameMap = map[ObjectGroupMember]string{
 	ObjectGroupMemberGroupMemberFresh:   "GroupMemberFresh",
 	ObjectGroupMemberGroupMemberDefault: "GroupMemberDefault",
+}
+
+func (o ObjectGroupMember) MarshalText() (text []byte, err error) {
+	return []byte(o.String()), nil
+}
+
+func (o *ObjectGroupMember) UnmarshalText(text []byte) (err error) {
+	*o, err = ParseObjectGroupMember(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagObjectGroupMember, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseObjectGroupMember(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return ObjectGroupMember(v).String()
+		},
+	})
+}
+
+func (o ObjectGroupMember) EnumValue() uint32 {
+	return uint32(o)
+}
+
+func RegisterObjectGroupMember(o ObjectGroupMember, name string) {
+	name = kmiputil.NormalizeName(name)
+	_ObjectGroupMemberNameToValueMap[name] = o
+	_ObjectGroupMemberValueToNameMap[o] = name
 }
 
 func (o ObjectGroupMember) String() string {
@@ -4686,42 +4721,8 @@ func ParseObjectGroupMember(s string) (ObjectGroupMember, error) {
 	}
 }
 
-func (o ObjectGroupMember) MarshalText() (text []byte, err error) {
-	return []byte(o.String()), nil
-}
-
-func (o *ObjectGroupMember) UnmarshalText(text []byte) (err error) {
-	*o, err = ParseObjectGroupMember(string(text))
-	return
-}
-
-func (o ObjectGroupMember) EnumValue() uint32 {
-	return uint32(o)
-}
-
-func RegisterObjectGroupMember(o ObjectGroupMember, name string) {
-	name = kmiputil.NormalizeName(name)
-	_ObjectGroupMemberNameToValueMap[name] = o
-	_ObjectGroupMemberValueToNameMap[o] = name
-}
-
-func init() {
-	RegisterEnum(TagObjectGroupMember, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseObjectGroupMember(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case ObjectGroupMember:
-				return t.String()
-			default:
-				return ObjectGroupMember(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Alternative Name Type Enumeration
+
 // 9.1.3.2.34 Table 322
 type AlternativeNameType uint32
 
@@ -4755,6 +4756,40 @@ var _AlternativeNameTypeValueToNameMap = map[AlternativeNameType]string{
 	AlternativeNameTypeIPAddress:               "IPAddress",
 }
 
+func (a AlternativeNameType) MarshalText() (text []byte, err error) {
+	return []byte(a.String()), nil
+}
+
+func (a *AlternativeNameType) UnmarshalText(text []byte) (err error) {
+	*a, err = ParseAlternativeNameType(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagAlternativeNameType, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseAlternativeNameType(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return AlternativeNameType(v).String()
+		},
+	})
+}
+
+func (a AlternativeNameType) EnumValue() uint32 {
+	return uint32(a)
+}
+
+func RegisterAlternativeNameType(a AlternativeNameType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_AlternativeNameTypeNameToValueMap[name] = a
+	_AlternativeNameTypeValueToNameMap[a] = name
+}
+
 func (a AlternativeNameType) String() string {
 	if s, ok := _AlternativeNameTypeValueToNameMap[a]; ok {
 		return s
@@ -4778,42 +4813,8 @@ func ParseAlternativeNameType(s string) (AlternativeNameType, error) {
 	}
 }
 
-func (a AlternativeNameType) MarshalText() (text []byte, err error) {
-	return []byte(a.String()), nil
-}
-
-func (a *AlternativeNameType) UnmarshalText(text []byte) (err error) {
-	*a, err = ParseAlternativeNameType(string(text))
-	return
-}
-
-func (a AlternativeNameType) EnumValue() uint32 {
-	return uint32(a)
-}
-
-func RegisterAlternativeNameType(a AlternativeNameType, name string) {
-	name = kmiputil.NormalizeName(name)
-	_AlternativeNameTypeNameToValueMap[name] = a
-	_AlternativeNameTypeValueToNameMap[a] = name
-}
-
-func init() {
-	RegisterEnum(TagAlternativeNameType, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseAlternativeNameType(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case AlternativeNameType:
-				return t.String()
-			default:
-				return AlternativeNameType(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Key Value Location Type Enumeration
+
 // 9.1.3.2.35 Table 323
 type KeyValueLocationType uint32
 
@@ -4830,6 +4831,40 @@ var _KeyValueLocationTypeNameToValueMap = map[string]KeyValueLocationType{
 var _KeyValueLocationTypeValueToNameMap = map[KeyValueLocationType]string{
 	KeyValueLocationTypeUninterpretedTextString: "UninterpretedTextString",
 	KeyValueLocationTypeURI:                     "URI",
+}
+
+func (k KeyValueLocationType) MarshalText() (text []byte, err error) {
+	return []byte(k.String()), nil
+}
+
+func (k *KeyValueLocationType) UnmarshalText(text []byte) (err error) {
+	*k, err = ParseKeyValueLocationType(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagKeyValueLocationType, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseKeyValueLocationType(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return KeyValueLocationType(v).String()
+		},
+	})
+}
+
+func (k KeyValueLocationType) EnumValue() uint32 {
+	return uint32(k)
+}
+
+func RegisterKeyValueLocationType(k KeyValueLocationType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_KeyValueLocationTypeNameToValueMap[name] = k
+	_KeyValueLocationTypeValueToNameMap[k] = name
 }
 
 func (k KeyValueLocationType) String() string {
@@ -4855,42 +4890,8 @@ func ParseKeyValueLocationType(s string) (KeyValueLocationType, error) {
 	}
 }
 
-func (k KeyValueLocationType) MarshalText() (text []byte, err error) {
-	return []byte(k.String()), nil
-}
-
-func (k *KeyValueLocationType) UnmarshalText(text []byte) (err error) {
-	*k, err = ParseKeyValueLocationType(string(text))
-	return
-}
-
-func (k KeyValueLocationType) EnumValue() uint32 {
-	return uint32(k)
-}
-
-func RegisterKeyValueLocationType(k KeyValueLocationType, name string) {
-	name = kmiputil.NormalizeName(name)
-	_KeyValueLocationTypeNameToValueMap[name] = k
-	_KeyValueLocationTypeValueToNameMap[k] = name
-}
-
-func init() {
-	RegisterEnum(TagKeyValueLocationType, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseKeyValueLocationType(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case KeyValueLocationType:
-				return t.String()
-			default:
-				return KeyValueLocationType(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Attestation Type Enumeration
+
 // 9.1.3.2.36 Table 324
 type AttestationType uint32
 
@@ -4910,6 +4911,40 @@ var _AttestationTypeValueToNameMap = map[AttestationType]string{
 	AttestationTypeTPMQuote:           "TPMQuote",
 	AttestationTypeTCGIntegrityReport: "TCGIntegrityReport",
 	AttestationTypeSAMLAssertion:      "SAMLAssertion",
+}
+
+func (a AttestationType) MarshalText() (text []byte, err error) {
+	return []byte(a.String()), nil
+}
+
+func (a *AttestationType) UnmarshalText(text []byte) (err error) {
+	*a, err = ParseAttestationType(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagAttestationType, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseAttestationType(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return AttestationType(v).String()
+		},
+	})
+}
+
+func (a AttestationType) EnumValue() uint32 {
+	return uint32(a)
+}
+
+func RegisterAttestationType(a AttestationType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_AttestationTypeNameToValueMap[name] = a
+	_AttestationTypeValueToNameMap[a] = name
 }
 
 func (a AttestationType) String() string {
@@ -4935,42 +4970,8 @@ func ParseAttestationType(s string) (AttestationType, error) {
 	}
 }
 
-func (a AttestationType) MarshalText() (text []byte, err error) {
-	return []byte(a.String()), nil
-}
-
-func (a *AttestationType) UnmarshalText(text []byte) (err error) {
-	*a, err = ParseAttestationType(string(text))
-	return
-}
-
-func (a AttestationType) EnumValue() uint32 {
-	return uint32(a)
-}
-
-func RegisterAttestationType(a AttestationType, name string) {
-	name = kmiputil.NormalizeName(name)
-	_AttestationTypeNameToValueMap[name] = a
-	_AttestationTypeValueToNameMap[a] = name
-}
-
-func init() {
-	RegisterEnum(TagAttestationType, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseAttestationType(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case AttestationType:
-				return t.String()
-			default:
-				return AttestationType(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // RNG Algorithm Enumeration
+
 // 9.1.3.2.37 Table
 type RNGAlgorithm uint32
 
@@ -5001,6 +5002,40 @@ var _RNGAlgorithmValueToNameMap = map[RNGAlgorithm]string{
 	RNGAlgorithmANSIX9_62:   "ANSIX9_62",
 }
 
+func (r RNGAlgorithm) MarshalText() (text []byte, err error) {
+	return []byte(r.String()), nil
+}
+
+func (r *RNGAlgorithm) UnmarshalText(text []byte) (err error) {
+	*r, err = ParseRNGAlgorithm(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagRNGAlgorithm, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseRNGAlgorithm(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return RNGAlgorithm(v).String()
+		},
+	})
+}
+
+func (r RNGAlgorithm) EnumValue() uint32 {
+	return uint32(r)
+}
+
+func RegisterRNGAlgorithm(r RNGAlgorithm, name string) {
+	name = kmiputil.NormalizeName(name)
+	_RNGAlgorithmNameToValueMap[name] = r
+	_RNGAlgorithmValueToNameMap[r] = name
+}
+
 func (r RNGAlgorithm) String() string {
 	if s, ok := _RNGAlgorithmValueToNameMap[r]; ok {
 		return s
@@ -5024,42 +5059,8 @@ func ParseRNGAlgorithm(s string) (RNGAlgorithm, error) {
 	}
 }
 
-func (r RNGAlgorithm) MarshalText() (text []byte, err error) {
-	return []byte(r.String()), nil
-}
-
-func (r *RNGAlgorithm) UnmarshalText(text []byte) (err error) {
-	*r, err = ParseRNGAlgorithm(string(text))
-	return
-}
-
-func (r RNGAlgorithm) EnumValue() uint32 {
-	return uint32(r)
-}
-
-func RegisterRNGAlgorithm(r RNGAlgorithm, name string) {
-	name = kmiputil.NormalizeName(name)
-	_RNGAlgorithmNameToValueMap[name] = r
-	_RNGAlgorithmValueToNameMap[r] = name
-}
-
-func init() {
-	RegisterEnum(TagRNGAlgorithm, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseRNGAlgorithm(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case RNGAlgorithm:
-				return t.String()
-			default:
-				return RNGAlgorithm(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // DRBG Algorithm Enumeration
+
 // 9.1.3.2.38
 type DRBGAlgorithm uint32
 
@@ -5087,6 +5088,40 @@ var _DRBGAlgorithmValueToNameMap = map[DRBGAlgorithm]string{
 	DRBGAlgorithmCTR:         "CTR",
 }
 
+func (d DRBGAlgorithm) MarshalText() (text []byte, err error) {
+	return []byte(d.String()), nil
+}
+
+func (d *DRBGAlgorithm) UnmarshalText(text []byte) (err error) {
+	*d, err = ParseDRBGAlgorithm(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagDRBGAlgorithm, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseDRBGAlgorithm(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return DRBGAlgorithm(v).String()
+		},
+	})
+}
+
+func (d DRBGAlgorithm) EnumValue() uint32 {
+	return uint32(d)
+}
+
+func RegisterDRBGAlgorithm(d DRBGAlgorithm, name string) {
+	name = kmiputil.NormalizeName(name)
+	_DRBGAlgorithmNameToValueMap[name] = d
+	_DRBGAlgorithmValueToNameMap[d] = name
+}
+
 func (d DRBGAlgorithm) String() string {
 	if s, ok := _DRBGAlgorithmValueToNameMap[d]; ok {
 		return s
@@ -5110,42 +5145,8 @@ func ParseDRBGAlgorithm(s string) (DRBGAlgorithm, error) {
 	}
 }
 
-func (d DRBGAlgorithm) MarshalText() (text []byte, err error) {
-	return []byte(d.String()), nil
-}
-
-func (d *DRBGAlgorithm) UnmarshalText(text []byte) (err error) {
-	*d, err = ParseDRBGAlgorithm(string(text))
-	return
-}
-
-func (d DRBGAlgorithm) EnumValue() uint32 {
-	return uint32(d)
-}
-
-func RegisterDRBGAlgorithm(d DRBGAlgorithm, name string) {
-	name = kmiputil.NormalizeName(name)
-	_DRBGAlgorithmNameToValueMap[name] = d
-	_DRBGAlgorithmValueToNameMap[d] = name
-}
-
-func init() {
-	RegisterEnum(TagDRBGAlgorithm, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseDRBGAlgorithm(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case DRBGAlgorithm:
-				return t.String()
-			default:
-				return DRBGAlgorithm(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // FIPS186 Variation Enumeration
+
 // 9.1.3.2.39
 type FIPS186Variation uint32
 
@@ -5179,6 +5180,40 @@ var _FIPS186VariationValueToNameMap = map[FIPS186Variation]string{
 	FIPS186VariationKChangeNotice:   "KChangeNotice",
 }
 
+func (f FIPS186Variation) MarshalText() (text []byte, err error) {
+	return []byte(f.String()), nil
+}
+
+func (f *FIPS186Variation) UnmarshalText(text []byte) (err error) {
+	*f, err = ParseFIPS186Variation(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagFIPS186Variation, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseFIPS186Variation(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return FIPS186Variation(v).String()
+		},
+	})
+}
+
+func (f FIPS186Variation) EnumValue() uint32 {
+	return uint32(f)
+}
+
+func RegisterFIPS186Variation(f FIPS186Variation, name string) {
+	name = kmiputil.NormalizeName(name)
+	_FIPS186VariationNameToValueMap[name] = f
+	_FIPS186VariationValueToNameMap[f] = name
+}
+
 func (f FIPS186Variation) String() string {
 	if s, ok := _FIPS186VariationValueToNameMap[f]; ok {
 		return s
@@ -5202,42 +5237,8 @@ func ParseFIPS186Variation(s string) (FIPS186Variation, error) {
 	}
 }
 
-func (f FIPS186Variation) MarshalText() (text []byte, err error) {
-	return []byte(f.String()), nil
-}
-
-func (f *FIPS186Variation) UnmarshalText(text []byte) (err error) {
-	*f, err = ParseFIPS186Variation(string(text))
-	return
-}
-
-func (f FIPS186Variation) EnumValue() uint32 {
-	return uint32(f)
-}
-
-func RegisterFIPS186Variation(f FIPS186Variation, name string) {
-	name = kmiputil.NormalizeName(name)
-	_FIPS186VariationNameToValueMap[name] = f
-	_FIPS186VariationValueToNameMap[f] = name
-}
-
-func init() {
-	RegisterEnum(TagFIPS186Variation, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseFIPS186Variation(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case FIPS186Variation:
-				return t.String()
-			default:
-				return FIPS186Variation(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Validation Authority Type Enumeration
+
 // 9.1.3.2.40
 type ValidationAuthorityType uint32
 
@@ -5257,6 +5258,40 @@ var _ValidationAuthorityTypeValueToNameMap = map[ValidationAuthorityType]string{
 	ValidationAuthorityTypeUnspecified:    "Unspecified",
 	ValidationAuthorityTypeNISTCMVP:       "NISTCMVP",
 	ValidationAuthorityTypeCommonCriteria: "CommonCriteria",
+}
+
+func (v ValidationAuthorityType) MarshalText() (text []byte, err error) {
+	return []byte(v.String()), nil
+}
+
+func (v *ValidationAuthorityType) UnmarshalText(text []byte) (err error) {
+	*v, err = ParseValidationAuthorityType(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagValidationAuthorityType, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseValidationAuthorityType(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return ValidationAuthorityType(v).String()
+		},
+	})
+}
+
+func (v ValidationAuthorityType) EnumValue() uint32 {
+	return uint32(v)
+}
+
+func RegisterValidationAuthorityType(v ValidationAuthorityType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_ValidationAuthorityTypeNameToValueMap[name] = v
+	_ValidationAuthorityTypeValueToNameMap[v] = name
 }
 
 func (v ValidationAuthorityType) String() string {
@@ -5282,42 +5317,8 @@ func ParseValidationAuthorityType(s string) (ValidationAuthorityType, error) {
 	}
 }
 
-func (v ValidationAuthorityType) MarshalText() (text []byte, err error) {
-	return []byte(v.String()), nil
-}
-
-func (v *ValidationAuthorityType) UnmarshalText(text []byte) (err error) {
-	*v, err = ParseValidationAuthorityType(string(text))
-	return
-}
-
-func (v ValidationAuthorityType) EnumValue() uint32 {
-	return uint32(v)
-}
-
-func RegisterValidationAuthorityType(v ValidationAuthorityType, name string) {
-	name = kmiputil.NormalizeName(name)
-	_ValidationAuthorityTypeNameToValueMap[name] = v
-	_ValidationAuthorityTypeValueToNameMap[v] = name
-}
-
-func init() {
-	RegisterEnum(TagValidationAuthorityType, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseValidationAuthorityType(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case ValidationAuthorityType:
-				return t.String()
-			default:
-				return ValidationAuthorityType(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Validation Type Enumeration
+
 // 9.1.3.2.41
 type ValidationType uint32
 
@@ -5345,6 +5346,40 @@ var _ValidationTypeValueToNameMap = map[ValidationType]string{
 	ValidationTypeHybrid:      "Hybrid",
 }
 
+func (v ValidationType) MarshalText() (text []byte, err error) {
+	return []byte(v.String()), nil
+}
+
+func (v *ValidationType) UnmarshalText(text []byte) (err error) {
+	*v, err = ParseValidationType(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagValidationType, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseValidationType(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return ValidationType(v).String()
+		},
+	})
+}
+
+func (v ValidationType) EnumValue() uint32 {
+	return uint32(v)
+}
+
+func RegisterValidationType(v ValidationType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_ValidationTypeNameToValueMap[name] = v
+	_ValidationTypeValueToNameMap[v] = name
+}
+
 func (v ValidationType) String() string {
 	if s, ok := _ValidationTypeValueToNameMap[v]; ok {
 		return s
@@ -5368,42 +5403,8 @@ func ParseValidationType(s string) (ValidationType, error) {
 	}
 }
 
-func (v ValidationType) MarshalText() (text []byte, err error) {
-	return []byte(v.String()), nil
-}
-
-func (v *ValidationType) UnmarshalText(text []byte) (err error) {
-	*v, err = ParseValidationType(string(text))
-	return
-}
-
-func (v ValidationType) EnumValue() uint32 {
-	return uint32(v)
-}
-
-func RegisterValidationType(v ValidationType, name string) {
-	name = kmiputil.NormalizeName(name)
-	_ValidationTypeNameToValueMap[name] = v
-	_ValidationTypeValueToNameMap[v] = name
-}
-
-func init() {
-	RegisterEnum(TagValidationType, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseValidationType(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case ValidationType:
-				return t.String()
-			default:
-				return ValidationType(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Profile Name Enumeration
+
 // 9.1.3.2.42
 type ProfileName uint32
 
@@ -5884,6 +5885,40 @@ var _ProfileNameValueToNameMap = map[ProfileName]string{
 	ProfileNameXMLServerKMIPV1_4:                                 "XMLServerKMIPV1_4",
 }
 
+func (p ProfileName) MarshalText() (text []byte, err error) {
+	return []byte(p.String()), nil
+}
+
+func (p *ProfileName) UnmarshalText(text []byte) (err error) {
+	*p, err = ParseProfileName(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagProfileName, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseProfileName(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return ProfileName(v).String()
+		},
+	})
+}
+
+func (p ProfileName) EnumValue() uint32 {
+	return uint32(p)
+}
+
+func RegisterProfileName(p ProfileName, name string) {
+	name = kmiputil.NormalizeName(name)
+	_ProfileNameNameToValueMap[name] = p
+	_ProfileNameValueToNameMap[p] = name
+}
+
 func (p ProfileName) String() string {
 	if s, ok := _ProfileNameValueToNameMap[p]; ok {
 		return s
@@ -5907,42 +5942,8 @@ func ParseProfileName(s string) (ProfileName, error) {
 	}
 }
 
-func (p ProfileName) MarshalText() (text []byte, err error) {
-	return []byte(p.String()), nil
-}
-
-func (p *ProfileName) UnmarshalText(text []byte) (err error) {
-	*p, err = ParseProfileName(string(text))
-	return
-}
-
-func (p ProfileName) EnumValue() uint32 {
-	return uint32(p)
-}
-
-func RegisterProfileName(p ProfileName, name string) {
-	name = kmiputil.NormalizeName(name)
-	_ProfileNameNameToValueMap[name] = p
-	_ProfileNameValueToNameMap[p] = name
-}
-
-func init() {
-	RegisterEnum(TagProfileName, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseProfileName(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case ProfileName:
-				return t.String()
-			default:
-				return ProfileName(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Unwrap Mode Enumeration
+
 // 9.1.3.2.43
 type UnwrapMode uint32
 
@@ -5962,6 +5963,40 @@ var _UnwrapModeValueToNameMap = map[UnwrapMode]string{
 	UnwrapModeUnspecified:  "Unspecified",
 	UnwrapModeProcessed:    "Processed",
 	UnwrapModeNotProcessed: "NotProcessed",
+}
+
+func (u UnwrapMode) MarshalText() (text []byte, err error) {
+	return []byte(u.String()), nil
+}
+
+func (u *UnwrapMode) UnmarshalText(text []byte) (err error) {
+	*u, err = ParseUnwrapMode(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagUnwrapMode, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseUnwrapMode(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return UnwrapMode(v).String()
+		},
+	})
+}
+
+func (u UnwrapMode) EnumValue() uint32 {
+	return uint32(u)
+}
+
+func RegisterUnwrapMode(u UnwrapMode, name string) {
+	name = kmiputil.NormalizeName(name)
+	_UnwrapModeNameToValueMap[name] = u
+	_UnwrapModeValueToNameMap[u] = name
 }
 
 func (u UnwrapMode) String() string {
@@ -5987,42 +6022,8 @@ func ParseUnwrapMode(s string) (UnwrapMode, error) {
 	}
 }
 
-func (u UnwrapMode) MarshalText() (text []byte, err error) {
-	return []byte(u.String()), nil
-}
-
-func (u *UnwrapMode) UnmarshalText(text []byte) (err error) {
-	*u, err = ParseUnwrapMode(string(text))
-	return
-}
-
-func (u UnwrapMode) EnumValue() uint32 {
-	return uint32(u)
-}
-
-func RegisterUnwrapMode(u UnwrapMode, name string) {
-	name = kmiputil.NormalizeName(name)
-	_UnwrapModeNameToValueMap[name] = u
-	_UnwrapModeValueToNameMap[u] = name
-}
-
-func init() {
-	RegisterEnum(TagUnwrapMode, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseUnwrapMode(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case UnwrapMode:
-				return t.String()
-			default:
-				return UnwrapMode(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Destroy Action Enumeration
+
 // 9.1.3.2.44
 type DestroyAction uint32
 
@@ -6056,6 +6057,40 @@ var _DestroyActionValueToNameMap = map[DestroyAction]string{
 	DestroyActionShredded:            "Shredded",
 }
 
+func (d DestroyAction) MarshalText() (text []byte, err error) {
+	return []byte(d.String()), nil
+}
+
+func (d *DestroyAction) UnmarshalText(text []byte) (err error) {
+	*d, err = ParseDestroyAction(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagDestroyAction, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseDestroyAction(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return DestroyAction(v).String()
+		},
+	})
+}
+
+func (d DestroyAction) EnumValue() uint32 {
+	return uint32(d)
+}
+
+func RegisterDestroyAction(d DestroyAction, name string) {
+	name = kmiputil.NormalizeName(name)
+	_DestroyActionNameToValueMap[name] = d
+	_DestroyActionValueToNameMap[d] = name
+}
+
 func (d DestroyAction) String() string {
 	if s, ok := _DestroyActionValueToNameMap[d]; ok {
 		return s
@@ -6079,42 +6114,8 @@ func ParseDestroyAction(s string) (DestroyAction, error) {
 	}
 }
 
-func (d DestroyAction) MarshalText() (text []byte, err error) {
-	return []byte(d.String()), nil
-}
-
-func (d *DestroyAction) UnmarshalText(text []byte) (err error) {
-	*d, err = ParseDestroyAction(string(text))
-	return
-}
-
-func (d DestroyAction) EnumValue() uint32 {
-	return uint32(d)
-}
-
-func RegisterDestroyAction(d DestroyAction, name string) {
-	name = kmiputil.NormalizeName(name)
-	_DestroyActionNameToValueMap[name] = d
-	_DestroyActionValueToNameMap[d] = name
-}
-
-func init() {
-	RegisterEnum(TagDestroyAction, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseDestroyAction(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case DestroyAction:
-				return t.String()
-			default:
-				return DestroyAction(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Shredding Algorithm Enumeration
+
 // 9.1.3.2.45
 type ShreddingAlgorithm uint32
 
@@ -6134,6 +6135,40 @@ var _ShreddingAlgorithmValueToNameMap = map[ShreddingAlgorithm]string{
 	ShreddingAlgorithmUnspecified:   "Unspecified",
 	ShreddingAlgorithmCryptographic: "Cryptographic",
 	ShreddingAlgorithmUnsupported:   "Unsupported",
+}
+
+func (s ShreddingAlgorithm) MarshalText() (text []byte, err error) {
+	return []byte(s.String()), nil
+}
+
+func (s *ShreddingAlgorithm) UnmarshalText(text []byte) (err error) {
+	*s, err = ParseShreddingAlgorithm(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagShreddingAlgorithm, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseShreddingAlgorithm(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return ShreddingAlgorithm(v).String()
+		},
+	})
+}
+
+func (s ShreddingAlgorithm) EnumValue() uint32 {
+	return uint32(s)
+}
+
+func RegisterShreddingAlgorithm(s ShreddingAlgorithm, name string) {
+	name = kmiputil.NormalizeName(name)
+	_ShreddingAlgorithmNameToValueMap[name] = s
+	_ShreddingAlgorithmValueToNameMap[s] = name
 }
 
 func (s ShreddingAlgorithm) String() string {
@@ -6159,42 +6194,8 @@ func ParseShreddingAlgorithm(s string) (ShreddingAlgorithm, error) {
 	}
 }
 
-func (s ShreddingAlgorithm) MarshalText() (text []byte, err error) {
-	return []byte(s.String()), nil
-}
-
-func (s *ShreddingAlgorithm) UnmarshalText(text []byte) (err error) {
-	*s, err = ParseShreddingAlgorithm(string(text))
-	return
-}
-
-func (s ShreddingAlgorithm) EnumValue() uint32 {
-	return uint32(s)
-}
-
-func RegisterShreddingAlgorithm(s ShreddingAlgorithm, name string) {
-	name = kmiputil.NormalizeName(name)
-	_ShreddingAlgorithmNameToValueMap[name] = s
-	_ShreddingAlgorithmValueToNameMap[s] = name
-}
-
-func init() {
-	RegisterEnum(TagShreddingAlgorithm, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseShreddingAlgorithm(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case ShreddingAlgorithm:
-				return t.String()
-			default:
-				return ShreddingAlgorithm(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // RNG Mode Enumeration
+
 // 9.1.3.2.46
 type RNGMode uint32
 
@@ -6214,6 +6215,40 @@ var _RNGModeValueToNameMap = map[RNGMode]string{
 	RNGModeUnspecified:            "Unspecified",
 	RNGModeSharedInstantiation:    "SharedInstantiation",
 	RNGModeNonSharedInstantiation: "NonSharedInstantiation",
+}
+
+func (r RNGMode) MarshalText() (text []byte, err error) {
+	return []byte(r.String()), nil
+}
+
+func (r *RNGMode) UnmarshalText(text []byte) (err error) {
+	*r, err = ParseRNGMode(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagRNGMode, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseRNGMode(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return RNGMode(v).String()
+		},
+	})
+}
+
+func (r RNGMode) EnumValue() uint32 {
+	return uint32(r)
+}
+
+func RegisterRNGMode(r RNGMode, name string) {
+	name = kmiputil.NormalizeName(name)
+	_RNGModeNameToValueMap[name] = r
+	_RNGModeValueToNameMap[r] = name
 }
 
 func (r RNGMode) String() string {
@@ -6239,42 +6274,8 @@ func ParseRNGMode(s string) (RNGMode, error) {
 	}
 }
 
-func (r RNGMode) MarshalText() (text []byte, err error) {
-	return []byte(r.String()), nil
-}
-
-func (r *RNGMode) UnmarshalText(text []byte) (err error) {
-	*r, err = ParseRNGMode(string(text))
-	return
-}
-
-func (r RNGMode) EnumValue() uint32 {
-	return uint32(r)
-}
-
-func RegisterRNGMode(r RNGMode, name string) {
-	name = kmiputil.NormalizeName(name)
-	_RNGModeNameToValueMap[name] = r
-	_RNGModeValueToNameMap[r] = name
-}
-
-func init() {
-	RegisterEnum(TagRNGMode, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseRNGMode(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case RNGMode:
-				return t.String()
-			default:
-				return RNGMode(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Client Registration Method Enumeration
+
 // 9.1.3.2.47
 type ClientRegistrationMethod uint32
 
@@ -6302,6 +6303,40 @@ var _ClientRegistrationMethodValueToNameMap = map[ClientRegistrationMethod]strin
 	ClientRegistrationMethodClientRegistered:   "ClientRegistered",
 }
 
+func (c ClientRegistrationMethod) MarshalText() (text []byte, err error) {
+	return []byte(c.String()), nil
+}
+
+func (c *ClientRegistrationMethod) UnmarshalText(text []byte) (err error) {
+	*c, err = ParseClientRegistrationMethod(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagClientRegistrationMethod, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseClientRegistrationMethod(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return ClientRegistrationMethod(v).String()
+		},
+	})
+}
+
+func (c ClientRegistrationMethod) EnumValue() uint32 {
+	return uint32(c)
+}
+
+func RegisterClientRegistrationMethod(c ClientRegistrationMethod, name string) {
+	name = kmiputil.NormalizeName(name)
+	_ClientRegistrationMethodNameToValueMap[name] = c
+	_ClientRegistrationMethodValueToNameMap[c] = name
+}
+
 func (c ClientRegistrationMethod) String() string {
 	if s, ok := _ClientRegistrationMethodValueToNameMap[c]; ok {
 		return s
@@ -6325,42 +6360,8 @@ func ParseClientRegistrationMethod(s string) (ClientRegistrationMethod, error) {
 	}
 }
 
-func (c ClientRegistrationMethod) MarshalText() (text []byte, err error) {
-	return []byte(c.String()), nil
-}
-
-func (c *ClientRegistrationMethod) UnmarshalText(text []byte) (err error) {
-	*c, err = ParseClientRegistrationMethod(string(text))
-	return
-}
-
-func (c ClientRegistrationMethod) EnumValue() uint32 {
-	return uint32(c)
-}
-
-func RegisterClientRegistrationMethod(c ClientRegistrationMethod, name string) {
-	name = kmiputil.NormalizeName(name)
-	_ClientRegistrationMethodNameToValueMap[name] = c
-	_ClientRegistrationMethodValueToNameMap[c] = name
-}
-
-func init() {
-	RegisterEnum(TagClientRegistrationMethod, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseClientRegistrationMethod(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case ClientRegistrationMethod:
-				return t.String()
-			default:
-				return ClientRegistrationMethod(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Key Wrap Type Enumeration
+
 // 9.1.3.2.48
 type KeyWrapType uint32
 
@@ -6377,6 +6378,40 @@ var _KeyWrapTypeNameToValueMap = map[string]KeyWrapType{
 var _KeyWrapTypeValueToNameMap = map[KeyWrapType]string{
 	KeyWrapTypeNotWrapped:   "NotWrapped",
 	KeyWrapTypeAsRegistered: "AsRegistered",
+}
+
+func (k KeyWrapType) MarshalText() (text []byte, err error) {
+	return []byte(k.String()), nil
+}
+
+func (k *KeyWrapType) UnmarshalText(text []byte) (err error) {
+	*k, err = ParseKeyWrapType(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagKeyWrapType, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseKeyWrapType(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return KeyWrapType(v).String()
+		},
+	})
+}
+
+func (k KeyWrapType) EnumValue() uint32 {
+	return uint32(k)
+}
+
+func RegisterKeyWrapType(k KeyWrapType, name string) {
+	name = kmiputil.NormalizeName(name)
+	_KeyWrapTypeNameToValueMap[name] = k
+	_KeyWrapTypeValueToNameMap[k] = name
 }
 
 func (k KeyWrapType) String() string {
@@ -6402,42 +6437,8 @@ func ParseKeyWrapType(s string) (KeyWrapType, error) {
 	}
 }
 
-func (k KeyWrapType) MarshalText() (text []byte, err error) {
-	return []byte(k.String()), nil
-}
-
-func (k *KeyWrapType) UnmarshalText(text []byte) (err error) {
-	*k, err = ParseKeyWrapType(string(text))
-	return
-}
-
-func (k KeyWrapType) EnumValue() uint32 {
-	return uint32(k)
-}
-
-func RegisterKeyWrapType(k KeyWrapType, name string) {
-	name = kmiputil.NormalizeName(name)
-	_KeyWrapTypeNameToValueMap[name] = k
-	_KeyWrapTypeValueToNameMap[k] = name
-}
-
-func init() {
-	RegisterEnum(TagKeyWrapType, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseKeyWrapType(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case KeyWrapType:
-				return t.String()
-			default:
-				return KeyWrapType(v.EnumValue()).String()
-			}
-		},
-	})
-}
-
 // Mask Generator Enumeration
+
 // 9.1.3.2.49
 type MaskGenerator uint32
 
@@ -6451,6 +6452,40 @@ var _MaskGeneratorNameToValueMap = map[string]MaskGenerator{
 
 var _MaskGeneratorValueToNameMap = map[MaskGenerator]string{
 	MaskGeneratorMGF1: "MGF1",
+}
+
+func (m MaskGenerator) MarshalText() (text []byte, err error) {
+	return []byte(m.String()), nil
+}
+
+func (m *MaskGenerator) UnmarshalText(text []byte) (err error) {
+	*m, err = ParseMaskGenerator(string(text))
+	return
+}
+
+func init() {
+	RegisterEnum(TagMaskGenerator, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseMaskGenerator(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return MaskGenerator(v).String()
+		},
+	})
+}
+
+func (m MaskGenerator) EnumValue() uint32 {
+	return uint32(m)
+}
+
+func RegisterMaskGenerator(m MaskGenerator, name string) {
+	name = kmiputil.NormalizeName(name)
+	_MaskGeneratorNameToValueMap[name] = m
+	_MaskGeneratorValueToNameMap[m] = name
 }
 
 func (m MaskGenerator) String() string {
@@ -6476,37 +6511,304 @@ func ParseMaskGenerator(s string) (MaskGenerator, error) {
 	}
 }
 
-func (m MaskGenerator) MarshalText() (text []byte, err error) {
-	return []byte(m.String()), nil
+// Cryptographic Usage Mask Bit Mask
+
+// 9.1.3.3.1
+type CryptographicUsageMask uint32
+
+const (
+	CryptographicUsageMaskSign                            CryptographicUsageMask = 0x00000001
+	CryptographicUsageMaskVerify                          CryptographicUsageMask = 0x00000002
+	CryptographicUsageMaskEncrypt                         CryptographicUsageMask = 0x00000004
+	CryptographicUsageMaskDecrypt                         CryptographicUsageMask = 0x00000008
+	CryptographicUsageMaskWrapKey                         CryptographicUsageMask = 0x00000010
+	CryptographicUsageMaskUnwrapKey                       CryptographicUsageMask = 0x00000020
+	CryptographicUsageMaskExport                          CryptographicUsageMask = 0x00000040
+	CryptographicUsageMaskMACGenerate                     CryptographicUsageMask = 0x00000080
+	CryptographicUsageMaskMACVerify                       CryptographicUsageMask = 0x00000100
+	CryptographicUsageMaskDeriveKey                       CryptographicUsageMask = 0x00000200
+	CryptographicUsageMaskContentCommitmentNonRepudiation CryptographicUsageMask = 0x00000400
+	CryptographicUsageMaskKeyAgreement                    CryptographicUsageMask = 0x00000800
+	CryptographicUsageMaskCertificateSign                 CryptographicUsageMask = 0x00001000
+	CryptographicUsageMaskCRLSign                         CryptographicUsageMask = 0x00002000
+	CryptographicUsageMaskGenerateCryptogram              CryptographicUsageMask = 0x00004000
+	CryptographicUsageMaskValidateCryptogram              CryptographicUsageMask = 0x00008000
+	CryptographicUsageMaskTranslateEncrypt                CryptographicUsageMask = 0x00010000
+	CryptographicUsageMaskTranslateDecrypt                CryptographicUsageMask = 0x00020000
+	CryptographicUsageMaskTranslateWrap                   CryptographicUsageMask = 0x00040000
+	CryptographicUsageMaskTranslateUnwrap                 CryptographicUsageMask = 0x00080000
+)
+
+var _CryptographicUsageMaskNameToValueMap = map[string]CryptographicUsageMask{
+	"Sign":                            CryptographicUsageMaskSign,
+	"Verify":                          CryptographicUsageMaskVerify,
+	"Encrypt":                         CryptographicUsageMaskEncrypt,
+	"Decrypt":                         CryptographicUsageMaskDecrypt,
+	"WrapKey":                         CryptographicUsageMaskWrapKey,
+	"UnwrapKey":                       CryptographicUsageMaskUnwrapKey,
+	"Export":                          CryptographicUsageMaskExport,
+	"MACGenerate":                     CryptographicUsageMaskMACGenerate,
+	"MACVerify":                       CryptographicUsageMaskMACVerify,
+	"DeriveKey":                       CryptographicUsageMaskDeriveKey,
+	"ContentCommitmentNonRepudiation": CryptographicUsageMaskContentCommitmentNonRepudiation,
+	"KeyAgreement":                    CryptographicUsageMaskKeyAgreement,
+	"CertificateSign":                 CryptographicUsageMaskCertificateSign,
+	"CRLSign":                         CryptographicUsageMaskCRLSign,
+	"GenerateCryptogram":              CryptographicUsageMaskGenerateCryptogram,
+	"ValidateCryptogram":              CryptographicUsageMaskValidateCryptogram,
+	"TranslateEncrypt":                CryptographicUsageMaskTranslateEncrypt,
+	"TranslateDecrypt":                CryptographicUsageMaskTranslateDecrypt,
+	"TranslateWrap":                   CryptographicUsageMaskTranslateWrap,
+	"TranslateUnwrap":                 CryptographicUsageMaskTranslateUnwrap,
 }
 
-func (m *MaskGenerator) UnmarshalText(text []byte) (err error) {
-	*m, err = ParseMaskGenerator(string(text))
+var _CryptographicUsageMaskValueToNameMap = map[CryptographicUsageMask]string{
+	CryptographicUsageMaskSign:                            "Sign",
+	CryptographicUsageMaskVerify:                          "Verify",
+	CryptographicUsageMaskEncrypt:                         "Encrypt",
+	CryptographicUsageMaskDecrypt:                         "Decrypt",
+	CryptographicUsageMaskWrapKey:                         "WrapKey",
+	CryptographicUsageMaskUnwrapKey:                       "UnwrapKey",
+	CryptographicUsageMaskExport:                          "Export",
+	CryptographicUsageMaskMACGenerate:                     "MACGenerate",
+	CryptographicUsageMaskMACVerify:                       "MACVerify",
+	CryptographicUsageMaskDeriveKey:                       "DeriveKey",
+	CryptographicUsageMaskContentCommitmentNonRepudiation: "ContentCommitmentNonRepudiation",
+	CryptographicUsageMaskKeyAgreement:                    "KeyAgreement",
+	CryptographicUsageMaskCertificateSign:                 "CertificateSign",
+	CryptographicUsageMaskCRLSign:                         "CRLSign",
+	CryptographicUsageMaskGenerateCryptogram:              "GenerateCryptogram",
+	CryptographicUsageMaskValidateCryptogram:              "ValidateCryptogram",
+	CryptographicUsageMaskTranslateEncrypt:                "TranslateEncrypt",
+	CryptographicUsageMaskTranslateDecrypt:                "TranslateDecrypt",
+	CryptographicUsageMaskTranslateWrap:                   "TranslateWrap",
+	CryptographicUsageMaskTranslateUnwrap:                 "TranslateUnwrap",
+}
+
+func (c CryptographicUsageMask) MarshalText() (text []byte, err error) {
+	return []byte(c.String()), nil
+}
+
+func (c *CryptographicUsageMask) UnmarshalText(text []byte) (err error) {
+	*c, err = ParseCryptographicUsageMask(string(text))
 	return
 }
 
-func (m MaskGenerator) EnumValue() uint32 {
-	return uint32(m)
+func init() {
+	RegisterBitMask(TagCryptographicUsageMask, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseCryptographicUsageMask(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return CryptographicUsageMask(v).String()
+		},
+	})
 }
 
-func RegisterMaskGenerator(m MaskGenerator, name string) {
+func RegisterCryptographicUsageMask(c CryptographicUsageMask, name string) {
 	name = kmiputil.NormalizeName(name)
-	_MaskGeneratorNameToValueMap[name] = m
-	_MaskGeneratorValueToNameMap[m] = name
+	_CryptographicUsageMaskNameToValueMap[name] = c
+	_CryptographicUsageMaskValueToNameMap[c] = name
+	_CryptographicUsageMaskSortedValues = append(_CryptographicUsageMaskSortedValues, int(c))
+	sort.Ints(_CryptographicUsageMaskSortedValues)
+}
+
+var _CryptographicUsageMaskSortedValues []int
+
+func init() {
+	for c := range _CryptographicUsageMaskValueToNameMap {
+		_CryptographicUsageMaskSortedValues = append(_CryptographicUsageMaskSortedValues, int(c))
+		sort.Ints(_CryptographicUsageMaskSortedValues)
+	}
+}
+
+func (c CryptographicUsageMask) String() string {
+	r := int(c)
+
+	var sb strings.Builder
+	var appending bool
+	for _, v := range _CryptographicUsageMaskSortedValues {
+		if v&r == v {
+			if name := _CryptographicUsageMaskValueToNameMap[CryptographicUsageMask(v)]; name != "" {
+				if appending {
+					sb.WriteString("|")
+				} else {
+					appending = true
+				}
+				sb.WriteString(name)
+				r ^= v
+			}
+
+		}
+		if r == 0 {
+			break
+		}
+	}
+	if r != 0 {
+		if appending {
+			sb.WriteString("|")
+		}
+		fmt.Fprintf(&sb, "%#08x", uint32(r))
+	}
+	return sb.String()
+}
+
+func parseSingleCryptographicUsageMask(s string) (CryptographicUsageMask, error) {
+	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+		b, err := hex.DecodeString(s[2:])
+		if err != nil {
+			return 0, err
+		}
+		return CryptographicUsageMask(binary.BigEndian.Uint32(b)), nil
+	}
+	if v, ok := _CryptographicUsageMaskNameToValueMap[s]; ok {
+		return v, nil
+	} else {
+		var v CryptographicUsageMask
+		return v, fmt.Errorf("%s is not a valid CryptographicUsageMask", s)
+	}
+}
+
+func ParseCryptographicUsageMask(s string) (CryptographicUsageMask, error) {
+	if !strings.Contains(s, "|") {
+		return parseSingleCryptographicUsageMask(s)
+	}
+	var v CryptographicUsageMask
+	parts := strings.Split(s, "|")
+	for _, part := range parts {
+		m, err := parseSingleCryptographicUsageMask(part)
+		if err != nil {
+			return 0, err
+		}
+		v |= m
+	}
+	return v, nil
+}
+
+// Storage Status Mask Bit Mask
+
+// 9.1.3.3.2
+type StorageStatusMask uint32
+
+const (
+	StorageStatusMaskOnLineStorage   StorageStatusMask = 0x00000001
+	StorageStatusMaskArchivalStorage StorageStatusMask = 0x00000002
+)
+
+var _StorageStatusMaskNameToValueMap = map[string]StorageStatusMask{
+	"OnLineStorage":   StorageStatusMaskOnLineStorage,
+	"ArchivalStorage": StorageStatusMaskArchivalStorage,
+}
+
+var _StorageStatusMaskValueToNameMap = map[StorageStatusMask]string{
+	StorageStatusMaskOnLineStorage:   "OnLineStorage",
+	StorageStatusMaskArchivalStorage: "ArchivalStorage",
+}
+
+func (s StorageStatusMask) MarshalText() (text []byte, err error) {
+	return []byte(s.String()), nil
+}
+
+func (s *StorageStatusMask) UnmarshalText(text []byte) (err error) {
+	*s, err = ParseStorageStatusMask(string(text))
+	return
 }
 
 func init() {
-	RegisterEnum(TagMaskGenerator, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return ParseMaskGenerator(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-			case MaskGenerator:
-				return t.String()
-			default:
-				return MaskGenerator(v.EnumValue()).String()
+	RegisterBitMask(TagStorageStatusMask, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := ParseStorageStatusMask(s)
+			if err != nil {
+				return 0, err
 			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return StorageStatusMask(v).String()
 		},
 	})
+}
+
+func RegisterStorageStatusMask(s StorageStatusMask, name string) {
+	name = kmiputil.NormalizeName(name)
+	_StorageStatusMaskNameToValueMap[name] = s
+	_StorageStatusMaskValueToNameMap[s] = name
+	_StorageStatusMaskSortedValues = append(_StorageStatusMaskSortedValues, int(s))
+	sort.Ints(_StorageStatusMaskSortedValues)
+}
+
+var _StorageStatusMaskSortedValues []int
+
+func init() {
+	for s := range _StorageStatusMaskValueToNameMap {
+		_StorageStatusMaskSortedValues = append(_StorageStatusMaskSortedValues, int(s))
+		sort.Ints(_StorageStatusMaskSortedValues)
+	}
+}
+
+func (s StorageStatusMask) String() string {
+	r := int(s)
+
+	var sb strings.Builder
+	var appending bool
+	for _, v := range _StorageStatusMaskSortedValues {
+		if v&r == v {
+			if name := _StorageStatusMaskValueToNameMap[StorageStatusMask(v)]; name != "" {
+				if appending {
+					sb.WriteString("|")
+				} else {
+					appending = true
+				}
+				sb.WriteString(name)
+				r ^= v
+			}
+
+		}
+		if r == 0 {
+			break
+		}
+	}
+	if r != 0 {
+		if appending {
+			sb.WriteString("|")
+		}
+		fmt.Fprintf(&sb, "%#08x", uint32(r))
+	}
+	return sb.String()
+}
+
+func parseSingleStorageStatusMask(s string) (StorageStatusMask, error) {
+	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+		b, err := hex.DecodeString(s[2:])
+		if err != nil {
+			return 0, err
+		}
+		return StorageStatusMask(binary.BigEndian.Uint32(b)), nil
+	}
+	if v, ok := _StorageStatusMaskNameToValueMap[s]; ok {
+		return v, nil
+	} else {
+		var v StorageStatusMask
+		return v, fmt.Errorf("%s is not a valid StorageStatusMask", s)
+	}
+}
+
+func ParseStorageStatusMask(s string) (StorageStatusMask, error) {
+	if !strings.Contains(s, "|") {
+		return parseSingleStorageStatusMask(s)
+	}
+	var v StorageStatusMask
+	parts := strings.Split(s, "|")
+	for _, part := range parts {
+		m, err := parseSingleStorageStatusMask(part)
+		if err != nil {
+			return 0, err
+		}
+		v |= m
+	}
+	return v, nil
 }

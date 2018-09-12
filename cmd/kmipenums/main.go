@@ -58,10 +58,14 @@ type enumVal struct {
 func gen(d EnumDef) string {
 	buf := bytes.NewBuffer(nil)
 
-	tmpl, err := template.New("boilerplate").Parse(enumTmpl)
-	if err != nil {
-		panic(err)
-	}
+	//tmpl, err := template.New("boilerplate").Parse(enumTmpl)
+	//if err != nil {
+	//	panic(err)
+	//}
+
+	tmpl := template.Must(template.New("base").Parse(baseTmpl))
+	template.Must(tmpl.New("enumeration").Parse(enumerationTmpl))
+	template.Must(tmpl.New("mask").Parse(maskTmpl))
 
 	input := struct {
 		EnumDef
@@ -92,7 +96,12 @@ func gen(d EnumDef) string {
 		input.Tags[i] = "Tag" + kmiputil.NormalizeName(input.Tags[i])
 	}
 
-	err = tmpl.Execute(buf, input)
+	var err error
+	if input.BitMask {
+		err = tmpl.ExecuteTemplate(buf, "mask", input)
+	} else {
+		err = tmpl.ExecuteTemplate(buf, "enumeration", input)
+	}
 
 	if err != nil {
 		panic(err)
@@ -164,6 +173,7 @@ package kmip
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"encoding/binary"
 	"encoding/hex"
@@ -191,10 +201,9 @@ var _TagValueToFullNameMap = map[Tag]string { {{range .Vals}}
 }
 `
 
-const enumTmpl = `
+const baseTmpl = `
 {{ $typeName := .TypeName }}
 
-// {{.Name}} Enumeration
 // {{.Comment}}
 type {{.TypeName}} uint32
 
@@ -208,6 +217,46 @@ var _{{.TypeName}}NameToValueMap = map[string]{{.TypeName}} { {{range .Vals}}
 
 var _{{.TypeName}}ValueToNameMap = map[{{.TypeName}}]string { {{range .Vals}}
 	{{$typeName}}{{.Name}}: "{{.Name}}",{{end}}
+}
+
+func ({{.Var}} {{.TypeName}}) MarshalText() (text []byte, err error) {
+	return []byte({{.Var}}.String()), nil
+}
+
+func ({{.Var}} *{{.TypeName}}) UnmarshalText(text []byte) (err error) {
+	*{{.Var}}, err = Parse{{.TypeName}}(string(text))
+	return
+}
+
+{{ if .Tags }}
+{{ $bitMask := .BitMask }}
+func init() { {{range .Tags}}
+	Register{{if $bitMask}}BitMask{{else}}Enum{{end}}({{.}}, EnumTypeDef{
+		Parse: func(s string) (uint32, error) {
+			v, err := Parse{{$typeName}}(s)
+			if err != nil {
+				return 0, err
+			}
+			return uint32(v), nil
+		},
+		String: func(v uint32) string {
+			return {{$typeName}}(v).String()		
+		},
+	}){{end}}
+}{{end}}`
+
+const enumerationTmpl = `
+// {{.Name}} Enumeration
+{{template "base" . }}
+
+func ({{.Var}} {{.TypeName}}) EnumValue() uint32 {
+	return uint32({{.Var}})
+}
+
+func Register{{.TypeName}}({{.Var}} {{.TypeName}}, name string) {
+	name = kmiputil.NormalizeName(name)
+	_{{.TypeName}}NameToValueMap[name] = {{.Var}}
+	_{{.TypeName}}ValueToNameMap[{{.Var}}] = name
 }
 
 func ({{.Var}} {{.TypeName}}) String() string {
@@ -232,41 +281,91 @@ func Parse{{.TypeName}}(s string) ({{.TypeName}}, error) {
 		return v, fmt.Errorf("%s is not a valid {{.TypeName}}", s)
 	}
 }
+`
 
-func ({{.Var}} {{.TypeName}}) MarshalText() (text []byte, err error) {
-	return []byte({{.Var}}.String()), nil
-}
-
-func ({{.Var}} *{{.TypeName}}) UnmarshalText(text []byte) (err error) {
-	*{{.Var}}, err = Parse{{.TypeName}}(string(text))
-	return
-}
-
-func ({{.Var}} {{.TypeName}}) EnumValue() uint32 {
-	return uint32({{.Var}})
-}{{if .Tags}}
+const maskTmpl = `
+// {{.Name}} Bit Mask
+{{template "base" . }}
 
 func Register{{.TypeName}}({{.Var}} {{.TypeName}}, name string) {
 	name = kmiputil.NormalizeName(name)
 	_{{.TypeName}}NameToValueMap[name] = {{.Var}}
 	_{{.TypeName}}ValueToNameMap[{{.Var}}] = name
+	_{{.TypeName}}SortedValues = append(_{{.TypeName}}SortedValues, int({{.Var}}))
+	sort.Ints(_{{.TypeName}}SortedValues)
 }
 
-func init() { {{range .Tags}}
-	RegisterEnum({{.}}, EnumTypeDef{
-		Parse: func(s string) (EnumValuer, error) {
-			return Parse{{$typeName}}(s)
-		},
-		String: func(v EnumValuer) string {
-			switch t := v.(type) {
-				case {{$typeName}}:
-					return t.String()
-				default:
-					return {{$typeName}}(v.EnumValue()).String()		
+var _{{.TypeName}}SortedValues []int
+
+func init() {
+	for {{.Var}} := range _{{.TypeName}}ValueToNameMap {
+		_{{.TypeName}}SortedValues = append(_{{.TypeName}}SortedValues, int({{.Var}}))
+		sort.Ints(_{{.TypeName}}SortedValues)
+	}
+}
+
+func ({{.Var}} {{.TypeName}}) String() string {
+	r := int({{.Var}})
+
+	var sb strings.Builder
+	var appending bool
+	for _, v := range _{{.TypeName}}SortedValues {
+		if v & r == v {
+			if name :=_{{.TypeName}}ValueToNameMap[{{.TypeName}}(v)]; name != "" {
+				if appending {
+					sb.WriteString("|")
+				} else {
+					appending = true
+				}
+				sb.WriteString(name)
+				r ^= v
 			}
-		},
-	}){{end}}
-}{{end}}`
+
+		}
+		if r == 0 {
+			break
+		}
+	}
+	if r != 0 {
+		if appending {
+			sb.WriteString("|")
+		}
+		fmt.Fprintf(&sb, "%#08x", uint32(r))
+	}
+	return sb.String()
+}
+
+func parseSingle{{.TypeName}}(s string) ({{.TypeName}}, error) {
+	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+		b, err := hex.DecodeString(s[2:])
+		if err != nil {
+			return 0, err
+		}
+		return {{.TypeName}}(binary.BigEndian.Uint32(b)), nil
+	}
+	if v, ok := _{{.TypeName}}NameToValueMap[s]; ok {
+		return v, nil
+	} else {
+		var v {{.TypeName}}
+		return v, fmt.Errorf("%s is not a valid {{.TypeName}}", s)
+	}
+}
+
+func Parse{{.TypeName}}(s string) ({{.TypeName}}, error) {
+	if !strings.Contains(s, "|") {
+		return parseSingle{{.TypeName}}(s)
+	}
+	var v {{.TypeName}}
+	parts := strings.Split(s, "|")
+	for _, part := range parts {
+		m, err := parseSingle{{.TypeName}}(part)
+		if err != nil {
+			return 0, err
+		}
+		v |= m
+	}
+	return v, nil
+}`
 
 var Tags = map[string]uint32{
 	"None":                                     0x000000,
@@ -1519,28 +1618,28 @@ var enumDefs = []EnumDef{
 		Name:    "Cryptographic Usage Mask",
 		Tags:    []string{"Cryptographic Usage Mask"},
 		Comment: "9.1.3.3.1",
-		BitMask:true,
+		BitMask: true,
 		Values: map[string]uint32{
-			"Sign":         0x00000001,
-			"Verify":       0x00000002,
-			"Encrypt":      0x00000004,
-			"Decrypt":      0x00000008,
-			"Wrap Key":     0x00000010,
-			"Unwrap Key":   0x00000020,
-			"Export":       0x00000040,
-			"MAC Generate": 0x00000080,
-			"MAC Verify":   0x00000100,
-			"Derive Key":   0x00000200,
+			"Sign":                                 0x00000001,
+			"Verify":                               0x00000002,
+			"Encrypt":                              0x00000004,
+			"Decrypt":                              0x00000008,
+			"Wrap Key":                             0x00000010,
+			"Unwrap Key":                           0x00000020,
+			"Export":                               0x00000040,
+			"MAC Generate":                         0x00000080,
+			"MAC Verify":                           0x00000100,
+			"Derive Key":                           0x00000200,
 			"Content Commitment (Non Repudiation)": 0x00000400,
-			"Key Agreement": 0x00000800,
-			"Certificate Sign": 0x00001000,
-			"CRL Sign": 0x00002000,
-			"Generate Cryptogram": 0x00004000,
-			"Validate Cryptogram": 0x00008000,
-			"Translate Encrypt": 0x00010000,
-			"Translate Decrypt": 0x00020000,
-			"Translate Wrap": 0x00040000,
-			"Translate Unwrap": 0x00080000,
+			"Key Agreement":                        0x00000800,
+			"Certificate Sign":                     0x00001000,
+			"CRL Sign":                             0x00002000,
+			"Generate Cryptogram":                  0x00004000,
+			"Validate Cryptogram":                  0x00008000,
+			"Translate Encrypt":                    0x00010000,
+			"Translate Decrypt":                    0x00020000,
+			"Translate Wrap":                       0x00040000,
+			"Translate Unwrap":                     0x00080000,
 		},
 	},
 	{

@@ -103,7 +103,8 @@ func (dec *Decoder) unmarshal(val reflect.Value, ttlv TTLV) error {
 			Val:    val.Type(),
 		}
 		err := merry.WrapSkipping(e, 1).WithCause(ErrUnsupportedTypeError)
-		return err.WithMessagef("can't unmarshal TTLV type into go type")
+		return err
+		//return err.WithMessagef("can't unmarshal TTLV type into go type")
 	}
 
 	switch ttlv.Type() {
@@ -279,7 +280,7 @@ type UnmarshalerError struct {
 }
 
 func (e *UnmarshalerError) Error() string {
-	msg := "kmip: error unmarshaling " + e.Tag.String() + " with type" + e.Type.String() + " into value of type " + e.Val.Name()
+	msg := "kmip: error unmarshaling " + e.Tag.String() + " with type " + e.Type.String() + " into value of type " + e.Val.Name()
 	if e.Struct != nil {
 		msg += " in struct field " + e.Struct.Name() + "." + e.Field
 	}

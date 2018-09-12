@@ -11,55 +11,66 @@ import (
 	"github.com/ansel1/merry"
 )
 
+type enumDef struct {
+	EnumTypeDef
+	isMask bool
+}
+
 var enumRegistry = sync.Map{}
 
-var maskRegistry = sync.Map{}
-
-func ParseEnum(tag Tag, s string) (EnumValuer, error) {
+func ParseEnum(tag Tag, s string) (uint32, error) {
 	v, _ := enumRegistry.Load(tag)
 	if v != nil {
-		return v.(EnumTypeDef).Parse(s)
+		return v.(enumDef).Parse(s)
 	}
 	if strings.HasPrefix(s, "0x") && len(s) == 10 {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
-			return nil, merry.WithCause(ErrInvalidHexString, err)
+			return 0, merry.WithCause(ErrInvalidHexString, err)
 		}
-		return EnumInt(binary.BigEndian.Uint32(b)), nil
+		return binary.BigEndian.Uint32(b), nil
 	}
-	return nil, merry.New("unable to parse enum value")
+	return 0, merry.New("unable to parse enum value")
 }
 
-func EnumToString(tag Tag, i EnumValuer) string {
+func EnumToString(tag Tag, i uint32) string {
 	v, _ := enumRegistry.Load(tag)
 	if v != nil {
-		s := v.(EnumTypeDef).String(i)
+		s := v.(enumDef).String(i)
 		if s != "" {
 			return s
 		}
 	}
-	return fmt.Sprintf("%#08x", byte(i.EnumValue()))
+	return fmt.Sprintf("%#08x", byte(i))
 }
 
 type EnumTypeDef struct {
-	Parse  func(s string) (EnumValuer, error)
-	String func(v EnumValuer) string
+	Parse  func(s string) (uint32, error)
+	String func(v uint32) string
 }
 
 func RegisterEnum(tag Tag, def EnumTypeDef) {
-	enumRegistry.Store(tag, def)
+	enumRegistry.Store(tag, enumDef{EnumTypeDef: def})
 }
 
-func RegisterBitMask(tag Tag, values map[string]int) {
-	enumRegistry.Store(tag, values)
+func RegisterBitMask(tag Tag, def EnumTypeDef) {
+	enumRegistry.Store(tag, enumDef{EnumTypeDef: def, isMask: true})
 }
 
-func maskValues(tag Tag) map[string]int {
-	v, ok := enumRegistry.Load(tag)
-	if ok && v != nil {
-		return v.(map[string]int)
+func IsEnumeration(tag Tag) bool {
+	v, _ := enumRegistry.Load(tag)
+	if v != nil {
+		return !v.(enumDef).isMask
 	}
-	return nil
+	return false
+}
+
+func IsBitMask(tag Tag) bool {
+	v, _ := enumRegistry.Load(tag)
+	if v != nil {
+		return v.(enumDef).isMask
+	}
+	return false
 }
 
 func RegisterTag(tag Tag, name string) {

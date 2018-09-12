@@ -63,15 +63,19 @@ func (t TTLV) MarshalJSON() ([]byte, error) {
 			//val = json.RawMessage("false")
 		}
 	case TypeEnumeration:
-		// TODO: enum to string mapping inside attributes
-		s := EnumToString(t.Tag(), t.ValueEnumeration())
 		sb.WriteString(`"`)
-		sb.WriteString(s)
+		sb.WriteString(EnumToString(t.Tag(), t.ValueEnumeration()))
 		sb.WriteString(`"`)
 		//val = json.RawMessage(s)
 	case TypeInteger:
 		// TODO: handle masks
-		sb.WriteString(strconv.Itoa(t.ValueInteger()))
+		if IsBitMask(t.Tag()) {
+			sb.WriteString(`"`)
+			sb.WriteString(EnumToString(t.Tag(), t.ValueEnumeration()))
+			sb.WriteString(`"`)
+		} else {
+			sb.WriteString(strconv.Itoa(t.ValueInteger()))
+		}
 		//val, err = json.Marshal(t.ValueInteger())
 	case TypeLongInteger:
 		v := t.ValueLongInteger()
@@ -263,8 +267,8 @@ func (t TTLV) ValueBigInteger() *big.Int {
 	return i
 }
 
-func (t TTLV) ValueEnumeration() EnumInt {
-	return EnumInt(binary.BigEndian.Uint32(t.ValueRaw()))
+func (t TTLV) ValueEnumeration() uint32 {
+	return binary.BigEndian.Uint32(t.ValueRaw())
 }
 
 func (t TTLV) ValueBoolean() bool {
@@ -413,6 +417,12 @@ func Print(w io.Writer, indent string, t TTLV) (err error) {
 		}
 	case TypeEnumeration:
 		fmt.Fprint(w, " ", EnumToString(tag, t.ValueEnumeration()))
+	case TypeInteger:
+		if IsBitMask(tag) {
+			fmt.Fprint(w, " ", EnumToString(tag, t.ValueEnumeration()))
+		} else {
+			fmt.Fprintf(w, " %v", t.Value())
+		}
 	default:
 		fmt.Fprintf(w, " %v", t.Value())
 	}

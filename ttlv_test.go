@@ -65,7 +65,7 @@ func TestDecoding(t *testing.T) {
 		},
 		{
 			bs:  "42 00 20 | 05 | 00 00 00 04 | 00 00 00 FF 00 00 00 00",
-			exp: EnumInt(255),
+			exp: uint32(255),
 			typ: TypeEnumeration,
 		},
 		{
@@ -321,8 +321,8 @@ func TestTTLV_MarshalJSON(t *testing.T) {
 			]}`,
 		},
 		{
-			in:  TaggedValue{Tag: TagCryptographicUsageMask, Value: 10 * time.Second},
-			exp: `{"tag":"CryptographicUsageMask","type":"Integer","value":10}`,
+			in:  TaggedValue{Tag: TagCryptographicUsageMask, Value: CryptographicUsageMaskCRLSign},
+			exp: `{"tag":"CryptographicUsageMask","type":"Integer","value":"CRLSign"}`,
 		},
 	}
 

@@ -104,7 +104,7 @@ func (e *Encoder) encodeInterfaceValue(tag Tag, v interface{}) error {
 
 	switch t := v.(type) {
 	case EnumValuer:
-		e.encBuf.encodeEnum2(tag, t.EnumValue())
+		e.encBuf.encodeEnum(tag, t.EnumValue())
 	case TTLV:
 		// raw TTLV value
 		e.encBuf.Write(t)
@@ -258,21 +258,21 @@ func (e *Encoder) encodeReflectEnum(tag Tag, v reflect.Value) error {
 		}
 
 		u := binary.BigEndian.Uint32(b)
-		e.encBuf.encodeEnum2(tag, u)
+		e.encBuf.encodeEnum(tag, u)
 		return nil
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		i := v.Uint()
 		if i > math.MaxUint32 {
 			return e.newMarshalingError(tag, v.Type(), ErrIntOverflow)
 		}
-		e.encBuf.encodeEnum2(tag, uint32(i))
+		e.encBuf.encodeEnum(tag, uint32(i))
 		return nil
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		i := v.Int()
 		if i > math.MaxUint32 {
 			return e.newMarshalingError(tag, v.Type(), ErrIntOverflow)
 		}
-		e.encBuf.encodeEnum2(tag, uint32(i))
+		e.encBuf.encodeEnum(tag, uint32(i))
 		return nil
 	default:
 		return e.newMarshalingError(tag, v.Type(), ErrUnsupportedEnumTypeError)
@@ -310,7 +310,7 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 		if flags&fOmitEmpty != 0 && isEmptyValue(v) {
 			return nil
 		}
-		e.encBuf.encodeEnum2(tag, v.Interface().(EnumValuer).EnumValue())
+		e.encBuf.encodeEnum(tag, v.Interface().(EnumValuer).EnumValue())
 		return nil
 	case v.CanAddr():
 		pv := v.Addr()
@@ -325,7 +325,7 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 			if flags&fOmitEmpty != 0 && isEmptyValue(v) {
 				return nil
 			}
-			e.encBuf.encodeEnum2(tag, pv.Interface().(EnumValuer).EnumValue())
+			e.encBuf.encodeEnum(tag, pv.Interface().(EnumValuer).EnumValue())
 			return nil
 		}
 	}
@@ -565,6 +565,10 @@ func (h *encBuf) encodeBigInt(tag Tag, i *big.Int) {
 }
 
 func (h *encBuf) encodeInt(tag Tag, i int32) {
+	if IsEnumeration(tag) {
+		h.encodeEnum(tag, uint32(i))
+		return
+	}
 	h.encodeHeader(tag, TypeInteger, lenInt)
 	h.encodeIntVal(i)
 	h.Write(h.scratch[:16])
@@ -589,6 +593,10 @@ func (h *encBuf) encodeBool(tag Tag, b bool) {
 }
 
 func (h *encBuf) encodeLongInt(tag Tag, i int64) {
+	if IsEnumeration(tag) {
+		h.encodeEnum(tag, uint32(i))
+		return
+	}
 	h.encodeHeader(tag, TypeLongInteger, lenLongInt)
 	h.encodeLongIntVal(i)
 	h.Write(h.scratch[:16])
@@ -610,7 +618,7 @@ func (h *encBuf) encodeInterval(tag Tag, d time.Duration) {
 	h.Write(h.scratch[:16])
 }
 
-func (h *encBuf) encodeEnum2(tag Tag, i uint32) {
+func (h *encBuf) encodeEnum(tag Tag, i uint32) {
 	h.encodeHeader(tag, TypeEnumeration, lenEnumeration)
 	binary.BigEndian.PutUint32(h.scratch[8:12], i)
 	// pad extra bytes

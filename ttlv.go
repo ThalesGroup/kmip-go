@@ -152,18 +152,26 @@ func (t *TTLV) UnmarshalJSON(b []byte) error {
 		default:
 			return merry.Errorf("%s: invalid Integer value: must be number or hex string", tag.String())
 		case string:
-			if len(tv) >= 2 && tv[:2] != "0x" {
-				return merry.Errorf("%s: invalid Integer value: hex value must start with 0x", tag.String())
+			if IsBitMask(tag) {
+				v, err := ParseEnum(tag, tv)
+				if err != nil {
+					return merry.Prependf(err, "%s: invalid Integer value", tag.String())
+				}
+				enc.encodeInt(tag, int32(v))
+			} else {
+				if len(tv) >= 2 && tv[:2] != "0x" {
+					return merry.Errorf("%s: invalid Integer value: hex value must start with 0x", tag.String())
+				}
+				b, err := hex.DecodeString(tv[2:])
+				if err != nil {
+					return merry.Prependf(err, "%s: invalid Integer value", tag.String())
+				}
+				if len(b) != 4 {
+					return merry.Errorf("%s: invalid Integer value: must be 4 bytes (8 hex characters)", tag.String())
+				}
+				v := binary.BigEndian.Uint32(b)
+				enc.encodeInt(tag, int32(v))
 			}
-			b, err := hex.DecodeString(tv[2:])
-			if err != nil {
-				return merry.Prependf(err, "%s: invalid Integer value", tag.String())
-			}
-			if len(b) != 4 {
-				return merry.Errorf("%s: invalid Integer value: must be 4 bytes (8 hex characters)", tag.String())
-			}
-			v := binary.BigEndian.Uint32(b)
-			enc.encodeInt(tag, int32(v))
 		case float64:
 			enc.encodeInt(tag, int32(tv))
 		}

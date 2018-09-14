@@ -5,6 +5,7 @@ package kmip
 import (
 	"encoding/binary"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"gitlab.protectv.local/regan/kmip.git/internal/kmiputil"
 	"sort"
@@ -1264,10 +1265,13 @@ func (c CredentialType) String() string {
 }
 
 func ParseCredentialType(s string) (CredentialType, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return CredentialType(binary.BigEndian.Uint32(b)), nil
 	}
@@ -1347,10 +1351,13 @@ func (k KeyCompressionType) String() string {
 }
 
 func ParseKeyCompressionType(s string) (KeyCompressionType, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return KeyCompressionType(binary.BigEndian.Uint32(b)), nil
 	}
@@ -1484,10 +1491,13 @@ func (k KeyFormatType) String() string {
 }
 
 func ParseKeyFormatType(s string) (KeyFormatType, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return KeyFormatType(binary.BigEndian.Uint32(b)), nil
 	}
@@ -1570,10 +1580,13 @@ func (w WrappingMethod) String() string {
 }
 
 func ParseWrappingMethod(s string) (WrappingMethod, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return WrappingMethod(binary.BigEndian.Uint32(b)), nil
 	}
@@ -1845,10 +1858,13 @@ func (r RecommendedCurve) String() string {
 }
 
 func ParseRecommendedCurve(s string) (RecommendedCurve, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return RecommendedCurve(binary.BigEndian.Uint32(b)), nil
 	}
@@ -1922,10 +1938,13 @@ func (c CertificateType) String() string {
 }
 
 func ParseCertificateType(s string) (CertificateType, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return CertificateType(binary.BigEndian.Uint32(b)), nil
 	}
@@ -2050,10 +2069,13 @@ func (d DigitalSignatureAlgorithm) String() string {
 }
 
 func ParseDigitalSignatureAlgorithm(s string) (DigitalSignatureAlgorithm, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return DigitalSignatureAlgorithm(binary.BigEndian.Uint32(b)), nil
 	}
@@ -2133,10 +2155,13 @@ func (s SplitKeyMethod) String() string {
 }
 
 func ParseSplitKeyMethod(s string) (SplitKeyMethod, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return SplitKeyMethod(binary.BigEndian.Uint32(b)), nil
 	}
@@ -2210,10 +2235,13 @@ func (s SecretDataType) String() string {
 }
 
 func ParseSecretDataType(s string) (SecretDataType, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return SecretDataType(binary.BigEndian.Uint32(b)), nil
 	}
@@ -2278,10 +2306,13 @@ func (o OpaqueDataType) String() string {
 }
 
 func ParseOpaqueDataType(s string) (OpaqueDataType, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return OpaqueDataType(binary.BigEndian.Uint32(b)), nil
 	}
@@ -2355,10 +2386,13 @@ func (n NameType) String() string {
 }
 
 func ParseNameType(s string) (NameType, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return NameType(binary.BigEndian.Uint32(b)), nil
 	}
@@ -2453,10 +2487,13 @@ func (o ObjectType) String() string {
 }
 
 func ParseObjectType(s string) (ObjectType, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return ObjectType(binary.BigEndian.Uint32(b)), nil
 	}
@@ -2644,10 +2681,13 @@ func (c CryptographicAlgorithm) String() string {
 }
 
 func ParseCryptographicAlgorithm(s string) (CryptographicAlgorithm, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return CryptographicAlgorithm(binary.BigEndian.Uint32(b)), nil
 	}
@@ -2769,10 +2809,13 @@ func (b BlockCipherMode) String() string {
 }
 
 func ParseBlockCipherMode(s string) (BlockCipherMode, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return BlockCipherMode(binary.BigEndian.Uint32(b)), nil
 	}
@@ -2870,10 +2913,13 @@ func (p PaddingMethod) String() string {
 }
 
 func ParsePaddingMethod(s string) (PaddingMethod, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return PaddingMethod(binary.BigEndian.Uint32(b)), nil
 	}
@@ -3004,10 +3050,13 @@ func (h HashingAlgorithm) String() string {
 }
 
 func ParseHashingAlgorithm(s string) (HashingAlgorithm, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return HashingAlgorithm(binary.BigEndian.Uint32(b)), nil
 	}
@@ -3147,10 +3196,13 @@ func (k KeyRoleType) String() string {
 }
 
 func ParseKeyRoleType(s string) (KeyRoleType, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return KeyRoleType(binary.BigEndian.Uint32(b)), nil
 	}
@@ -3236,10 +3288,13 @@ func (s State) String() string {
 }
 
 func ParseState(s string) (State, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return State(binary.BigEndian.Uint32(b)), nil
 	}
@@ -3328,10 +3383,13 @@ func (r RevocationReasonCode) String() string {
 }
 
 func ParseRevocationReasonCode(s string) (RevocationReasonCode, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return RevocationReasonCode(binary.BigEndian.Uint32(b)), nil
 	}
@@ -3438,10 +3496,13 @@ func (l LinkType) String() string {
 }
 
 func ParseLinkType(s string) (LinkType, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return LinkType(binary.BigEndian.Uint32(b)), nil
 	}
@@ -3533,10 +3594,13 @@ func (d DerivationMethod) String() string {
 }
 
 func ParseDerivationMethod(s string) (DerivationMethod, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return DerivationMethod(binary.BigEndian.Uint32(b)), nil
 	}
@@ -3616,10 +3680,13 @@ func (c CertificateRequestType) String() string {
 }
 
 func ParseCertificateRequestType(s string) (CertificateRequestType, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return CertificateRequestType(binary.BigEndian.Uint32(b)), nil
 	}
@@ -3696,10 +3763,13 @@ func (v ValidityIndicator) String() string {
 }
 
 func ParseValidityIndicator(s string) (ValidityIndicator, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return ValidityIndicator(binary.BigEndian.Uint32(b)), nil
 	}
@@ -3803,10 +3873,13 @@ func (q QueryFunction) String() string {
 }
 
 func ParseQueryFunction(s string) (QueryFunction, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return QueryFunction(binary.BigEndian.Uint32(b)), nil
 	}
@@ -3889,10 +3962,13 @@ func (c CancellationResult) String() string {
 }
 
 func ParseCancellationResult(s string) (CancellationResult, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return CancellationResult(binary.BigEndian.Uint32(b)), nil
 	}
@@ -3966,10 +4042,13 @@ func (p PutFunction) String() string {
 }
 
 func ParsePutFunction(s string) (PutFunction, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return PutFunction(binary.BigEndian.Uint32(b)), nil
 	}
@@ -4166,10 +4245,13 @@ func (o Operation) String() string {
 }
 
 func ParseOperation(s string) (Operation, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return Operation(binary.BigEndian.Uint32(b)), nil
 	}
@@ -4249,10 +4331,13 @@ func (r ResultStatus) String() string {
 }
 
 func ParseResultStatus(s string) (ResultStatus, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return ResultStatus(binary.BigEndian.Uint32(b)), nil
 	}
@@ -4395,10 +4480,13 @@ func (r ResultReason) String() string {
 }
 
 func ParseResultReason(s string) (ResultReason, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return ResultReason(binary.BigEndian.Uint32(b)), nil
 	}
@@ -4475,10 +4563,13 @@ func (b BatchErrorContinuationOption) String() string {
 }
 
 func ParseBatchErrorContinuationOption(s string) (BatchErrorContinuationOption, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return BatchErrorContinuationOption(binary.BigEndian.Uint32(b)), nil
 	}
@@ -4552,10 +4643,13 @@ func (u UsageLimitsUnit) String() string {
 }
 
 func ParseUsageLimitsUnit(s string) (UsageLimitsUnit, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return UsageLimitsUnit(binary.BigEndian.Uint32(b)), nil
 	}
@@ -4629,10 +4723,13 @@ func (e EncodingOption) String() string {
 }
 
 func ParseEncodingOption(s string) (EncodingOption, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return EncodingOption(binary.BigEndian.Uint32(b)), nil
 	}
@@ -4706,10 +4803,13 @@ func (o ObjectGroupMember) String() string {
 }
 
 func ParseObjectGroupMember(s string) (ObjectGroupMember, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return ObjectGroupMember(binary.BigEndian.Uint32(b)), nil
 	}
@@ -4798,10 +4898,13 @@ func (a AlternativeNameType) String() string {
 }
 
 func ParseAlternativeNameType(s string) (AlternativeNameType, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return AlternativeNameType(binary.BigEndian.Uint32(b)), nil
 	}
@@ -4875,10 +4978,13 @@ func (k KeyValueLocationType) String() string {
 }
 
 func ParseKeyValueLocationType(s string) (KeyValueLocationType, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return KeyValueLocationType(binary.BigEndian.Uint32(b)), nil
 	}
@@ -4955,10 +5061,13 @@ func (a AttestationType) String() string {
 }
 
 func ParseAttestationType(s string) (AttestationType, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return AttestationType(binary.BigEndian.Uint32(b)), nil
 	}
@@ -5044,10 +5153,13 @@ func (r RNGAlgorithm) String() string {
 }
 
 func ParseRNGAlgorithm(s string) (RNGAlgorithm, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return RNGAlgorithm(binary.BigEndian.Uint32(b)), nil
 	}
@@ -5130,10 +5242,13 @@ func (d DRBGAlgorithm) String() string {
 }
 
 func ParseDRBGAlgorithm(s string) (DRBGAlgorithm, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return DRBGAlgorithm(binary.BigEndian.Uint32(b)), nil
 	}
@@ -5222,10 +5337,13 @@ func (f FIPS186Variation) String() string {
 }
 
 func ParseFIPS186Variation(s string) (FIPS186Variation, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return FIPS186Variation(binary.BigEndian.Uint32(b)), nil
 	}
@@ -5302,10 +5420,13 @@ func (v ValidationAuthorityType) String() string {
 }
 
 func ParseValidationAuthorityType(s string) (ValidationAuthorityType, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return ValidationAuthorityType(binary.BigEndian.Uint32(b)), nil
 	}
@@ -5388,10 +5509,13 @@ func (v ValidationType) String() string {
 }
 
 func ParseValidationType(s string) (ValidationType, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return ValidationType(binary.BigEndian.Uint32(b)), nil
 	}
@@ -5927,10 +6051,13 @@ func (p ProfileName) String() string {
 }
 
 func ParseProfileName(s string) (ProfileName, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return ProfileName(binary.BigEndian.Uint32(b)), nil
 	}
@@ -6007,10 +6134,13 @@ func (u UnwrapMode) String() string {
 }
 
 func ParseUnwrapMode(s string) (UnwrapMode, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return UnwrapMode(binary.BigEndian.Uint32(b)), nil
 	}
@@ -6099,10 +6229,13 @@ func (d DestroyAction) String() string {
 }
 
 func ParseDestroyAction(s string) (DestroyAction, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return DestroyAction(binary.BigEndian.Uint32(b)), nil
 	}
@@ -6179,10 +6312,13 @@ func (s ShreddingAlgorithm) String() string {
 }
 
 func ParseShreddingAlgorithm(s string) (ShreddingAlgorithm, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return ShreddingAlgorithm(binary.BigEndian.Uint32(b)), nil
 	}
@@ -6259,10 +6395,13 @@ func (r RNGMode) String() string {
 }
 
 func ParseRNGMode(s string) (RNGMode, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return RNGMode(binary.BigEndian.Uint32(b)), nil
 	}
@@ -6345,10 +6484,13 @@ func (c ClientRegistrationMethod) String() string {
 }
 
 func ParseClientRegistrationMethod(s string) (ClientRegistrationMethod, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return ClientRegistrationMethod(binary.BigEndian.Uint32(b)), nil
 	}
@@ -6422,10 +6564,13 @@ func (k KeyWrapType) String() string {
 }
 
 func ParseKeyWrapType(s string) (KeyWrapType, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return KeyWrapType(binary.BigEndian.Uint32(b)), nil
 	}
@@ -6496,10 +6641,13 @@ func (m MaskGenerator) String() string {
 }
 
 func ParseMaskGenerator(s string) (MaskGenerator, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return MaskGenerator(binary.BigEndian.Uint32(b)), nil
 	}
@@ -6658,10 +6806,13 @@ func (c CryptographicUsageMask) String() string {
 }
 
 func parseSingleCryptographicUsageMask(s string) (CryptographicUsageMask, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return CryptographicUsageMask(binary.BigEndian.Uint32(b)), nil
 	}
@@ -6688,7 +6839,6 @@ func ParseCryptographicUsageMask(s string) (CryptographicUsageMask, error) {
 	}
 	return v, nil
 }
-
 // Storage Status Mask Bit Mask
 
 // 9.1.3.3.2
@@ -6782,10 +6932,13 @@ func (s StorageStatusMask) String() string {
 }
 
 func parseSingleStorageStatusMask(s string) (StorageStatusMask, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
+	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
 			return 0, err
+		}
+		if len(b) != 4 {
+			return 0, errors.New("must be 4 bytes (8 hex characters)")
 		}
 		return StorageStatusMask(binary.BigEndian.Uint32(b)), nil
 	}

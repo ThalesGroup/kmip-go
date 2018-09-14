@@ -343,12 +343,12 @@ func TestTTLV_UnmarshalJSON_errors(t *testing.T) {
 		{
 			name:  "enuminvalidhex",
 			input: `{"tag":"ObjectType","type":"Enumeration","value":"0x0000000T"}`,
-			msg:   "ObjectType: invalid Enumeration value: invalid hex string: encoding/hex: invalid byte: U+0054 'T'",
+			msg:   "ObjectType: invalid Enumeration value: encoding/hex: invalid byte: U+0054 'T'",
 		},
 		{
 			name:  "enuminvalidlen",
 			input: `{"tag":"ObjectType","type":"Enumeration","value":"0x0000000002"}`,
-			msg:   "ObjectType: invalid Enumeration value: invalid hex string: must be 4 bytes (8 hex characters)",
+			msg:   "ObjectType: invalid Enumeration value: must be 4 bytes (8 hex characters)",
 		},
 		{
 			name:  "enuminvalidname",
@@ -445,6 +445,16 @@ func TestTTLV_UnmarshalJSON(t *testing.T) {
 				`{"tag":"BatchCount","type":"Integer","value":5}`,
 			},
 			exp: TaggedValue{Tag: TagBatchCount, Value: 5},
+		},
+		{
+			name: "integermask",
+			inputs: []string{
+				//`{"tag":"CryptographicUsageMask","type":"Integer","value":"0x00000005"}`,
+				`{"tag":"CryptographicUsageMask","type":"Integer","value":"Decrypt|Export"}`,
+				`{"tag":"CryptographicUsageMask","type":"Integer","value":"Decrypt|0x00000040"}`,
+				`{"tag":"CryptographicUsageMask","type":"Integer","value":"0x00000048"}`,
+			},
+			exp: TaggedValue{Tag: TagCryptographicUsageMask, Value: CryptographicUsageMaskDecrypt|CryptographicUsageMaskExport},
 		},
 		{
 			name: "longinteger",

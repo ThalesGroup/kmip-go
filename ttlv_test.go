@@ -376,6 +376,8 @@ func TestTTLV_UnmarshalJSON(t *testing.T) {
 			name: "booltrue",
 			inputs: []string{
 				`{"tag":"BatchCount","type":"Boolean","value":true}`,
+				`{"tag":"BatchCount","type":"0x06","value":true}`,
+				`{"tag":"0x42000d","type":"Boolean","value":true}`,
 				`{"tag":"BatchCount","type":"Boolean","value":"0x0000000000000001"}`,
 			},
 			exp: TaggedValue{Tag: TagBatchCount, Value: true},
@@ -454,7 +456,7 @@ func TestTTLV_UnmarshalJSON(t *testing.T) {
 				`{"tag":"CryptographicUsageMask","type":"Integer","value":"Decrypt|0x00000040"}`,
 				`{"tag":"CryptographicUsageMask","type":"Integer","value":"0x00000048"}`,
 			},
-			exp: TaggedValue{Tag: TagCryptographicUsageMask, Value: CryptographicUsageMaskDecrypt|CryptographicUsageMaskExport},
+			exp: TaggedValue{Tag: TagCryptographicUsageMask, Value: CryptographicUsageMaskDecrypt | CryptographicUsageMaskExport},
 		},
 		{
 			name: "longinteger",
@@ -481,6 +483,28 @@ func TestTTLV_UnmarshalJSON(t *testing.T) {
 				`{"tag":"ObjectType","type":"Enumeration","value":"SymmetricKey"}`,
 			},
 			exp: TaggedValue{Tag: TagObjectType, Value: ObjectTypeSymmetricKey},
+		},
+		{
+			name: "structure",
+			inputs: []string{
+				`{
+					"tag":"BatchCount",
+					"value":[
+						{"tag":"CryptographicUsageMask", "type":"Integer", "value":"Decrypt|Encrypt"},
+						{"tag":"CryptographicAlgorithm", "type":"Enumeration", "value":"Blowfish"},
+						{"tag":"ObjectType", "type":"Structure", "value":[
+							{"tag":"Operation", "type":"TextString", "value":"red"}
+						]}
+					]
+				}`,
+			},
+			exp: Structure{Tag: TagBatchCount, Values: []interface{}{
+				TaggedValue{Tag: TagCryptographicUsageMask, Value: CryptographicUsageMaskDecrypt | CryptographicUsageMaskEncrypt},
+				TaggedValue{Tag: TagCryptographicAlgorithm, Value: CryptographicAlgorithmBlowfish},
+				Structure{Tag: TagObjectType, Values: []interface{}{
+					TaggedValue{Tag: TagOperation, Value: "red"},
+				}},
+			}},
 		},
 	}
 	for _, testcase := range tests {

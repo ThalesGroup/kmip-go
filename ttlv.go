@@ -27,9 +27,9 @@ const lenHeader = lenTag + 1 + lenLen // tag + type + len
 type TTLV []byte
 
 type tval struct {
-	Tag   string      `json:"tag"`
-	Type  string      `json:"type,omitempty"`
-	Value interface{} `json:"value"`
+	Tag   string          `json:"tag"`
+	Type  string          `json:"type,omitempty"`
+	Value json.RawMessage `json:"value"`
 }
 
 var maxJSONInt = int64(1) << 52
@@ -40,20 +40,32 @@ func (t *TTLV) UnmarshalJSON(b []byte) error {
 		return nil
 	}
 
-	var v tval
-	err := json.Unmarshal(b, &v)
+	var ttl tval
+	err := json.Unmarshal(b, &ttl)
 	if err != nil {
 		return err
 	}
 
-	tag, err := ParseTag(v.Tag)
+	tag, err := ParseTag(ttl.Tag)
 	if err != nil {
 		return err
 	}
 
-	tp, err := ParseType(v.Type)
-	if err != nil {
-		return err
+	var tp Type
+	var v interface{}
+	if ttl.Type == "" {
+		tp = TypeStructure
+	} else {
+		tp, err = ParseType(ttl.Type)
+		if err != nil {
+			return err
+		}
+		// for all types besides Structure, unmarshal
+		// value into interface{}
+		err = json.Unmarshal(ttl.Value, &v)
+		if err != nil {
+			return err
+		}
 	}
 
 	// performance note: for some types, like int, long int, and interval,
@@ -66,7 +78,7 @@ func (t *TTLV) UnmarshalJSON(b []byte) error {
 	enc := encBuf{}
 	switch tp {
 	case TypeBoolean:
-		switch tv := v.Value.(type) {
+		switch tv := v.(type) {
 		default:
 			return merry.Errorf("%s: invalid Boolean value: must be boolean or hex string", tag.String())
 		case bool:
@@ -82,14 +94,14 @@ func (t *TTLV) UnmarshalJSON(b []byte) error {
 			}
 		}
 	case TypeTextString:
-		switch tv := v.Value.(type) {
+		switch tv := v.(type) {
 		default:
 			return merry.Errorf("%s: invalid TextString value: must be string", tag.String())
 		case string:
 			enc.encodeTextString(tag, tv)
 		}
 	case TypeByteString:
-		switch tv := v.Value.(type) {
+		switch tv := v.(type) {
 		default:
 			return merry.Errorf("%s: invalid ByteString value: must be hex string", tag.String())
 		case string:
@@ -103,7 +115,7 @@ func (t *TTLV) UnmarshalJSON(b []byte) error {
 			enc.encodeByteString(tag, b)
 		}
 	case TypeInterval:
-		switch tv := v.Value.(type) {
+		switch tv := v.(type) {
 		default:
 			return merry.Errorf("%s: invalid Interval value: must be number or hex string", tag.String())
 		case string:
@@ -123,7 +135,7 @@ func (t *TTLV) UnmarshalJSON(b []byte) error {
 			enc.encodeInterval(tag, time.Duration(tv)*time.Second)
 		}
 	case TypeDateTime:
-		switch tv := v.Value.(type) {
+		switch tv := v.(type) {
 		default:
 			return merry.Errorf("%s: invalid DateTime value: must be string", tag.String())
 		case string:
@@ -148,7 +160,7 @@ func (t *TTLV) UnmarshalJSON(b []byte) error {
 			}
 		}
 	case TypeInteger:
-		switch tv := v.Value.(type) {
+		switch tv := v.(type) {
 		default:
 			return merry.Errorf("%s: invalid Integer value: must be number or hex string", tag.String())
 		case string:
@@ -176,7 +188,7 @@ func (t *TTLV) UnmarshalJSON(b []byte) error {
 			enc.encodeInt(tag, int32(tv))
 		}
 	case TypeLongInteger:
-		switch tv := v.Value.(type) {
+		switch tv := v.(type) {
 		default:
 			return merry.Errorf("%s: invalid LongInteger value: must be number or hex string", tag.String())
 		case string:
@@ -196,7 +208,7 @@ func (t *TTLV) UnmarshalJSON(b []byte) error {
 			enc.encodeLongInt(tag, int64(tv))
 		}
 	case TypeBigInteger:
-		switch tv := v.Value.(type) {
+		switch tv := v.(type) {
 		default:
 			return merry.Errorf("%s: invalid BigInteger value: must be number or hex string", tag.String())
 		case string:
@@ -217,7 +229,7 @@ func (t *TTLV) UnmarshalJSON(b []byte) error {
 			enc.encodeBigInt(tag, big.NewInt(int64(tv)))
 		}
 	case TypeEnumeration:
-		switch tv := v.Value.(type) {
+		switch tv := v.(type) {
 		default:
 			return merry.Errorf("%s: invalid Enumeration value: must be number or string", tag.String())
 		case string:
@@ -229,6 +241,23 @@ func (t *TTLV) UnmarshalJSON(b []byte) error {
 		case float64:
 			enc.encodeEnum(tag, uint32(tv))
 		}
+	case TypeStructure:
+		// unmarshal each sub value
+		var children []json.RawMessage
+		err := json.Unmarshal(ttl.Value, &children)
+		if err != nil {
+			return err
+		}
+		var scratch TTLV
+		s := enc.startStruct(tag)
+		for _, c := range children {
+			err := json.Unmarshal(c, &scratch)
+			if err != nil {
+				return err
+			}
+			enc.Write(scratch)
+		}
+		enc.endStruct(s)
 	}
 	*t = TTLV(enc.Bytes())
 	return nil

@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"github.com/ansel1/merry"
 	"io"
@@ -26,10 +27,69 @@ const lenHeader = lenTag + 1 + lenLen // tag + type + len
 
 type TTLV []byte
 
-type tval struct {
-	Tag   string          `json:"tag"`
-	Type  string          `json:"type,omitempty"`
-	Value json.RawMessage `json:"value"`
+func (t TTLV) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	if len(t) == 0 {
+		return nil
+	}
+
+	out := struct {
+		XMLName  xml.Name
+		Tag      string `xml:"tag,omitempty,attr"`
+		Type     string `xml:"type,attr,omitempty"`
+		Value    string `xml:"value,attr,omitempty"`
+		Children []TTLV
+	}{}
+
+	tagS := t.Tag().String()
+	if strings.HasPrefix(tagS, "0x") {
+		out.XMLName.Local = "TTLV"
+		out.Tag = tagS
+	} else {
+		out.XMLName.Local = tagS
+	}
+
+	if t.Type() != TypeStructure {
+		out.Type = t.Type().String()
+	}
+
+	switch t.Type() {
+	case TypeStructure:
+		// TODO: handle translation of Attribute structures
+		var children []TTLV
+		var n TTLV
+		for n = t.ValueStructure(); n != nil; n = n.Next() {
+			children = append(children, n)
+		}
+		out.Children = children
+	case TypeInteger:
+		if IsBitMask(t.Tag()) {
+			out.Value = strings.Replace(EnumToString(t.Tag(), t.ValueEnumeration()), "|", " ", -1)
+		} else {
+			out.Value = strconv.Itoa(t.ValueInteger())
+		}
+	case TypeBoolean:
+		out.Value = strconv.FormatBool(t.ValueBoolean())
+	case TypeLongInteger:
+		out.Value = strconv.FormatInt(t.ValueLongInteger(), 10)
+	case TypeBigInteger:
+		out.Value = hex.EncodeToString(t.ValueRaw())
+	case TypeEnumeration:
+		out.Value = EnumToString(t.Tag(), t.ValueEnumeration())
+	case TypeTextString:
+		out.Value = t.ValueTextString()
+	case TypeByteString:
+		out.Value = hex.EncodeToString(t.ValueByteString())
+	case TypeDateTime:
+		out.Value = t.ValueDateTime().Format(time.RFC3339Nano)
+	case TypeInterval:
+		out.Value = strconv.FormatUint(uint64(t.ValueInterval()/time.Second), 10)
+	}
+
+	e.Encode(&out)
+	//e.EncodeToken(start)
+	//e.EncodeToken(xml.EndElement{Name:start.Name})
+
+	return nil
 }
 
 var maxJSONInt = int64(1) << 52
@@ -40,6 +100,11 @@ func (t *TTLV) UnmarshalJSON(b []byte) error {
 		return nil
 	}
 
+	type tval struct {
+		Tag   string          `json:"tag"`
+		Type  string          `json:"type,omitempty"`
+		Value json.RawMessage `json:"value"`
+	}
 	var ttl tval
 	err := json.Unmarshal(b, &ttl)
 	if err != nil {

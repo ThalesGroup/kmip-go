@@ -19,9 +19,6 @@ import "math/big"
 //
 // When an Attribute structure is used to specify or return a particular instance of an Attribute and the Attribute
 // Index is not specified it SHALL be assumed to be 0.
-//
-// TODO: with registry of tags to enums, add an Unmarshaler impl which unmarshals to the correct value type based
-// on the attribute name.
 type Attribute struct {
 	AttributeName  string
 	AttributeIndex int `kmip:",omitempty"`

@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -660,6 +661,100 @@ func TestTTLV_MarshalJSON(t *testing.T) {
 			j, err := json.Marshal(ttlv)
 			require.NoError(t, err)
 			require.JSONEq(t, testcase.exp, string(j))
+		})
+	}
+}
+
+func TestTTLV_MarshalXML(t *testing.T) {
+	tests := []struct {
+		name string
+		in   interface{}
+		exp  string
+	}{
+		{
+			name: "integer",
+			in:   TaggedValue{Tag: TagBatchCount, Value: 10},
+			exp:  `<BatchCount type="Integer" value="10"></BatchCount>`,
+		},
+		{
+			name: "unknowntag",
+			in:   TaggedValue{Tag: 0x54FFFF, Value: 10},
+			exp:  `<TTLV tag="0x54ffff" type="Integer" value="10"></TTLV>`,
+		},
+		{
+			name: "booltrue",
+			in:   TaggedValue{Tag: TagBatchCount, Value: true},
+			exp:  `<BatchCount type="Boolean" value="true"></BatchCount>`,
+		},
+		{
+			name: "boolfalse",
+			in:   TaggedValue{Tag: TagBatchCount, Value: false},
+			exp:  `<BatchCount type="Boolean" value="false"></BatchCount>`,
+		},
+		{
+			name: "longinteger",
+			in:   TaggedValue{Tag: TagBatchCount, Value: int64(6)},
+			exp:  `<BatchCount type="LongInteger" value="6"></BatchCount>`,
+		},
+		{
+			name: "biginteger",
+			in:   TaggedValue{Tag: TagBatchCount, Value: big.NewInt(6)},
+			exp:  `<BatchCount type="BigInteger" value="0000000000000006"></BatchCount>`,
+		},
+		{
+			name: "bitmask",
+			in:   TaggedValue{Tag: TagCryptographicUsageMask, Value: CryptographicUsageMaskExport | CryptographicUsageMaskSign},
+			exp:  `<CryptographicUsageMask type="Integer" value="Sign Export"></CryptographicUsageMask>`,
+		},
+		{
+			name: "enumeration",
+			in:   TaggedValue{Tag: TagOperation, Value: OperationActivate},
+			exp:  `<Operation type="Enumeration" value="Activate"></Operation>`,
+		},
+		{
+			name: "enumerationext",
+			in:   TaggedValue{Tag: TagOperation, Value: 0x0000002c},
+			exp:  `<Operation type="Enumeration" value="0x0000002c"></Operation>`,
+		},
+		{
+			name: "textstring",
+			in:   TaggedValue{Tag: TagBatchCount, Value: "red"},
+			exp:  `<BatchCount type="TextString" value="red"></BatchCount>`,
+		},
+		{
+			name: "bytestring",
+			in:   TaggedValue{Tag: TagBatchCount, Value: []byte{0x01, 0x02, 0x03}},
+			exp:  `<BatchCount type="ByteString" value="010203"></BatchCount>`,
+		},
+		{
+			name: "datetime",
+			in:   TaggedValue{Tag: TagBatchCount, Value: time.Date(2001, 01, 01, 0, 0, 0, 0, time.FixedZone("UTC", 0))},
+			exp:  `<BatchCount type="DateTime" value="2001-01-01T00:00:00Z"></BatchCount>`,
+		},
+		{
+			name: "interval",
+			in:   TaggedValue{Tag: TagBatchCount, Value: 10 * time.Second},
+			exp:  `<BatchCount type="Interval" value="10"></BatchCount>`,
+		},
+		{
+			name: "structure",
+			in: Structure{Tag: TagKeyFormatType, Values: []interface{}{
+				TaggedValue{Tag: TagBatchCount, Value: 10},
+				TaggedValue{Tag: Tag(0x540002), Value: 10},
+				TaggedValue{Tag: TagBatchItem, Value: true},
+			}},
+			exp: `<KeyFormatType><BatchCount type="Integer" value="10"></BatchCount><TTLV tag="0x540002" type="Integer" value="10"></TTLV><BatchItem type="Boolean" value="true"></BatchItem></KeyFormatType>`,
+		},
+	}
+
+	for _, testcase := range tests {
+		t.Run(testcase.name, func(t *testing.T) {
+			b, err := Marshal(testcase.in)
+			require.NoError(t, err)
+			ttlv := TTLV(b)
+			j, err := xml.Marshal(ttlv)
+			require.NoError(t, err)
+			require.Equal(t, testcase.exp, string(j))
 		})
 	}
 }

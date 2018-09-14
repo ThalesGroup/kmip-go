@@ -199,6 +199,184 @@ func TestTTLV_UnmarshalTTLV(t *testing.T) {
 
 }
 
+func TestTTLV_UnmarshalJSON_errors(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		msg   string
+	}{
+		{
+			name:  "boolinvalidtype",
+			input: `{"tag":"BatchCount","type":"Boolean","value":2}`,
+			msg:   "BatchCount: invalid Boolean value: must be boolean or hex string",
+		},
+		{
+			name:  "boolinvalidhex",
+			input: `{"tag":"BatchCount","type":"Boolean","value":"0x0000000000000003"}`,
+			msg:   "BatchCount: invalid Boolean value: hex string for Boolean value must be either 0x0000000000000001 (true) or 0x0000000000000000 (false)",
+		},
+		{
+			name:  "stringinvalidtype",
+			input: `{"tag":"BatchCount","type":"TextString","value":29}`,
+			msg:   "BatchCount: invalid TextString value: must be string",
+		},
+		{
+			name:  "bytesinvalidtype",
+			input: `{"tag":"BatchCount","type":"ByteString","value":29}`,
+			msg:   "BatchCount: invalid ByteString value: must be hex string",
+		},
+		{
+			name:  "bytesinvalidhex",
+			input: `{"tag":"BatchCount","type":"ByteString","value":"0T"}`,
+			msg:   "BatchCount: invalid ByteString value: encoding/hex: invalid byte: U+0054 'T'",
+		},
+		{
+			name:  "bytesinvalidprefix",
+			input: `{"tag":"BatchCount","type":"ByteString","value":"0xFF5601"}`,
+			msg:   "BatchCount: invalid ByteString value: should not have 0x prefix",
+		},
+		{
+			name:  "intervalinvalidtype",
+			input: `{"tag":"BatchCount","type":"Interval","value":true}`,
+			msg:   "BatchCount: invalid Interval value: must be number or hex string",
+		},
+		{
+			name:  "intervalinvalidhexstring",
+			input: `{"tag":"BatchCount","type":"Interval","value":"0000000A"}`,
+			msg:   "BatchCount: invalid Interval value: hex value must start with 0x",
+		},
+		{
+			name:  "intervalinvalidhex",
+			input: `{"tag":"BatchCount","type":"Interval","value":"0x0000000T"}`,
+			msg:   "BatchCount: invalid Interval value: encoding/hex: invalid byte: U+0054 'T'",
+		},
+		{
+			name:  "intervalinvalidlen",
+			input: `{"tag":"BatchCount","type":"Interval","value":"0x000000000F"}`,
+			msg:   "BatchCount: invalid Interval value: must be 4 bytes (8 hex characters)",
+		},
+		{
+			name:  "datetimeinvalidtype",
+			input: `{"tag":"BatchCount","type":"DateTime","value":true}`,
+			msg:   "BatchCount: invalid DateTime value: must be string",
+		},
+		{
+			name:  "datetimeinvalidhex",
+			input: `{"tag":"BatchCount","type":"DateTime","value":"0x0H"}`,
+			msg:   "BatchCount: invalid DateTime value: encoding/hex: invalid byte: U+0048 'H'",
+		},
+		{
+			name:  "datetimeinvalidlen",
+			input: `{"tag":"BatchCount","type":"DateTime","value":"0x01"}`,
+			msg:   "BatchCount: invalid DateTime value: must be 8 bytes (16 hex characters)",
+		},
+		{
+			name:  "datetimeinvalidlen",
+			input: `{"tag":"BatchCount","type":"DateTime","value":"notadate"}`,
+			msg:   "BatchCount: invalid DateTime value: must be ISO8601 format, parsing error: parsing time \"notadate\" as \"2006-01-02T15:04:05.999999999Z07:00\": cannot parse \"notadate\" as \"2006\"",
+		},
+	}
+
+	for _, testcase := range tests {
+		t.Run(testcase.name, func(t *testing.T) {
+			err := json.Unmarshal([]byte(testcase.input), &TTLV{})
+			require.EqualError(t, err, testcase.msg)
+		})
+
+	}
+}
+
+func TestTTLV_UnmarshalJSON(t *testing.T) {
+	tests := []struct {
+		name   string
+		inputs []string
+		exp    interface{}
+	}{
+		{
+			name: "booltrue",
+			inputs: []string{
+				`{"tag":"BatchCount","type":"Boolean","value":true}`,
+				`{"tag":"BatchCount","type":"Boolean","value":"0x0000000000000001"}`,
+			},
+			exp: TaggedValue{Tag: TagBatchCount, Value: true},
+		},
+		{
+			name: "boolfalse",
+			inputs: []string{
+				`{"tag":"BatchCount","type":"Boolean","value":false}`,
+				`{"tag":"BatchCount","type":"Boolean","value":"0x0000000000000000"}`,
+			},
+			exp: TaggedValue{Tag: TagBatchCount, Value: false},
+		},
+		{
+			name: "string",
+			inputs: []string{
+				`{"tag":"BatchCount","type":"TextString","value":"red"}`,
+			},
+			exp: TaggedValue{Tag: TagBatchCount, Value: "red"},
+		},
+		{
+			name: "stringempty",
+			inputs: []string{
+				`{"tag":"BatchCount","type":"TextString","value":""}`,
+			},
+			exp: TaggedValue{Tag: TagBatchCount, Value: ""},
+		},
+		{
+			name: "bytes",
+			inputs: []string{
+				`{"tag":"BatchCount","type":"ByteString","value":"FF5601"}`,
+			},
+			exp: TaggedValue{Tag: TagBatchCount, Value: []byte{0xFF, 0x56, 0x01}},
+		},
+		{
+			name: "bytesempty",
+			inputs: []string{
+				`{"tag":"BatchCount","type":"ByteString","value":""}`,
+			},
+			exp: TaggedValue{Tag: TagBatchCount, Value: []byte{}},
+		},
+		{
+			name: "interval",
+			inputs: []string{
+				`{"tag":"BatchCount","type":"Interval","value":10}`,
+				`{"tag":"BatchCount","type":"Interval","value":"0x0000000A"}`,
+			},
+			exp: TaggedValue{Tag: TagBatchCount, Value: 10 * time.Second},
+		},
+		{
+			name: "datetime",
+			inputs: []string{
+				`{"tag":"BatchCount","type":"DateTime","value":"2001-01-01T10:00:00+10:00"}`,
+			},
+			exp: TaggedValue{Tag: TagBatchCount, Value: time.Date(2001, 01, 01, 0, 0, 0, 0, time.FixedZone("UTC", 0))},
+		},
+		{
+			name: "datetimehex",
+			inputs: []string{
+				`{"tag":"BatchCount","type":"DateTime","value":"0x0000000047DA67F8"}`,
+			},
+			exp: TaggedValue{Tag: TagBatchCount, Value: time.Date(2008, 03, 14, 11, 56, 40, 0, time.FixedZone("UTC", 0))},
+		},
+	}
+	for _, testcase := range tests {
+		t.Run(testcase.name, func(t *testing.T) {
+			expTTLV, err := Marshal(testcase.exp)
+			require.NoError(t, err)
+
+			for _, input := range testcase.inputs {
+				t.Log(input)
+				var ttlv TTLV
+				err = json.Unmarshal([]byte(input), &ttlv)
+				require.NoError(t, err)
+
+				assert.Equal(t, TTLV(expTTLV), ttlv)
+			}
+
+		})
+	}
+}
+
 func TestTTLV_MarshalJSON(t *testing.T) {
 	tests := []struct {
 		in  interface{}

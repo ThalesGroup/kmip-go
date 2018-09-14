@@ -27,13 +27,123 @@ const lenHeader = lenTag + 1 + lenLen // tag + type + len
 type TTLV []byte
 
 type tval struct {
-	Tag   string          `json:"tag"`
-	Type  string          `json:"type,omitempty"`
-	Value json.RawMessage `json:"value"`
+	Tag   string      `json:"tag"`
+	Type  string      `json:"type,omitempty"`
+	Value interface{} `json:"value"`
 }
 
 var maxJSONInt = int64(1) << 52
 var maxJSONBigInt = big.NewInt(maxJSONInt)
+
+func (t *TTLV) UnmarshalJSON(b []byte) error {
+	if len(b) == 0 {
+		return nil
+	}
+
+	var v tval
+	err := json.Unmarshal(b, &v)
+	if err != nil {
+		return err
+	}
+
+	tag, err := ParseTag(v.Tag)
+	if err != nil {
+		return err
+	}
+
+	tp, err := ParseType(v.Type)
+	if err != nil {
+		return err
+	}
+
+	enc := encBuf{}
+	switch tp {
+	case TypeBoolean:
+		switch tv := v.Value.(type) {
+		default:
+			return merry.Errorf("%s: invalid Boolean value: must be boolean or hex string", tag.String())
+		case bool:
+			enc.encodeBool(tag, tv)
+		case string:
+			switch tv {
+			default:
+				return merry.Errorf("%s: invalid Boolean value: hex string for Boolean value must be either 0x0000000000000001 (true) or 0x0000000000000000 (false)", tag.String())
+			case "0x0000000000000001":
+				enc.encodeBool(tag, true)
+			case "0x0000000000000000":
+				enc.encodeBool(tag, false)
+			}
+		}
+	case TypeTextString:
+		switch tv := v.Value.(type) {
+		default:
+			return merry.Errorf("%s: invalid TextString value: must be string", tag.String())
+		case string:
+			enc.encodeTextString(tag, tv)
+		}
+	case TypeByteString:
+		switch tv := v.Value.(type) {
+		default:
+			return merry.Errorf("%s: invalid ByteString value: must be hex string", tag.String())
+		case string:
+			if len(tv) >= 2 && tv[:2] == "0x" {
+				return merry.Errorf("%s: invalid ByteString value: should not have 0x prefix", tag.String())
+			}
+			b, err := hex.DecodeString(tv)
+			if err != nil {
+				return merry.Prependf(err, "%s: invalid ByteString value", tag.String())
+			}
+			enc.encodeByteString(tag, b)
+		}
+	case TypeInterval:
+		switch tv := v.Value.(type) {
+		default:
+			return merry.Errorf("%s: invalid Interval value: must be number or hex string", tag.String())
+		case string:
+			if len(tv) >= 2 && tv[:2] != "0x" {
+				return merry.Errorf("%s: invalid Interval value: hex value must start with 0x", tag.String())
+			}
+			b, err := hex.DecodeString(tv[2:])
+			if err != nil {
+				return merry.Prependf(err, "%s: invalid Interval value", tag.String())
+			}
+			if len(b) > 4 {
+				return merry.Errorf("%s: invalid Interval value: must be 4 bytes (8 hex characters)", tag.String())
+			}
+			v := binary.BigEndian.Uint32(b)
+			enc.encodeInterval(tag, time.Duration(v)*time.Second)
+		case float64:
+			enc.encodeInterval(tag, time.Duration(tv)*time.Second)
+		}
+	case TypeDateTime:
+		switch tv := v.Value.(type) {
+		default:
+			return merry.Errorf("%s: invalid DateTime value: must be string", tag.String())
+		case string:
+			if tv[:2] == "0x" {
+				b, err := hex.DecodeString(tv[2:])
+				if err != nil {
+					return merry.Prependf(err, "%s: invalid DateTime value", tag.String())
+				}
+				if len(b) != 8 {
+					return merry.Errorf("%s: invalid DateTime value: must be 8 bytes (16 hex characters)", tag.String())
+				}
+
+				enc.encodeHeader(tag, TypeDateTime, lenDateTime)
+				enc.encodeLongIntVal(int64(binary.BigEndian.Uint64(b)))
+				enc.Write(enc.scratch[:16])
+			} else {
+				tm, err := time.Parse(time.RFC3339Nano, tv)
+				if err != nil {
+					return merry.Prependf(err, "%s: invalid DateTime value: must be ISO8601 format, parsing error", tag.String())
+				}
+				enc.encodeDateTime(tag, tm)
+			}
+		}
+	}
+	*t = TTLV(enc.Bytes())
+	return nil
+}
 
 func (t TTLV) MarshalJSON() ([]byte, error) {
 	if len(t) == 0 {
@@ -57,16 +167,13 @@ func (t TTLV) MarshalJSON() ([]byte, error) {
 	case TypeBoolean:
 		if t.ValueBoolean() {
 			sb.WriteString("true")
-			//val = json.RawMessage("true")
 		} else {
 			sb.WriteString("false")
-			//val = json.RawMessage("false")
 		}
 	case TypeEnumeration:
 		sb.WriteString(`"`)
 		sb.WriteString(EnumToString(t.Tag(), t.ValueEnumeration()))
 		sb.WriteString(`"`)
-		//val = json.RawMessage(s)
 	case TypeInteger:
 		// TODO: handle masks
 		if IsBitMask(t.Tag()) {
@@ -76,17 +183,14 @@ func (t TTLV) MarshalJSON() ([]byte, error) {
 		} else {
 			sb.WriteString(strconv.Itoa(t.ValueInteger()))
 		}
-		//val, err = json.Marshal(t.ValueInteger())
 	case TypeLongInteger:
 		v := t.ValueLongInteger()
 		if v <= -maxJSONInt || v >= maxJSONInt {
 			sb.WriteString(`"0x`)
 			sb.WriteString(hex.EncodeToString(t.ValueRaw()))
 			sb.WriteString(`"`)
-			//val = json.RawMessage("0x" + hex.EncodeToString(t.ValueRaw()))
 		} else {
 			sb.WriteString(strconv.FormatInt(v, 10))
-			//val, err = json.Marshal(v)
 		}
 	case TypeBigInteger:
 		v := t.ValueBigInteger()
@@ -100,7 +204,6 @@ func (t TTLV) MarshalJSON() ([]byte, error) {
 			sb.WriteString(`"0x`)
 			sb.WriteString(hex.EncodeToString(t.ValueRaw()))
 			sb.WriteString(`"`)
-			//val = t.ValueRaw()
 		}
 	case TypeTextString:
 		val, err := json.Marshal(t.ValueTextString())
@@ -112,7 +215,6 @@ func (t TTLV) MarshalJSON() ([]byte, error) {
 		sb.WriteString(`"`)
 		sb.WriteString(hex.EncodeToString(t.ValueRaw()))
 		sb.WriteString(`"`)
-		//val = []byte(hex.EncodeToString(t.ValueRaw()))
 	case TypeStructure:
 		sb.WriteString("[")
 		c := t.ValueStructure()
@@ -150,7 +252,6 @@ func (t TTLV) MarshalJSON() ([]byte, error) {
 		sb.Write(val)
 	case TypeInterval:
 		sb.WriteString(strconv.FormatUint(uint64(binary.BigEndian.Uint32(t.ValueRaw())), 10))
-		//val, err = json.Marshal(binary.BigEndian.Uint32(t.ValueRaw()))
 	}
 
 	sb.WriteString(`}`)

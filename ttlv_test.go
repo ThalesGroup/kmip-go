@@ -315,6 +315,46 @@ func TestTTLV_UnmarshalJSON_errors(t *testing.T) {
 			input: `{"tag":"BatchCount","type":"LongInteger","value":"0x000000000F"}`,
 			msg:   "BatchCount: invalid LongInteger value: must be 8 bytes (16 hex characters)",
 		},
+		{
+			name:  "bigintegerinvalidtype",
+			input: `{"tag":"BatchCount","type":"BigInteger","value":true}`,
+			msg:   "BatchCount: invalid BigInteger value: must be number or hex string",
+		},
+		{
+			name:  "bigintegerinvalidhexstring",
+			input: `{"tag":"BatchCount","type":"BigInteger","value":"000000000000000A"}`,
+			msg:   "BatchCount: invalid BigInteger value: hex value must start with 0x",
+		},
+		{
+			name:  "bigintegerinvalidhex",
+			input: `{"tag":"BatchCount","type":"BigInteger","value":"0x000000000000000T"}`,
+			msg:   "BatchCount: invalid BigInteger value: encoding/hex: invalid byte: U+0054 'T'",
+		},
+		{
+			name:  "bigintegerinvalidlen",
+			input: `{"tag":"BatchCount","type":"BigInteger","value":"0x000000000F"}`,
+			msg:   "BatchCount: invalid BigInteger value: must be multiple of 8 bytes (16 hex characters)",
+		},
+		{
+			name:  "enuminvalidtype",
+			input: `{"tag":"ObjectType","type":"Enumeration","value":true}`,
+			msg:   "ObjectType: invalid Enumeration value: must be number or string",
+		},
+		{
+			name:  "enuminvalidhex",
+			input: `{"tag":"ObjectType","type":"Enumeration","value":"0x0000000T"}`,
+			msg:   "ObjectType: invalid Enumeration value: invalid hex string: encoding/hex: invalid byte: U+0054 'T'",
+		},
+		{
+			name:  "enuminvalidlen",
+			input: `{"tag":"ObjectType","type":"Enumeration","value":"0x0000000002"}`,
+			msg:   "ObjectType: invalid Enumeration value: invalid hex string: must be 4 bytes (8 hex characters)",
+		},
+		{
+			name:  "enuminvalidname",
+			input: `{"tag":"ObjectType","type":"Enumeration","value":"NotAValue"}`,
+			msg:   "ObjectType: invalid Enumeration value: NotAValue is not a valid ObjectType",
+		},
 	}
 
 	for _, testcase := range tests {
@@ -413,6 +453,24 @@ func TestTTLV_UnmarshalJSON(t *testing.T) {
 				`{"tag":"BatchCount","type":"LongInteger","value":5}`,
 			},
 			exp: TaggedValue{Tag: TagBatchCount, Value: int64(5)},
+		},
+		{
+			name: "biginteger",
+			inputs: []string{
+				`{"tag":"BatchCount","type":"BigInteger","value":"0x0000000000000005"}`,
+				`{"tag":"BatchCount","type":"BigInteger","value":"0x00000000000000000000000000000005"}`,
+				`{"tag":"BatchCount","type":"BigInteger","value":5}`,
+			},
+			exp: TaggedValue{Tag: TagBatchCount, Value: big.NewInt(5)},
+		},
+		{
+			name: "enumeration",
+			inputs: []string{
+				`{"tag":"ObjectType","type":"Enumeration","value":2}`,
+				`{"tag":"ObjectType","type":"Enumeration","value":"0x00000002"}`,
+				`{"tag":"ObjectType","type":"Enumeration","value":"SymmetricKey"}`,
+			},
+			exp: TaggedValue{Tag: TagObjectType, Value: ObjectTypeSymmetricKey},
 		},
 	}
 	for _, testcase := range tests {

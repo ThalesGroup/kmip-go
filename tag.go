@@ -19,16 +19,21 @@ type enumDef struct {
 var enumRegistry = sync.Map{}
 
 func ParseEnum(tag Tag, s string) (uint32, error) {
+	if strings.HasPrefix(s, "0x") {
+		b, err := hex.DecodeString(s[2:])
+		if err != nil {
+			err2 := merry.Here(ErrInvalidHexString).WithCause(err)
+			fmt.Println(err2.Error())
+			return 0, err2
+		}
+		if len(b) != 4 {
+			return 0, merry.Here(ErrInvalidHexString).Append("must be 4 bytes (8 hex characters)")
+		}
+		return binary.BigEndian.Uint32(b), nil
+	}
 	v, _ := enumRegistry.Load(tag)
 	if v != nil {
 		return v.(enumDef).Parse(s)
-	}
-	if strings.HasPrefix(s, "0x") && len(s) == 10 {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, merry.WithCause(ErrInvalidHexString, err)
-		}
-		return binary.BigEndian.Uint32(b), nil
 	}
 	return 0, merry.New("unable to parse enum value")
 }

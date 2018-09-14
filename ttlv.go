@@ -56,6 +56,13 @@ func (t *TTLV) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
+	// performance note: for some types, like int, long int, and interval,
+	// we are essentially decoding from binary into a go native type
+	// then re-encoding to binary.  I benchmarked skipping this step
+	// and transferring the bytes directly from the decoded hex strings
+	// to the binary TTLV.  It turned out not be faster, and added an
+	// additional set of paths to test.  Wasn't worth it.
+
 	enc := encBuf{}
 	switch tp {
 	case TypeBoolean:
@@ -129,9 +136,9 @@ func (t *TTLV) UnmarshalJSON(b []byte) error {
 					return merry.Errorf("%s: invalid DateTime value: must be 8 bytes (16 hex characters)", tag.String())
 				}
 
-				enc.encodeHeader(tag, TypeDateTime, lenDateTime)
-				enc.encodeLongIntVal(int64(binary.BigEndian.Uint64(b)))
-				enc.Write(enc.scratch[:16])
+				u := binary.BigEndian.Uint64(b)
+				tm := time.Unix(int64(u), 0)
+				enc.encodeDateTime(tag, tm)
 			} else {
 				tm, err := time.Parse(time.RFC3339Nano, tv)
 				if err != nil {
@@ -179,6 +186,40 @@ func (t *TTLV) UnmarshalJSON(b []byte) error {
 			enc.encodeLongInt(tag, int64(v))
 		case float64:
 			enc.encodeLongInt(tag, int64(tv))
+		}
+	case TypeBigInteger:
+		switch tv := v.Value.(type) {
+		default:
+			return merry.Errorf("%s: invalid BigInteger value: must be number or hex string", tag.String())
+		case string:
+			if len(tv) >= 2 && tv[:2] != "0x" {
+				return merry.Errorf("%s: invalid BigInteger value: hex value must start with 0x", tag.String())
+			}
+			b, err := hex.DecodeString(tv[2:])
+			if err != nil {
+				return merry.Prependf(err, "%s: invalid BigInteger value", tag.String())
+			}
+			if len(b)%8 != 0 {
+				return merry.Errorf("%s: invalid BigInteger value: must be multiple of 8 bytes (16 hex characters)", tag.String())
+			}
+			i := &big.Int{}
+			unmarshalBigInt(i, unpadBigInt(b))
+			enc.encodeBigInt(tag, i)
+		case float64:
+			enc.encodeBigInt(tag, big.NewInt(int64(tv)))
+		}
+	case TypeEnumeration:
+		switch tv := v.Value.(type) {
+		default:
+			return merry.Errorf("%s: invalid Enumeration value: must be number or string", tag.String())
+		case string:
+			u, err := ParseEnum(tag, tv)
+			if err != nil {
+				return merry.Prependf(err, "%s: invalid Enumeration value", tag.String())
+			}
+			enc.encodeEnum(tag, u)
+		case float64:
+			enc.encodeEnum(tag, uint32(tv))
 		}
 	}
 	*t = TTLV(enc.Bytes())

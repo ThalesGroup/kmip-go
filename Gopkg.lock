@@ -2,12 +2,12 @@
 
 
 [[projects]]
-  digest = "1:42f2faf67a7030f16492ddae47061a959e8598623149fd52b425ecc1b45c56e1"
+  digest = "1:2399db8fa7e542855de27b4518353f94d0841c08dca4bc86fa1eaaa52ab3ef20"
   name = "github.com/ansel1/merry"
   packages = ["."]
   pruneopts = "UT"
-  revision = "439c9b13b6d7b97168bcac7fb7ba325bb44d7b92"
-  version = "v1.3.0"
+  revision = "5429a08c10ad44bc57a5dbbf49fd44a6371fb167"
+  version = "v1.3.1"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -50,12 +50,12 @@
   version = "v0.0.9"
 
 [[projects]]
-  digest = "1:d4d17353dbd05cb52a2a52b7fe1771883b682806f68db442b436294926bbfafb"
+  digest = "1:0981502f9816113c9c8c4ac301583841855c8cf4da8c72f696b3ebedf6d0e4e5"
   name = "github.com/mattn/go-isatty"
   packages = ["."]
   pruneopts = "UT"
-  revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
-  version = "v0.0.3"
+  revision = "6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c"
+  version = "v0.0.4"
 
 [[projects]]
   branch = "master"
@@ -117,11 +117,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:19f92ce03256cc8a4467054842ec81f081985becd92bbc443e7604dfe801e6a8"
+  digest = "1:6eb2645d74b43d9c87b51947df39f7c668a4f422cd512053f7f6f75bfaad0197"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "4910a1d54f876d7b22162a85f4d066d3ee649450"
+  revision = "d0be0721c37eeb5299f245a996a483160fc36940"
 
 [solve-meta]
   analyzer-name = "dep"

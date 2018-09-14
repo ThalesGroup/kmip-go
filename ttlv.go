@@ -107,7 +107,7 @@ func (t *TTLV) UnmarshalJSON(b []byte) error {
 			if err != nil {
 				return merry.Prependf(err, "%s: invalid Interval value", tag.String())
 			}
-			if len(b) > 4 {
+			if len(b) != 4 {
 				return merry.Errorf("%s: invalid Interval value: must be 4 bytes (8 hex characters)", tag.String())
 			}
 			v := binary.BigEndian.Uint32(b)
@@ -139,6 +139,46 @@ func (t *TTLV) UnmarshalJSON(b []byte) error {
 				}
 				enc.encodeDateTime(tag, tm)
 			}
+		}
+	case TypeInteger:
+		switch tv := v.Value.(type) {
+		default:
+			return merry.Errorf("%s: invalid Integer value: must be number or hex string", tag.String())
+		case string:
+			if len(tv) >= 2 && tv[:2] != "0x" {
+				return merry.Errorf("%s: invalid Integer value: hex value must start with 0x", tag.String())
+			}
+			b, err := hex.DecodeString(tv[2:])
+			if err != nil {
+				return merry.Prependf(err, "%s: invalid Integer value", tag.String())
+			}
+			if len(b) != 4 {
+				return merry.Errorf("%s: invalid Integer value: must be 4 bytes (8 hex characters)", tag.String())
+			}
+			v := binary.BigEndian.Uint32(b)
+			enc.encodeInt(tag, int32(v))
+		case float64:
+			enc.encodeInt(tag, int32(tv))
+		}
+	case TypeLongInteger:
+		switch tv := v.Value.(type) {
+		default:
+			return merry.Errorf("%s: invalid LongInteger value: must be number or hex string", tag.String())
+		case string:
+			if len(tv) >= 2 && tv[:2] != "0x" {
+				return merry.Errorf("%s: invalid LongInteger value: hex value must start with 0x", tag.String())
+			}
+			b, err := hex.DecodeString(tv[2:])
+			if err != nil {
+				return merry.Prependf(err, "%s: invalid LongInteger value", tag.String())
+			}
+			if len(b) != 8 {
+				return merry.Errorf("%s: invalid LongInteger value: must be 8 bytes (16 hex characters)", tag.String())
+			}
+			v := binary.BigEndian.Uint64(b)
+			enc.encodeLongInt(tag, int64(v))
+		case float64:
+			enc.encodeLongInt(tag, int64(tv))
 		}
 	}
 	*t = TTLV(enc.Bytes())

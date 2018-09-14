@@ -275,6 +275,46 @@ func TestTTLV_UnmarshalJSON_errors(t *testing.T) {
 			input: `{"tag":"BatchCount","type":"DateTime","value":"notadate"}`,
 			msg:   "BatchCount: invalid DateTime value: must be ISO8601 format, parsing error: parsing time \"notadate\" as \"2006-01-02T15:04:05.999999999Z07:00\": cannot parse \"notadate\" as \"2006\"",
 		},
+		{
+			name:  "integerinvalidtype",
+			input: `{"tag":"BatchCount","type":"Integer","value":true}`,
+			msg:   "BatchCount: invalid Integer value: must be number or hex string",
+		},
+		{
+			name:  "integerinvalidhexstring",
+			input: `{"tag":"BatchCount","type":"Integer","value":"0000000A"}`,
+			msg:   "BatchCount: invalid Integer value: hex value must start with 0x",
+		},
+		{
+			name:  "integerinvalidhex",
+			input: `{"tag":"BatchCount","type":"Integer","value":"0x0000000T"}`,
+			msg:   "BatchCount: invalid Integer value: encoding/hex: invalid byte: U+0054 'T'",
+		},
+		{
+			name:  "integerinvalidlen",
+			input: `{"tag":"BatchCount","type":"Integer","value":"0x000000000F"}`,
+			msg:   "BatchCount: invalid Integer value: must be 4 bytes (8 hex characters)",
+		},
+		{
+			name:  "longintegerinvalidtype",
+			input: `{"tag":"BatchCount","type":"LongInteger","value":true}`,
+			msg:   "BatchCount: invalid LongInteger value: must be number or hex string",
+		},
+		{
+			name:  "longintegerinvalidhexstring",
+			input: `{"tag":"BatchCount","type":"LongInteger","value":"000000000000000A"}`,
+			msg:   "BatchCount: invalid LongInteger value: hex value must start with 0x",
+		},
+		{
+			name:  "longintegerinvalidhex",
+			input: `{"tag":"BatchCount","type":"LongInteger","value":"0x000000000000000T"}`,
+			msg:   "BatchCount: invalid LongInteger value: encoding/hex: invalid byte: U+0054 'T'",
+		},
+		{
+			name:  "longintegerinvalidlen",
+			input: `{"tag":"BatchCount","type":"LongInteger","value":"0x000000000F"}`,
+			msg:   "BatchCount: invalid LongInteger value: must be 8 bytes (16 hex characters)",
+		},
 	}
 
 	for _, testcase := range tests {
@@ -357,6 +397,22 @@ func TestTTLV_UnmarshalJSON(t *testing.T) {
 				`{"tag":"BatchCount","type":"DateTime","value":"0x0000000047DA67F8"}`,
 			},
 			exp: TaggedValue{Tag: TagBatchCount, Value: time.Date(2008, 03, 14, 11, 56, 40, 0, time.FixedZone("UTC", 0))},
+		},
+		{
+			name: "integer",
+			inputs: []string{
+				`{"tag":"BatchCount","type":"Integer","value":"0x00000005"}`,
+				`{"tag":"BatchCount","type":"Integer","value":5}`,
+			},
+			exp: TaggedValue{Tag: TagBatchCount, Value: 5},
+		},
+		{
+			name: "longinteger",
+			inputs: []string{
+				`{"tag":"BatchCount","type":"LongInteger","value":"0x0000000000000005"}`,
+				`{"tag":"BatchCount","type":"LongInteger","value":5}`,
+			},
+			exp: TaggedValue{Tag: TagBatchCount, Value: int64(5)},
 		},
 	}
 	for _, testcase := range tests {

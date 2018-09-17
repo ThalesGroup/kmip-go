@@ -507,6 +507,17 @@ func TestTTLV_UnmarshalJSON(t *testing.T) {
 				}},
 			}},
 		},
+		{
+			name: "attributes",
+			exp: Structure{Tag: TagAttribute, Values: []interface{}{
+				TaggedValue{Tag: TagAttributeName, Value: "Key Format Type"},
+				TaggedValue{Tag: TagAttributeValue, Value: KeyFormatTypeX_509},
+			}},
+			inputs: []string{`{"tag":"Attribute","value":[
+				{"tag":"AttributeName","type":"TextString","value":"Key Format Type"},
+				{"tag":"AttributeValue","type":"Enumeration","value":"X_509"}
+			]}`},
+		},
 	}
 	for _, testcase := range tests {
 		t.Run(testcase.name, func(t *testing.T) {
@@ -744,6 +755,14 @@ func TestTTLV_MarshalXML(t *testing.T) {
 				TaggedValue{Tag: TagBatchItem, Value: true},
 			}},
 			exp: `<KeyFormatType><BatchCount type="Integer" value="10"></BatchCount><TTLV tag="0x540002" type="Integer" value="10"></TTLV><BatchItem type="Boolean" value="true"></BatchItem></KeyFormatType>`,
+		},
+		{
+			name: "attributes",
+			in: Structure{Tag: TagAttribute, Values: []interface{}{
+				TaggedValue{Tag: TagAttributeName, Value: "Key Format Type"},
+				TaggedValue{Tag: TagAttributeValue, Value: KeyFormatTypeX_509},
+			}},
+			exp: `<Attribute><AttributeName type="TextString" value="Key Format Type"></AttributeName><AttributeValue type="Enumeration" value="X_509"></AttributeValue></Attribute>`,
 		},
 	}
 

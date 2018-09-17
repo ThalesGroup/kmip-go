@@ -38,6 +38,7 @@ func (t TTLV) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 		Type     string `xml:"type,attr,omitempty"`
 		Value    string `xml:"value,attr,omitempty"`
 		Children []TTLV
+		Inner    []byte `xml:",innerxml"`
 	}{}
 
 	tagS := t.Tag().String()
@@ -55,12 +56,51 @@ func (t TTLV) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	switch t.Type() {
 	case TypeStructure:
 		// TODO: handle translation of Attribute structures
-		var children []TTLV
-		var n TTLV
-		for n = t.ValueStructure(); n != nil; n = n.Next() {
-			children = append(children, n)
+
+		se := xml.StartElement{Name: out.XMLName}
+		if out.Type != "" {
+			se.Attr = append(se.Attr, xml.Attr{Name: xml.Name{Local: "type"}, Value: out.Type})
 		}
-		out.Children = children
+		err := e.EncodeToken(se)
+		if err != nil {
+			return err
+		}
+
+		n := t.ValueStructure()
+		var attrTag Tag
+		for len(n) > 0 {
+			// if the struct contains an attribute name, followed by an
+			// attribute value, use the name to try and map enumeration values
+			// to their string variants
+			if n.Tag() == TagAttributeName {
+				// try to map the attribute name to a tag
+				attrTag, _ = ParseTag(NormalizeName(n.ValueTextString()))
+			}
+			if n.Tag() == TagAttributeValue && n.Type() == TypeEnumeration {
+				e.EncodeToken(xml.StartElement{
+					Name: xml.Name{Local: TagAttributeValue.String()},
+					Attr: []xml.Attr{
+						{
+							Name:  xml.Name{Local: "type"},
+							Value: TypeEnumeration.String(),
+						},
+						{
+							Name:  xml.Name{Local: "value"},
+							Value: EnumToString(attrTag, n.ValueEnumeration()),
+						},
+					},
+				})
+				e.EncodeToken(xml.EndElement{Name: xml.Name{Local: "AttributeValue"}})
+			} else {
+				err := e.Encode(n)
+				if err != nil {
+					return err
+				}
+			}
+			n = n.Next()
+		}
+		return e.EncodeToken(xml.EndElement{Name: out.XMLName})
+
 	case TypeInteger:
 		if IsBitMask(t.Tag()) {
 			out.Value = strings.Replace(EnumToString(t.Tag(), t.ValueEnumeration()), "|", " ", -1)
@@ -86,8 +126,6 @@ func (t TTLV) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	}
 
 	e.Encode(&out)
-	//e.EncodeToken(start)
-	//e.EncodeToken(xml.EndElement{Name:start.Name})
 
 	return nil
 }
@@ -96,6 +134,10 @@ var maxJSONInt = int64(1) << 52
 var maxJSONBigInt = big.NewInt(maxJSONInt)
 
 func (t *TTLV) UnmarshalJSON(b []byte) error {
+	return t.unmarshalJSON(b, TagNone)
+}
+
+func (t *TTLV) unmarshalJSON(b []byte, attrTag Tag) error {
 	if len(b) == 0 {
 		return nil
 	}
@@ -298,7 +340,11 @@ func (t *TTLV) UnmarshalJSON(b []byte) error {
 		default:
 			return merry.Errorf("%s: invalid Enumeration value: must be number or string", tag.String())
 		case string:
-			u, err := ParseEnum(tag, tv)
+			enumTag := tag
+			if tag == TagAttributeValue && attrTag != TagNone {
+				enumTag = attrTag
+			}
+			u, err := ParseEnum(enumTag, tv)
 			if err != nil {
 				return merry.Prependf(err, "%s: invalid Enumeration value", tag.String())
 			}
@@ -315,10 +361,14 @@ func (t *TTLV) UnmarshalJSON(b []byte) error {
 		}
 		var scratch TTLV
 		s := enc.startStruct(tag)
+		var attrTag Tag
 		for _, c := range children {
-			err := json.Unmarshal(c, &scratch)
+			err := (*TTLV)(&scratch).unmarshalJSON(c, attrTag)
 			if err != nil {
 				return err
+			}
+			if TagAttributeName == scratch.Tag() {
+				attrTag, _ = ParseTag(NormalizeName(scratch.ValueTextString()))
 			}
 			enc.Write(scratch)
 		}
@@ -358,7 +408,6 @@ func (t TTLV) MarshalJSON() ([]byte, error) {
 		sb.WriteString(EnumToString(t.Tag(), t.ValueEnumeration()))
 		sb.WriteString(`"`)
 	case TypeInteger:
-		// TODO: handle masks
 		if IsBitMask(t.Tag()) {
 			sb.WriteString(`"`)
 			sb.WriteString(EnumToString(t.Tag(), t.ValueEnumeration()))

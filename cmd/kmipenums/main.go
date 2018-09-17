@@ -224,21 +224,13 @@ func ({{.Var}} {{.TypeName}}) MarshalText() (text []byte, err error) {
 	return []byte({{.Var}}.String()), nil
 }
 
-func ({{.Var}} *{{.TypeName}}) UnmarshalText(text []byte) (err error) {
-	*{{.Var}}, err = Parse{{.TypeName}}(string(text))
-	return
-}
-
 {{ if .Tags }}
 {{ $bitMask := .BitMask }}
 func init() { {{range .Tags}}
 	Register{{if $bitMask}}BitMask{{else}}Enum{{end}}({{.}}, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := Parse{{$typeName}}(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _{{$typeName}}NameToValueMap[s] 
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return {{$typeName}}(v).String()		
@@ -267,24 +259,6 @@ func ({{.Var}} {{.TypeName}}) String() string {
 	return fmt.Sprintf("%#08x", uint32({{.Var}}))
 }
 
-func Parse{{.TypeName}}(s string) ({{.TypeName}}, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return {{.TypeName}}(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _{{.TypeName}}NameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v {{.TypeName}}
-		return v, fmt.Errorf("%s is not a valid {{.TypeName}}", s)
-	}
-}
 `
 
 const maskTmpl = `
@@ -337,41 +311,6 @@ func ({{.Var}} {{.TypeName}}) String() string {
 		fmt.Fprintf(&sb, "%#08x", uint32(r))
 	}
 	return sb.String()
-}
-
-func parseSingle{{.TypeName}}(s string) ({{.TypeName}}, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return {{.TypeName}}(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _{{.TypeName}}NameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v {{.TypeName}}
-		return v, fmt.Errorf("%s is not a valid {{.TypeName}}", s)
-	}
-}
-
-func Parse{{.TypeName}}(s string) ({{.TypeName}}, error) {
-	if !strings.Contains(s, "|") {
-		return parseSingle{{.TypeName}}(s)
-	}
-	var v {{.TypeName}}
-	parts := strings.Split(s, "|")
-	for _, part := range parts {
-		m, err := parseSingle{{.TypeName}}(part)
-		if err != nil {
-			return 0, err
-		}
-		v |= m
-	}
-	return v, nil
 }`
 
 var Tags = map[string]uint32{

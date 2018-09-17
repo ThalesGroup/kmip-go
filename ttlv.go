@@ -130,6 +130,80 @@ func (t TTLV) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return nil
 }
 
+func (t *TTLV) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	out := struct {
+		XMLName  xml.Name
+		Tag      string `xml:"tag,omitempty,attr"`
+		Type     string `xml:"type,attr,omitempty"`
+		Value    string `xml:"value,attr,omitempty"`
+		Children []TTLV
+	}{}
+	err := d.DecodeElement(&out, &start)
+	if err != nil {
+		return err
+	}
+
+	if out.Tag == "" {
+		out.Tag = out.XMLName.Local
+	}
+
+	tag, err := ParseTag(out.Tag)
+	if err != nil {
+		return err
+	}
+
+	var tp Type
+	if out.Type == "" {
+		tp = TypeStructure
+	} else {
+		tp, err = ParseType(out.Type)
+		if err != nil {
+			return err
+		}
+	}
+
+	var buf encBuf
+
+	switch tp {
+	case TypeBoolean:
+		b, err := strconv.ParseBool(out.Value)
+		if err != nil {
+			return err
+		}
+		buf.encodeBool(tag, b)
+	case TypeTextString:
+		buf.encodeTextString(tag, out.Value)
+	case TypeByteString:
+		b, err := hex.DecodeString(out.Value)
+		if err != nil {
+			return err
+		}
+		buf.encodeByteString(tag, b)
+	case TypeInterval:
+		u, err := strconv.ParseUint(out.Value, 10, 64)
+		if err != nil {
+			return err
+		}
+		buf.encodeInterval(tag, time.Duration(u)*time.Second)
+	case TypeDateTime:
+		d, err := time.Parse(time.RFC3339Nano, out.Value)
+		if err != nil {
+			return err
+		}
+		buf.encodeDateTime(tag, d)
+	case TypeInteger:
+		i, err := ParseInteger(tag, strings.Replace(out.Value, " ", "|", -1))
+		if err != nil {
+			return err
+		}
+		buf.encodeInt(tag, int32(i))
+
+	}
+
+	*t = TTLV(buf.Bytes())
+	return nil
+}
+
 var maxJSONInt = int64(1) << 52
 var maxJSONBigInt = big.NewInt(maxJSONInt)
 
@@ -269,28 +343,33 @@ func (t *TTLV) unmarshalJSON(b []byte, attrTag Tag) error {
 	case TypeInteger:
 		switch tv := v.(type) {
 		default:
-			return merry.Errorf("%s: invalid Integer value: must be number or hex string", tag.String())
+			return merry.Errorf("%s: invalid Integer value: must be number, hex string, or mask value name", tag.String())
 		case string:
-			if IsBitMask(tag) {
-				v, err := ParseEnum(tag, tv)
-				if err != nil {
-					return merry.Prependf(err, "%s: invalid Integer value", tag.String())
-				}
-				enc.encodeInt(tag, int32(v))
-			} else {
-				if len(tv) >= 2 && tv[:2] != "0x" {
-					return merry.Errorf("%s: invalid Integer value: hex value must start with 0x", tag.String())
-				}
-				b, err := hex.DecodeString(tv[2:])
-				if err != nil {
-					return merry.Prependf(err, "%s: invalid Integer value", tag.String())
-				}
-				if len(b) != 4 {
-					return merry.Errorf("%s: invalid Integer value: must be 4 bytes (8 hex characters)", tag.String())
-				}
-				v := binary.BigEndian.Uint32(b)
-				enc.encodeInt(tag, int32(v))
+			i, err := ParseInteger(tag, tv)
+			if err != nil {
+				return merry.Prependf(err, "%s: invalid Integer value", tag.String())
 			}
+			enc.encodeInt(tag, int32(i))
+			//if IsBitMask(tag) {
+			//	v, err := ParseEnum(tag, tv)
+			//	if err != nil {
+			//		return merry.Prependf(err, "%s: invalid Integer value", tag.String())
+			//	}
+			//	enc.encodeInt(tag, int32(v))
+			//} else {
+			//	if len(tv) >= 2 && tv[:2] != "0x" {
+			//		return merry.Errorf("%s: invalid Integer value: hex value must start with 0x", tag.String())
+			//	}
+			//	b, err := hex.DecodeString(tv[2:])
+			//	if err != nil {
+			//		return merry.Prependf(err, "%s: invalid Integer value", tag.String())
+			//	}
+			//	if len(b) != 4 {
+			//		return merry.Errorf("%s: invalid Integer value: must be 4 bytes (8 hex characters)", tag.String())
+			//	}
+			//	v := binary.BigEndian.Uint32(b)
+			//	enc.encodeInt(tag, int32(v))
+			//}
 		case float64:
 			enc.encodeInt(tag, int32(tv))
 		}

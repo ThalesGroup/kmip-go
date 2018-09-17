@@ -3,9 +3,6 @@
 package kmip
 
 import (
-	"encoding/binary"
-	"encoding/hex"
-	"errors"
 	"fmt"
 	"gitlab.protectv.local/regan/kmip.git/internal/kmiputil"
 	"sort"
@@ -1227,19 +1224,11 @@ func (c CredentialType) MarshalText() (text []byte, err error) {
 	return []byte(c.String()), nil
 }
 
-func (c *CredentialType) UnmarshalText(text []byte) (err error) {
-	*c, err = ParseCredentialType(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagCredentialType, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseCredentialType(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _CredentialTypeNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return CredentialType(v).String()
@@ -1262,25 +1251,6 @@ func (c CredentialType) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(c))
-}
-
-func ParseCredentialType(s string) (CredentialType, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return CredentialType(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _CredentialTypeNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v CredentialType
-		return v, fmt.Errorf("%s is not a valid CredentialType", s)
-	}
 }
 
 // Key Compression Type Enumeration
@@ -1313,19 +1283,11 @@ func (k KeyCompressionType) MarshalText() (text []byte, err error) {
 	return []byte(k.String()), nil
 }
 
-func (k *KeyCompressionType) UnmarshalText(text []byte) (err error) {
-	*k, err = ParseKeyCompressionType(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagKeyCompressionType, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseKeyCompressionType(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _KeyCompressionTypeNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return KeyCompressionType(v).String()
@@ -1348,25 +1310,6 @@ func (k KeyCompressionType) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(k))
-}
-
-func ParseKeyCompressionType(s string) (KeyCompressionType, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return KeyCompressionType(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _KeyCompressionTypeNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v KeyCompressionType
-		return v, fmt.Errorf("%s is not a valid KeyCompressionType", s)
-	}
 }
 
 // Key Format Type Enumeration
@@ -1453,19 +1396,11 @@ func (k KeyFormatType) MarshalText() (text []byte, err error) {
 	return []byte(k.String()), nil
 }
 
-func (k *KeyFormatType) UnmarshalText(text []byte) (err error) {
-	*k, err = ParseKeyFormatType(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagKeyFormatType, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseKeyFormatType(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _KeyFormatTypeNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return KeyFormatType(v).String()
@@ -1488,25 +1423,6 @@ func (k KeyFormatType) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(k))
-}
-
-func ParseKeyFormatType(s string) (KeyFormatType, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return KeyFormatType(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _KeyFormatTypeNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v KeyFormatType
-		return v, fmt.Errorf("%s is not a valid KeyFormatType", s)
-	}
 }
 
 // Wrapping Method Enumeration
@@ -1542,19 +1458,11 @@ func (w WrappingMethod) MarshalText() (text []byte, err error) {
 	return []byte(w.String()), nil
 }
 
-func (w *WrappingMethod) UnmarshalText(text []byte) (err error) {
-	*w, err = ParseWrappingMethod(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagWrappingMethod, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseWrappingMethod(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _WrappingMethodNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return WrappingMethod(v).String()
@@ -1577,25 +1485,6 @@ func (w WrappingMethod) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(w))
-}
-
-func ParseWrappingMethod(s string) (WrappingMethod, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return WrappingMethod(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _WrappingMethodNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v WrappingMethod
-		return v, fmt.Errorf("%s is not a valid WrappingMethod", s)
-	}
 }
 
 // Recommended Curve Enumeration
@@ -1820,19 +1709,11 @@ func (r RecommendedCurve) MarshalText() (text []byte, err error) {
 	return []byte(r.String()), nil
 }
 
-func (r *RecommendedCurve) UnmarshalText(text []byte) (err error) {
-	*r, err = ParseRecommendedCurve(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagRecommendedCurve, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseRecommendedCurve(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _RecommendedCurveNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return RecommendedCurve(v).String()
@@ -1855,25 +1736,6 @@ func (r RecommendedCurve) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(r))
-}
-
-func ParseRecommendedCurve(s string) (RecommendedCurve, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return RecommendedCurve(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _RecommendedCurveNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v RecommendedCurve
-		return v, fmt.Errorf("%s is not a valid RecommendedCurve", s)
-	}
 }
 
 // Certificate Type Enumeration
@@ -1900,19 +1762,11 @@ func (c CertificateType) MarshalText() (text []byte, err error) {
 	return []byte(c.String()), nil
 }
 
-func (c *CertificateType) UnmarshalText(text []byte) (err error) {
-	*c, err = ParseCertificateType(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagCertificateType, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseCertificateType(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _CertificateTypeNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return CertificateType(v).String()
@@ -1935,25 +1789,6 @@ func (c CertificateType) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(c))
-}
-
-func ParseCertificateType(s string) (CertificateType, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return CertificateType(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _CertificateTypeNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v CertificateType
-		return v, fmt.Errorf("%s is not a valid CertificateType", s)
-	}
 }
 
 // Digital Signature Algorithm Enumeration
@@ -2031,19 +1866,11 @@ func (d DigitalSignatureAlgorithm) MarshalText() (text []byte, err error) {
 	return []byte(d.String()), nil
 }
 
-func (d *DigitalSignatureAlgorithm) UnmarshalText(text []byte) (err error) {
-	*d, err = ParseDigitalSignatureAlgorithm(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagDigitalSignatureAlgorithm, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseDigitalSignatureAlgorithm(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _DigitalSignatureAlgorithmNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return DigitalSignatureAlgorithm(v).String()
@@ -2066,25 +1893,6 @@ func (d DigitalSignatureAlgorithm) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(d))
-}
-
-func ParseDigitalSignatureAlgorithm(s string) (DigitalSignatureAlgorithm, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return DigitalSignatureAlgorithm(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _DigitalSignatureAlgorithmNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v DigitalSignatureAlgorithm
-		return v, fmt.Errorf("%s is not a valid DigitalSignatureAlgorithm", s)
-	}
 }
 
 // Split Key Method Enumeration
@@ -2117,19 +1925,11 @@ func (s SplitKeyMethod) MarshalText() (text []byte, err error) {
 	return []byte(s.String()), nil
 }
 
-func (s *SplitKeyMethod) UnmarshalText(text []byte) (err error) {
-	*s, err = ParseSplitKeyMethod(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagSplitKeyMethod, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseSplitKeyMethod(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _SplitKeyMethodNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return SplitKeyMethod(v).String()
@@ -2152,25 +1952,6 @@ func (s SplitKeyMethod) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(s))
-}
-
-func ParseSplitKeyMethod(s string) (SplitKeyMethod, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return SplitKeyMethod(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _SplitKeyMethodNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v SplitKeyMethod
-		return v, fmt.Errorf("%s is not a valid SplitKeyMethod", s)
-	}
 }
 
 // Secret Data Type Enumeration
@@ -2197,19 +1978,11 @@ func (s SecretDataType) MarshalText() (text []byte, err error) {
 	return []byte(s.String()), nil
 }
 
-func (s *SecretDataType) UnmarshalText(text []byte) (err error) {
-	*s, err = ParseSecretDataType(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagSecretDataType, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseSecretDataType(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _SecretDataTypeNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return SecretDataType(v).String()
@@ -2234,25 +2007,6 @@ func (s SecretDataType) String() string {
 	return fmt.Sprintf("%#08x", uint32(s))
 }
 
-func ParseSecretDataType(s string) (SecretDataType, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return SecretDataType(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _SecretDataTypeNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v SecretDataType
-		return v, fmt.Errorf("%s is not a valid SecretDataType", s)
-	}
-}
-
 // Opaque Data Type Enumeration
 
 // 9.1.3.2.10 Table 298
@@ -2268,19 +2022,11 @@ func (o OpaqueDataType) MarshalText() (text []byte, err error) {
 	return []byte(o.String()), nil
 }
 
-func (o *OpaqueDataType) UnmarshalText(text []byte) (err error) {
-	*o, err = ParseOpaqueDataType(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagOpaqueDataType, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseOpaqueDataType(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _OpaqueDataTypeNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return OpaqueDataType(v).String()
@@ -2303,25 +2049,6 @@ func (o OpaqueDataType) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(o))
-}
-
-func ParseOpaqueDataType(s string) (OpaqueDataType, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return OpaqueDataType(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _OpaqueDataTypeNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v OpaqueDataType
-		return v, fmt.Errorf("%s is not a valid OpaqueDataType", s)
-	}
 }
 
 // Name Type Enumeration
@@ -2348,19 +2075,11 @@ func (n NameType) MarshalText() (text []byte, err error) {
 	return []byte(n.String()), nil
 }
 
-func (n *NameType) UnmarshalText(text []byte) (err error) {
-	*n, err = ParseNameType(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagNameType, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseNameType(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _NameTypeNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return NameType(v).String()
@@ -2383,25 +2102,6 @@ func (n NameType) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(n))
-}
-
-func ParseNameType(s string) (NameType, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return NameType(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _NameTypeNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v NameType
-		return v, fmt.Errorf("%s is not a valid NameType", s)
-	}
 }
 
 // Object Type Enumeration
@@ -2449,19 +2149,11 @@ func (o ObjectType) MarshalText() (text []byte, err error) {
 	return []byte(o.String()), nil
 }
 
-func (o *ObjectType) UnmarshalText(text []byte) (err error) {
-	*o, err = ParseObjectType(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagObjectType, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseObjectType(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _ObjectTypeNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return ObjectType(v).String()
@@ -2484,25 +2176,6 @@ func (o ObjectType) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(o))
-}
-
-func ParseObjectType(s string) (ObjectType, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return ObjectType(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _ObjectTypeNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v ObjectType
-		return v, fmt.Errorf("%s is not a valid ObjectType", s)
-	}
 }
 
 // Cryptographic Algorithm Enumeration
@@ -2643,19 +2316,11 @@ func (c CryptographicAlgorithm) MarshalText() (text []byte, err error) {
 	return []byte(c.String()), nil
 }
 
-func (c *CryptographicAlgorithm) UnmarshalText(text []byte) (err error) {
-	*c, err = ParseCryptographicAlgorithm(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagCryptographicAlgorithm, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseCryptographicAlgorithm(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _CryptographicAlgorithmNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return CryptographicAlgorithm(v).String()
@@ -2678,25 +2343,6 @@ func (c CryptographicAlgorithm) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(c))
-}
-
-func ParseCryptographicAlgorithm(s string) (CryptographicAlgorithm, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return CryptographicAlgorithm(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _CryptographicAlgorithmNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v CryptographicAlgorithm
-		return v, fmt.Errorf("%s is not a valid CryptographicAlgorithm", s)
-	}
 }
 
 // Block Cipher Mode Enumeration
@@ -2771,19 +2417,11 @@ func (b BlockCipherMode) MarshalText() (text []byte, err error) {
 	return []byte(b.String()), nil
 }
 
-func (b *BlockCipherMode) UnmarshalText(text []byte) (err error) {
-	*b, err = ParseBlockCipherMode(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagBlockCipherMode, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseBlockCipherMode(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _BlockCipherModeNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return BlockCipherMode(v).String()
@@ -2806,25 +2444,6 @@ func (b BlockCipherMode) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(b))
-}
-
-func ParseBlockCipherMode(s string) (BlockCipherMode, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return BlockCipherMode(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _BlockCipherModeNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v BlockCipherMode
-		return v, fmt.Errorf("%s is not a valid BlockCipherMode", s)
-	}
 }
 
 // Padding Method Enumeration
@@ -2875,19 +2494,11 @@ func (p PaddingMethod) MarshalText() (text []byte, err error) {
 	return []byte(p.String()), nil
 }
 
-func (p *PaddingMethod) UnmarshalText(text []byte) (err error) {
-	*p, err = ParsePaddingMethod(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagPaddingMethod, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParsePaddingMethod(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _PaddingMethodNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return PaddingMethod(v).String()
@@ -2910,25 +2521,6 @@ func (p PaddingMethod) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(p))
-}
-
-func ParsePaddingMethod(s string) (PaddingMethod, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return PaddingMethod(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _PaddingMethodNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v PaddingMethod
-		return v, fmt.Errorf("%s is not a valid PaddingMethod", s)
-	}
 }
 
 // Hashing Algorithm Enumeration
@@ -3000,31 +2592,20 @@ func (h HashingAlgorithm) MarshalText() (text []byte, err error) {
 	return []byte(h.String()), nil
 }
 
-func (h *HashingAlgorithm) UnmarshalText(text []byte) (err error) {
-	*h, err = ParseHashingAlgorithm(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagHashingAlgorithm, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseHashingAlgorithm(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _HashingAlgorithmNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return HashingAlgorithm(v).String()
 		},
 	})
 	RegisterEnum(TagMaskGeneratorHashingAlgorithm, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseHashingAlgorithm(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _HashingAlgorithmNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return HashingAlgorithm(v).String()
@@ -3047,25 +2628,6 @@ func (h HashingAlgorithm) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(h))
-}
-
-func ParseHashingAlgorithm(s string) (HashingAlgorithm, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return HashingAlgorithm(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _HashingAlgorithmNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v HashingAlgorithm
-		return v, fmt.Errorf("%s is not a valid HashingAlgorithm", s)
-	}
 }
 
 // Key Role Type Enumeration
@@ -3158,19 +2720,11 @@ func (k KeyRoleType) MarshalText() (text []byte, err error) {
 	return []byte(k.String()), nil
 }
 
-func (k *KeyRoleType) UnmarshalText(text []byte) (err error) {
-	*k, err = ParseKeyRoleType(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagKeyRoleType, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseKeyRoleType(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _KeyRoleTypeNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return KeyRoleType(v).String()
@@ -3193,25 +2747,6 @@ func (k KeyRoleType) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(k))
-}
-
-func ParseKeyRoleType(s string) (KeyRoleType, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return KeyRoleType(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _KeyRoleTypeNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v KeyRoleType
-		return v, fmt.Errorf("%s is not a valid KeyRoleType", s)
-	}
 }
 
 // State Enumeration
@@ -3250,19 +2785,11 @@ func (s State) MarshalText() (text []byte, err error) {
 	return []byte(s.String()), nil
 }
 
-func (s *State) UnmarshalText(text []byte) (err error) {
-	*s, err = ParseState(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagState, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseState(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _StateNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return State(v).String()
@@ -3285,25 +2812,6 @@ func (s State) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(s))
-}
-
-func ParseState(s string) (State, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return State(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _StateNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v State
-		return v, fmt.Errorf("%s is not a valid State", s)
-	}
 }
 
 // Revocation Reason Code Enumeration
@@ -3345,19 +2853,11 @@ func (r RevocationReasonCode) MarshalText() (text []byte, err error) {
 	return []byte(r.String()), nil
 }
 
-func (r *RevocationReasonCode) UnmarshalText(text []byte) (err error) {
-	*r, err = ParseRevocationReasonCode(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagRevocationReasonCode, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseRevocationReasonCode(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _RevocationReasonCodeNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return RevocationReasonCode(v).String()
@@ -3380,25 +2880,6 @@ func (r RevocationReasonCode) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(r))
-}
-
-func ParseRevocationReasonCode(s string) (RevocationReasonCode, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return RevocationReasonCode(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _RevocationReasonCodeNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v RevocationReasonCode
-		return v, fmt.Errorf("%s is not a valid RevocationReasonCode", s)
-	}
 }
 
 // Link Type Enumeration
@@ -3458,19 +2939,11 @@ func (l LinkType) MarshalText() (text []byte, err error) {
 	return []byte(l.String()), nil
 }
 
-func (l *LinkType) UnmarshalText(text []byte) (err error) {
-	*l, err = ParseLinkType(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagLinkType, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseLinkType(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _LinkTypeNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return LinkType(v).String()
@@ -3493,25 +2966,6 @@ func (l LinkType) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(l))
-}
-
-func ParseLinkType(s string) (LinkType, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return LinkType(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _LinkTypeNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v LinkType
-		return v, fmt.Errorf("%s is not a valid LinkType", s)
-	}
 }
 
 // Derivation Method Enumeration
@@ -3556,19 +3010,11 @@ func (d DerivationMethod) MarshalText() (text []byte, err error) {
 	return []byte(d.String()), nil
 }
 
-func (d *DerivationMethod) UnmarshalText(text []byte) (err error) {
-	*d, err = ParseDerivationMethod(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagDerivationMethod, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseDerivationMethod(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _DerivationMethodNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return DerivationMethod(v).String()
@@ -3591,25 +3037,6 @@ func (d DerivationMethod) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(d))
-}
-
-func ParseDerivationMethod(s string) (DerivationMethod, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return DerivationMethod(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _DerivationMethodNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v DerivationMethod
-		return v, fmt.Errorf("%s is not a valid DerivationMethod", s)
-	}
 }
 
 // Certificate Request Type Enumeration
@@ -3642,19 +3069,11 @@ func (c CertificateRequestType) MarshalText() (text []byte, err error) {
 	return []byte(c.String()), nil
 }
 
-func (c *CertificateRequestType) UnmarshalText(text []byte) (err error) {
-	*c, err = ParseCertificateRequestType(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagCertificateRequestType, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseCertificateRequestType(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _CertificateRequestTypeNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return CertificateRequestType(v).String()
@@ -3677,25 +3096,6 @@ func (c CertificateRequestType) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(c))
-}
-
-func ParseCertificateRequestType(s string) (CertificateRequestType, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return CertificateRequestType(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _CertificateRequestTypeNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v CertificateRequestType
-		return v, fmt.Errorf("%s is not a valid CertificateRequestType", s)
-	}
 }
 
 // Validity Indicator Enumeration
@@ -3725,19 +3125,11 @@ func (v ValidityIndicator) MarshalText() (text []byte, err error) {
 	return []byte(v.String()), nil
 }
 
-func (v *ValidityIndicator) UnmarshalText(text []byte) (err error) {
-	*v, err = ParseValidityIndicator(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagValidityIndicator, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseValidityIndicator(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _ValidityIndicatorNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return ValidityIndicator(v).String()
@@ -3760,25 +3152,6 @@ func (v ValidityIndicator) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(v))
-}
-
-func ParseValidityIndicator(s string) (ValidityIndicator, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return ValidityIndicator(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _ValidityIndicatorNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v ValidityIndicator
-		return v, fmt.Errorf("%s is not a valid ValidityIndicator", s)
-	}
 }
 
 // Query Function Enumeration
@@ -3835,19 +3208,11 @@ func (q QueryFunction) MarshalText() (text []byte, err error) {
 	return []byte(q.String()), nil
 }
 
-func (q *QueryFunction) UnmarshalText(text []byte) (err error) {
-	*q, err = ParseQueryFunction(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagQueryFunction, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseQueryFunction(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _QueryFunctionNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return QueryFunction(v).String()
@@ -3870,25 +3235,6 @@ func (q QueryFunction) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(q))
-}
-
-func ParseQueryFunction(s string) (QueryFunction, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return QueryFunction(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _QueryFunctionNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v QueryFunction
-		return v, fmt.Errorf("%s is not a valid QueryFunction", s)
-	}
 }
 
 // Cancellation Result Enumeration
@@ -3924,19 +3270,11 @@ func (c CancellationResult) MarshalText() (text []byte, err error) {
 	return []byte(c.String()), nil
 }
 
-func (c *CancellationResult) UnmarshalText(text []byte) (err error) {
-	*c, err = ParseCancellationResult(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagCancellationResult, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseCancellationResult(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _CancellationResultNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return CancellationResult(v).String()
@@ -3959,25 +3297,6 @@ func (c CancellationResult) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(c))
-}
-
-func ParseCancellationResult(s string) (CancellationResult, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return CancellationResult(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _CancellationResultNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v CancellationResult
-		return v, fmt.Errorf("%s is not a valid CancellationResult", s)
-	}
 }
 
 // Put Function Enumeration
@@ -4004,19 +3323,11 @@ func (p PutFunction) MarshalText() (text []byte, err error) {
 	return []byte(p.String()), nil
 }
 
-func (p *PutFunction) UnmarshalText(text []byte) (err error) {
-	*p, err = ParsePutFunction(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagPutFunction, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParsePutFunction(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _PutFunctionNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return PutFunction(v).String()
@@ -4039,25 +3350,6 @@ func (p PutFunction) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(p))
-}
-
-func ParsePutFunction(s string) (PutFunction, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return PutFunction(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _PutFunctionNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v PutFunction
-		return v, fmt.Errorf("%s is not a valid PutFunction", s)
-	}
 }
 
 // Operation Enumeration
@@ -4207,19 +3499,11 @@ func (o Operation) MarshalText() (text []byte, err error) {
 	return []byte(o.String()), nil
 }
 
-func (o *Operation) UnmarshalText(text []byte) (err error) {
-	*o, err = ParseOperation(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagOperation, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseOperation(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _OperationNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return Operation(v).String()
@@ -4242,25 +3526,6 @@ func (o Operation) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(o))
-}
-
-func ParseOperation(s string) (Operation, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return Operation(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _OperationNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v Operation
-		return v, fmt.Errorf("%s is not a valid Operation", s)
-	}
 }
 
 // Result Status Enumeration
@@ -4293,19 +3558,11 @@ func (r ResultStatus) MarshalText() (text []byte, err error) {
 	return []byte(r.String()), nil
 }
 
-func (r *ResultStatus) UnmarshalText(text []byte) (err error) {
-	*r, err = ParseResultStatus(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagResultStatus, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseResultStatus(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _ResultStatusNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return ResultStatus(v).String()
@@ -4328,25 +3585,6 @@ func (r ResultStatus) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(r))
-}
-
-func ParseResultStatus(s string) (ResultStatus, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return ResultStatus(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _ResultStatusNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v ResultStatus
-		return v, fmt.Errorf("%s is not a valid ResultStatus", s)
-	}
 }
 
 // Result Reason Enumeration
@@ -4442,19 +3680,11 @@ func (r ResultReason) MarshalText() (text []byte, err error) {
 	return []byte(r.String()), nil
 }
 
-func (r *ResultReason) UnmarshalText(text []byte) (err error) {
-	*r, err = ParseResultReason(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagResultReason, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseResultReason(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _ResultReasonNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return ResultReason(v).String()
@@ -4477,25 +3707,6 @@ func (r ResultReason) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(r))
-}
-
-func ParseResultReason(s string) (ResultReason, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return ResultReason(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _ResultReasonNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v ResultReason
-		return v, fmt.Errorf("%s is not a valid ResultReason", s)
-	}
 }
 
 // Batch Error Continuation Option Enumeration
@@ -4525,19 +3736,11 @@ func (b BatchErrorContinuationOption) MarshalText() (text []byte, err error) {
 	return []byte(b.String()), nil
 }
 
-func (b *BatchErrorContinuationOption) UnmarshalText(text []byte) (err error) {
-	*b, err = ParseBatchErrorContinuationOption(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagBatchErrorContinuationOption, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseBatchErrorContinuationOption(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _BatchErrorContinuationOptionNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return BatchErrorContinuationOption(v).String()
@@ -4560,25 +3763,6 @@ func (b BatchErrorContinuationOption) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(b))
-}
-
-func ParseBatchErrorContinuationOption(s string) (BatchErrorContinuationOption, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return BatchErrorContinuationOption(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _BatchErrorContinuationOptionNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v BatchErrorContinuationOption
-		return v, fmt.Errorf("%s is not a valid BatchErrorContinuationOption", s)
-	}
 }
 
 // Usage Limits Unit Enumeration
@@ -4605,19 +3789,11 @@ func (u UsageLimitsUnit) MarshalText() (text []byte, err error) {
 	return []byte(u.String()), nil
 }
 
-func (u *UsageLimitsUnit) UnmarshalText(text []byte) (err error) {
-	*u, err = ParseUsageLimitsUnit(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagUsageLimitsUnit, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseUsageLimitsUnit(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _UsageLimitsUnitNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return UsageLimitsUnit(v).String()
@@ -4640,25 +3816,6 @@ func (u UsageLimitsUnit) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(u))
-}
-
-func ParseUsageLimitsUnit(s string) (UsageLimitsUnit, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return UsageLimitsUnit(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _UsageLimitsUnitNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v UsageLimitsUnit
-		return v, fmt.Errorf("%s is not a valid UsageLimitsUnit", s)
-	}
 }
 
 // Encoding Option Enumeration
@@ -4685,19 +3842,11 @@ func (e EncodingOption) MarshalText() (text []byte, err error) {
 	return []byte(e.String()), nil
 }
 
-func (e *EncodingOption) UnmarshalText(text []byte) (err error) {
-	*e, err = ParseEncodingOption(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagEncodingOption, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseEncodingOption(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _EncodingOptionNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return EncodingOption(v).String()
@@ -4720,25 +3869,6 @@ func (e EncodingOption) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(e))
-}
-
-func ParseEncodingOption(s string) (EncodingOption, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return EncodingOption(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _EncodingOptionNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v EncodingOption
-		return v, fmt.Errorf("%s is not a valid EncodingOption", s)
-	}
 }
 
 // Object Group Member Enumeration
@@ -4765,19 +3895,11 @@ func (o ObjectGroupMember) MarshalText() (text []byte, err error) {
 	return []byte(o.String()), nil
 }
 
-func (o *ObjectGroupMember) UnmarshalText(text []byte) (err error) {
-	*o, err = ParseObjectGroupMember(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagObjectGroupMember, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseObjectGroupMember(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _ObjectGroupMemberNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return ObjectGroupMember(v).String()
@@ -4800,25 +3922,6 @@ func (o ObjectGroupMember) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(o))
-}
-
-func ParseObjectGroupMember(s string) (ObjectGroupMember, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return ObjectGroupMember(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _ObjectGroupMemberNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v ObjectGroupMember
-		return v, fmt.Errorf("%s is not a valid ObjectGroupMember", s)
-	}
 }
 
 // Alternative Name Type Enumeration
@@ -4860,19 +3963,11 @@ func (a AlternativeNameType) MarshalText() (text []byte, err error) {
 	return []byte(a.String()), nil
 }
 
-func (a *AlternativeNameType) UnmarshalText(text []byte) (err error) {
-	*a, err = ParseAlternativeNameType(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagAlternativeNameType, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseAlternativeNameType(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _AlternativeNameTypeNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return AlternativeNameType(v).String()
@@ -4895,25 +3990,6 @@ func (a AlternativeNameType) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(a))
-}
-
-func ParseAlternativeNameType(s string) (AlternativeNameType, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return AlternativeNameType(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _AlternativeNameTypeNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v AlternativeNameType
-		return v, fmt.Errorf("%s is not a valid AlternativeNameType", s)
-	}
 }
 
 // Key Value Location Type Enumeration
@@ -4940,19 +4016,11 @@ func (k KeyValueLocationType) MarshalText() (text []byte, err error) {
 	return []byte(k.String()), nil
 }
 
-func (k *KeyValueLocationType) UnmarshalText(text []byte) (err error) {
-	*k, err = ParseKeyValueLocationType(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagKeyValueLocationType, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseKeyValueLocationType(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _KeyValueLocationTypeNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return KeyValueLocationType(v).String()
@@ -4975,25 +4043,6 @@ func (k KeyValueLocationType) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(k))
-}
-
-func ParseKeyValueLocationType(s string) (KeyValueLocationType, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return KeyValueLocationType(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _KeyValueLocationTypeNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v KeyValueLocationType
-		return v, fmt.Errorf("%s is not a valid KeyValueLocationType", s)
-	}
 }
 
 // Attestation Type Enumeration
@@ -5023,19 +4072,11 @@ func (a AttestationType) MarshalText() (text []byte, err error) {
 	return []byte(a.String()), nil
 }
 
-func (a *AttestationType) UnmarshalText(text []byte) (err error) {
-	*a, err = ParseAttestationType(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagAttestationType, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseAttestationType(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _AttestationTypeNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return AttestationType(v).String()
@@ -5058,25 +4099,6 @@ func (a AttestationType) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(a))
-}
-
-func ParseAttestationType(s string) (AttestationType, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return AttestationType(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _AttestationTypeNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v AttestationType
-		return v, fmt.Errorf("%s is not a valid AttestationType", s)
-	}
 }
 
 // RNG Algorithm Enumeration
@@ -5115,19 +4137,11 @@ func (r RNGAlgorithm) MarshalText() (text []byte, err error) {
 	return []byte(r.String()), nil
 }
 
-func (r *RNGAlgorithm) UnmarshalText(text []byte) (err error) {
-	*r, err = ParseRNGAlgorithm(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagRNGAlgorithm, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseRNGAlgorithm(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _RNGAlgorithmNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return RNGAlgorithm(v).String()
@@ -5150,25 +4164,6 @@ func (r RNGAlgorithm) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(r))
-}
-
-func ParseRNGAlgorithm(s string) (RNGAlgorithm, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return RNGAlgorithm(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _RNGAlgorithmNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v RNGAlgorithm
-		return v, fmt.Errorf("%s is not a valid RNGAlgorithm", s)
-	}
 }
 
 // DRBG Algorithm Enumeration
@@ -5204,19 +4199,11 @@ func (d DRBGAlgorithm) MarshalText() (text []byte, err error) {
 	return []byte(d.String()), nil
 }
 
-func (d *DRBGAlgorithm) UnmarshalText(text []byte) (err error) {
-	*d, err = ParseDRBGAlgorithm(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagDRBGAlgorithm, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseDRBGAlgorithm(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _DRBGAlgorithmNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return DRBGAlgorithm(v).String()
@@ -5239,25 +4226,6 @@ func (d DRBGAlgorithm) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(d))
-}
-
-func ParseDRBGAlgorithm(s string) (DRBGAlgorithm, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return DRBGAlgorithm(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _DRBGAlgorithmNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v DRBGAlgorithm
-		return v, fmt.Errorf("%s is not a valid DRBGAlgorithm", s)
-	}
 }
 
 // FIPS186 Variation Enumeration
@@ -5299,19 +4267,11 @@ func (f FIPS186Variation) MarshalText() (text []byte, err error) {
 	return []byte(f.String()), nil
 }
 
-func (f *FIPS186Variation) UnmarshalText(text []byte) (err error) {
-	*f, err = ParseFIPS186Variation(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagFIPS186Variation, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseFIPS186Variation(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _FIPS186VariationNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return FIPS186Variation(v).String()
@@ -5334,25 +4294,6 @@ func (f FIPS186Variation) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(f))
-}
-
-func ParseFIPS186Variation(s string) (FIPS186Variation, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return FIPS186Variation(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _FIPS186VariationNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v FIPS186Variation
-		return v, fmt.Errorf("%s is not a valid FIPS186Variation", s)
-	}
 }
 
 // Validation Authority Type Enumeration
@@ -5382,19 +4323,11 @@ func (v ValidationAuthorityType) MarshalText() (text []byte, err error) {
 	return []byte(v.String()), nil
 }
 
-func (v *ValidationAuthorityType) UnmarshalText(text []byte) (err error) {
-	*v, err = ParseValidationAuthorityType(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagValidationAuthorityType, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseValidationAuthorityType(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _ValidationAuthorityTypeNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return ValidationAuthorityType(v).String()
@@ -5417,25 +4350,6 @@ func (v ValidationAuthorityType) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(v))
-}
-
-func ParseValidationAuthorityType(s string) (ValidationAuthorityType, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return ValidationAuthorityType(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _ValidationAuthorityTypeNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v ValidationAuthorityType
-		return v, fmt.Errorf("%s is not a valid ValidationAuthorityType", s)
-	}
 }
 
 // Validation Type Enumeration
@@ -5471,19 +4385,11 @@ func (v ValidationType) MarshalText() (text []byte, err error) {
 	return []byte(v.String()), nil
 }
 
-func (v *ValidationType) UnmarshalText(text []byte) (err error) {
-	*v, err = ParseValidationType(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagValidationType, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseValidationType(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _ValidationTypeNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return ValidationType(v).String()
@@ -5506,25 +4412,6 @@ func (v ValidationType) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(v))
-}
-
-func ParseValidationType(s string) (ValidationType, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return ValidationType(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _ValidationTypeNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v ValidationType
-		return v, fmt.Errorf("%s is not a valid ValidationType", s)
-	}
 }
 
 // Profile Name Enumeration
@@ -6013,19 +4900,11 @@ func (p ProfileName) MarshalText() (text []byte, err error) {
 	return []byte(p.String()), nil
 }
 
-func (p *ProfileName) UnmarshalText(text []byte) (err error) {
-	*p, err = ParseProfileName(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagProfileName, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseProfileName(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _ProfileNameNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return ProfileName(v).String()
@@ -6048,25 +4927,6 @@ func (p ProfileName) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(p))
-}
-
-func ParseProfileName(s string) (ProfileName, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return ProfileName(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _ProfileNameNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v ProfileName
-		return v, fmt.Errorf("%s is not a valid ProfileName", s)
-	}
 }
 
 // Unwrap Mode Enumeration
@@ -6096,19 +4956,11 @@ func (u UnwrapMode) MarshalText() (text []byte, err error) {
 	return []byte(u.String()), nil
 }
 
-func (u *UnwrapMode) UnmarshalText(text []byte) (err error) {
-	*u, err = ParseUnwrapMode(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagUnwrapMode, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseUnwrapMode(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _UnwrapModeNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return UnwrapMode(v).String()
@@ -6131,25 +4983,6 @@ func (u UnwrapMode) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(u))
-}
-
-func ParseUnwrapMode(s string) (UnwrapMode, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return UnwrapMode(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _UnwrapModeNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v UnwrapMode
-		return v, fmt.Errorf("%s is not a valid UnwrapMode", s)
-	}
 }
 
 // Destroy Action Enumeration
@@ -6191,19 +5024,11 @@ func (d DestroyAction) MarshalText() (text []byte, err error) {
 	return []byte(d.String()), nil
 }
 
-func (d *DestroyAction) UnmarshalText(text []byte) (err error) {
-	*d, err = ParseDestroyAction(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagDestroyAction, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseDestroyAction(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _DestroyActionNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return DestroyAction(v).String()
@@ -6226,25 +5051,6 @@ func (d DestroyAction) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(d))
-}
-
-func ParseDestroyAction(s string) (DestroyAction, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return DestroyAction(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _DestroyActionNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v DestroyAction
-		return v, fmt.Errorf("%s is not a valid DestroyAction", s)
-	}
 }
 
 // Shredding Algorithm Enumeration
@@ -6274,19 +5080,11 @@ func (s ShreddingAlgorithm) MarshalText() (text []byte, err error) {
 	return []byte(s.String()), nil
 }
 
-func (s *ShreddingAlgorithm) UnmarshalText(text []byte) (err error) {
-	*s, err = ParseShreddingAlgorithm(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagShreddingAlgorithm, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseShreddingAlgorithm(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _ShreddingAlgorithmNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return ShreddingAlgorithm(v).String()
@@ -6309,25 +5107,6 @@ func (s ShreddingAlgorithm) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(s))
-}
-
-func ParseShreddingAlgorithm(s string) (ShreddingAlgorithm, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return ShreddingAlgorithm(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _ShreddingAlgorithmNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v ShreddingAlgorithm
-		return v, fmt.Errorf("%s is not a valid ShreddingAlgorithm", s)
-	}
 }
 
 // RNG Mode Enumeration
@@ -6357,19 +5136,11 @@ func (r RNGMode) MarshalText() (text []byte, err error) {
 	return []byte(r.String()), nil
 }
 
-func (r *RNGMode) UnmarshalText(text []byte) (err error) {
-	*r, err = ParseRNGMode(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagRNGMode, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseRNGMode(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _RNGModeNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return RNGMode(v).String()
@@ -6392,25 +5163,6 @@ func (r RNGMode) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(r))
-}
-
-func ParseRNGMode(s string) (RNGMode, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return RNGMode(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _RNGModeNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v RNGMode
-		return v, fmt.Errorf("%s is not a valid RNGMode", s)
-	}
 }
 
 // Client Registration Method Enumeration
@@ -6446,19 +5198,11 @@ func (c ClientRegistrationMethod) MarshalText() (text []byte, err error) {
 	return []byte(c.String()), nil
 }
 
-func (c *ClientRegistrationMethod) UnmarshalText(text []byte) (err error) {
-	*c, err = ParseClientRegistrationMethod(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagClientRegistrationMethod, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseClientRegistrationMethod(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _ClientRegistrationMethodNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return ClientRegistrationMethod(v).String()
@@ -6481,25 +5225,6 @@ func (c ClientRegistrationMethod) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(c))
-}
-
-func ParseClientRegistrationMethod(s string) (ClientRegistrationMethod, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return ClientRegistrationMethod(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _ClientRegistrationMethodNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v ClientRegistrationMethod
-		return v, fmt.Errorf("%s is not a valid ClientRegistrationMethod", s)
-	}
 }
 
 // Key Wrap Type Enumeration
@@ -6526,19 +5251,11 @@ func (k KeyWrapType) MarshalText() (text []byte, err error) {
 	return []byte(k.String()), nil
 }
 
-func (k *KeyWrapType) UnmarshalText(text []byte) (err error) {
-	*k, err = ParseKeyWrapType(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagKeyWrapType, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseKeyWrapType(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _KeyWrapTypeNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return KeyWrapType(v).String()
@@ -6563,25 +5280,6 @@ func (k KeyWrapType) String() string {
 	return fmt.Sprintf("%#08x", uint32(k))
 }
 
-func ParseKeyWrapType(s string) (KeyWrapType, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return KeyWrapType(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _KeyWrapTypeNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v KeyWrapType
-		return v, fmt.Errorf("%s is not a valid KeyWrapType", s)
-	}
-}
-
 // Mask Generator Enumeration
 
 // 9.1.3.2.49
@@ -6603,19 +5301,11 @@ func (m MaskGenerator) MarshalText() (text []byte, err error) {
 	return []byte(m.String()), nil
 }
 
-func (m *MaskGenerator) UnmarshalText(text []byte) (err error) {
-	*m, err = ParseMaskGenerator(string(text))
-	return
-}
-
 func init() {
 	RegisterEnum(TagMaskGenerator, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseMaskGenerator(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _MaskGeneratorNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return MaskGenerator(v).String()
@@ -6638,25 +5328,6 @@ func (m MaskGenerator) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#08x", uint32(m))
-}
-
-func ParseMaskGenerator(s string) (MaskGenerator, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return MaskGenerator(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _MaskGeneratorNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v MaskGenerator
-		return v, fmt.Errorf("%s is not a valid MaskGenerator", s)
-	}
 }
 
 // Cryptographic Usage Mask Bit Mask
@@ -6737,19 +5408,11 @@ func (c CryptographicUsageMask) MarshalText() (text []byte, err error) {
 	return []byte(c.String()), nil
 }
 
-func (c *CryptographicUsageMask) UnmarshalText(text []byte) (err error) {
-	*c, err = ParseCryptographicUsageMask(string(text))
-	return
-}
-
 func init() {
 	RegisterBitMask(TagCryptographicUsageMask, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseCryptographicUsageMask(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _CryptographicUsageMaskNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return CryptographicUsageMask(v).String()
@@ -6805,41 +5468,6 @@ func (c CryptographicUsageMask) String() string {
 	return sb.String()
 }
 
-func parseSingleCryptographicUsageMask(s string) (CryptographicUsageMask, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return CryptographicUsageMask(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _CryptographicUsageMaskNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v CryptographicUsageMask
-		return v, fmt.Errorf("%s is not a valid CryptographicUsageMask", s)
-	}
-}
-
-func ParseCryptographicUsageMask(s string) (CryptographicUsageMask, error) {
-	if !strings.Contains(s, "|") {
-		return parseSingleCryptographicUsageMask(s)
-	}
-	var v CryptographicUsageMask
-	parts := strings.Split(s, "|")
-	for _, part := range parts {
-		m, err := parseSingleCryptographicUsageMask(part)
-		if err != nil {
-			return 0, err
-		}
-		v |= m
-	}
-	return v, nil
-}
-
 // Storage Status Mask Bit Mask
 
 // 9.1.3.3.2
@@ -6864,19 +5492,11 @@ func (s StorageStatusMask) MarshalText() (text []byte, err error) {
 	return []byte(s.String()), nil
 }
 
-func (s *StorageStatusMask) UnmarshalText(text []byte) (err error) {
-	*s, err = ParseStorageStatusMask(string(text))
-	return
-}
-
 func init() {
 	RegisterBitMask(TagStorageStatusMask, EnumTypeDef{
-		Parse: func(s string) (uint32, error) {
-			v, err := ParseStorageStatusMask(s)
-			if err != nil {
-				return 0, err
-			}
-			return uint32(v), nil
+		Parse: func(s string) (uint32, bool) {
+			v, ok := _StorageStatusMaskNameToValueMap[s]
+			return uint32(v), ok
 		},
 		String: func(v uint32) string {
 			return StorageStatusMask(v).String()
@@ -6930,39 +5550,4 @@ func (s StorageStatusMask) String() string {
 		fmt.Fprintf(&sb, "%#08x", uint32(r))
 	}
 	return sb.String()
-}
-
-func parseSingleStorageStatusMask(s string) (StorageStatusMask, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return 0, err
-		}
-		if len(b) != 4 {
-			return 0, errors.New("must be 4 bytes (8 hex characters)")
-		}
-		return StorageStatusMask(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _StorageStatusMaskNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		var v StorageStatusMask
-		return v, fmt.Errorf("%s is not a valid StorageStatusMask", s)
-	}
-}
-
-func ParseStorageStatusMask(s string) (StorageStatusMask, error) {
-	if !strings.Contains(s, "|") {
-		return parseSingleStorageStatusMask(s)
-	}
-	var v StorageStatusMask
-	parts := strings.Split(s, "|")
-	for _, part := range parts {
-		m, err := parseSingleStorageStatusMask(part)
-		if err != nil {
-			return 0, err
-		}
-		v |= m
-	}
-	return v, nil
 }

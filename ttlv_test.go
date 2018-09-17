@@ -279,22 +279,22 @@ func TestTTLV_UnmarshalJSON_errors(t *testing.T) {
 		{
 			name:  "integerinvalidtype",
 			input: `{"tag":"BatchCount","type":"Integer","value":true}`,
-			msg:   "BatchCount: invalid Integer value: must be number or hex string",
+			msg:   "BatchCount: invalid Integer value: must be number, hex string, or mask value name",
 		},
 		{
-			name:  "integerinvalidhexstring",
+			name:  "integerinvalidvalue",
 			input: `{"tag":"BatchCount","type":"Integer","value":"0000000A"}`,
-			msg:   "BatchCount: invalid Integer value: hex value must start with 0x",
+			msg:   "BatchCount: invalid Integer value: must be number, hex string, or mask value name",
 		},
 		{
 			name:  "integerinvalidhex",
 			input: `{"tag":"BatchCount","type":"Integer","value":"0x0000000T"}`,
-			msg:   "BatchCount: invalid Integer value: encoding/hex: invalid byte: U+0054 'T'",
+			msg:   "BatchCount: invalid Integer value: invalid hex string: encoding/hex: invalid byte: U+0054 'T'",
 		},
 		{
 			name:  "integerinvalidlen",
 			input: `{"tag":"BatchCount","type":"Integer","value":"0x000000000F"}`,
-			msg:   "BatchCount: invalid Integer value: must be 4 bytes (8 hex characters)",
+			msg:   "BatchCount: invalid Integer value: invalid hex string: must be 4 bytes (8 hex characters)",
 		},
 		{
 			name:  "longintegerinvalidtype",
@@ -344,17 +344,17 @@ func TestTTLV_UnmarshalJSON_errors(t *testing.T) {
 		{
 			name:  "enuminvalidhex",
 			input: `{"tag":"ObjectType","type":"Enumeration","value":"0x0000000T"}`,
-			msg:   "ObjectType: invalid Enumeration value: encoding/hex: invalid byte: U+0054 'T'",
+			msg:   "ObjectType: invalid Enumeration value: invalid hex string: encoding/hex: invalid byte: U+0054 'T'",
 		},
 		{
 			name:  "enuminvalidlen",
 			input: `{"tag":"ObjectType","type":"Enumeration","value":"0x0000000002"}`,
-			msg:   "ObjectType: invalid Enumeration value: must be 4 bytes (8 hex characters)",
+			msg:   "ObjectType: invalid Enumeration value: invalid hex string: must be 4 bytes (8 hex characters)",
 		},
 		{
 			name:  "enuminvalidname",
 			input: `{"tag":"ObjectType","type":"Enumeration","value":"NotAValue"}`,
-			msg:   "ObjectType: invalid Enumeration value: NotAValue is not a valid ObjectType",
+			msg:   "ObjectType: invalid Enumeration value: must be a number, hex string, or enum value name",
 		},
 	}
 
@@ -733,6 +733,11 @@ func TestTTLV_MarshalXML(t *testing.T) {
 			exp:  `<BatchCount type="TextString" value="red"></BatchCount>`,
 		},
 		{
+			name: "textstringempty",
+			in:   TaggedValue{Tag: TagBatchCount, Value: ""},
+			exp:  `<BatchCount type="TextString"></BatchCount>`,
+		},
+		{
 			name: "bytestring",
 			in:   TaggedValue{Tag: TagBatchCount, Value: []byte{0x01, 0x02, 0x03}},
 			exp:  `<BatchCount type="ByteString" value="010203"></BatchCount>`,
@@ -774,6 +779,170 @@ func TestTTLV_MarshalXML(t *testing.T) {
 			j, err := xml.Marshal(ttlv)
 			require.NoError(t, err)
 			require.Equal(t, testcase.exp, string(j))
+		})
+	}
+}
+
+func TestTTLV_UnmarshalXML(t *testing.T) {
+	tests := []struct {
+		name   string
+		inputs []string
+		exp    interface{}
+	}{
+		{
+			name: "booltrue",
+			inputs: []string{
+				`<BatchCount type="Boolean" value="true"/>`,
+				`<BatchCount type="Boolean" value="1"/>`,
+				`<BatchCount tag="BatchCount" type="Boolean" value="true"/>`,
+				`<TTLV tag="BatchCount" type="Boolean" value="true"/>`,
+				`<BatchCount type="0x06" value="true"/>`,
+				`<TTLV tag="0x42000d" type="Boolean" value="true"/>`,
+			},
+			exp: TaggedValue{Tag: TagBatchCount, Value: true},
+		},
+		{
+			name: "boolfalse",
+			inputs: []string{
+				`<BatchCount type="Boolean" value="false"/>`,
+				`<BatchCount type="Boolean" value="0"/>`,
+			},
+			exp: TaggedValue{Tag: TagBatchCount, Value: false},
+		},
+		{
+			name: "string",
+			inputs: []string{
+				`<BatchCount type="TextString" value="red"/>`,
+			},
+			exp: TaggedValue{Tag: TagBatchCount, Value: "red"},
+		},
+		{
+			name: "stringempty",
+			inputs: []string{
+				`<BatchCount type="TextString"/>`,
+			},
+			exp: TaggedValue{Tag: TagBatchCount, Value: ""},
+		},
+		{
+			name: "bytes",
+			inputs: []string{
+				`<BatchCount type="ByteString" value="FF5601"/>`,
+			},
+			exp: TaggedValue{Tag: TagBatchCount, Value: []byte{0xFF, 0x56, 0x01}},
+		},
+		{
+			name: "bytesempty",
+			inputs: []string{
+				`<BatchCount type="ByteString" value=""/>`,
+			},
+			exp: TaggedValue{Tag: TagBatchCount, Value: []byte{}},
+		},
+		{
+			name: "interval",
+			inputs: []string{
+				`<BatchCount type="Interval" value="10"/>`,
+			},
+			exp: TaggedValue{Tag: TagBatchCount, Value: 10 * time.Second},
+		},
+		{
+			name: "datetime",
+			inputs: []string{
+				`<BatchCount type="DateTime" value="2001-01-01T10:00:00+10:00"/>`,
+			},
+			exp: TaggedValue{Tag: TagBatchCount, Value: time.Date(2001, 01, 01, 0, 0, 0, 0, time.FixedZone("UTC", 0))},
+		},
+		{
+			name: "integer",
+			inputs: []string{
+				`<BatchCount type="Integer" value="5"/>`,
+			},
+			exp: TaggedValue{Tag: TagBatchCount, Value: 5},
+		},
+		{
+			name: "integermask",
+			inputs: []string{
+				//`{"tag":"CryptographicUsageMask","type":"Integer","value":"0x00000005"}`,
+				`<CryptographicUsageMask type="Integer" value="0x00000048"/>`,
+				`<CryptographicUsageMask type="Integer" value="72"/>`,
+				`<CryptographicUsageMask type="Integer" value="Decrypt Export"/>`,
+				`<CryptographicUsageMask type="Integer" value="Decrypt 0x00000040"/>`,
+			},
+			exp: TaggedValue{Tag: TagCryptographicUsageMask, Value: CryptographicUsageMaskDecrypt | CryptographicUsageMaskExport},
+		},
+		//{
+		//	name: "longinteger",
+		//	inputs: []string{
+		//		`{"tag":"BatchCount","type":"LongInteger","value":"0x0000000000000005"}`,
+		//		`{"tag":"BatchCount","type":"LongInteger","value":5}`,
+		//	},
+		//	exp: TaggedValue{Tag: TagBatchCount, Value: int64(5)},
+		//},
+		//{
+		//	name: "biginteger",
+		//	inputs: []string{
+		//		`{"tag":"BatchCount","type":"BigInteger","value":"0x0000000000000005"}`,
+		//		`{"tag":"BatchCount","type":"BigInteger","value":"0x00000000000000000000000000000005"}`,
+		//		`{"tag":"BatchCount","type":"BigInteger","value":5}`,
+		//	},
+		//	exp: TaggedValue{Tag: TagBatchCount, Value: big.NewInt(5)},
+		//},
+		//{
+		//	name: "enumeration",
+		//	inputs: []string{
+		//		`{"tag":"ObjectType","type":"Enumeration","value":2}`,
+		//		`{"tag":"ObjectType","type":"Enumeration","value":"0x00000002"}`,
+		//		`{"tag":"ObjectType","type":"Enumeration","value":"SymmetricKey"}`,
+		//	},
+		//	exp: TaggedValue{Tag: TagObjectType, Value: ObjectTypeSymmetricKey},
+		//},
+		//{
+		//	name: "structure",
+		//	inputs: []string{
+		//		`{
+		//			"tag":"BatchCount",
+		//			"value":[
+		//				{"tag":"CryptographicUsageMask", "type":"Integer", "value":"Decrypt|Encrypt"},
+		//				{"tag":"CryptographicAlgorithm", "type":"Enumeration", "value":"Blowfish"},
+		//				{"tag":"ObjectType", "type":"Structure", "value":[
+		//					{"tag":"Operation", "type":"TextString", "value":"red"}
+		//				]}
+		//			]
+		//		}`,
+		//	},
+		//	exp: Structure{Tag: TagBatchCount, Values: []interface{}{
+		//		TaggedValue{Tag: TagCryptographicUsageMask, Value: CryptographicUsageMaskDecrypt | CryptographicUsageMaskEncrypt},
+		//		TaggedValue{Tag: TagCryptographicAlgorithm, Value: CryptographicAlgorithmBlowfish},
+		//		Structure{Tag: TagObjectType, Values: []interface{}{
+		//			TaggedValue{Tag: TagOperation, Value: "red"},
+		//		}},
+		//	}},
+		//},
+		//{
+		//	name: "attributes",
+		//	exp: Structure{Tag: TagAttribute, Values: []interface{}{
+		//		TaggedValue{Tag: TagAttributeName, Value: "Key Format Type"},
+		//		TaggedValue{Tag: TagAttributeValue, Value: KeyFormatTypeX_509},
+		//	}},
+		//	inputs: []string{`{"tag":"Attribute","value":[
+		//		{"tag":"AttributeName","type":"TextString","value":"Key Format Type"},
+		//		{"tag":"AttributeValue","type":"Enumeration","value":"X_509"}
+		//	]}`},
+		//},
+	}
+	for _, testcase := range tests {
+		t.Run(testcase.name, func(t *testing.T) {
+			expTTLV, err := Marshal(testcase.exp)
+			require.NoError(t, err)
+
+			for _, input := range testcase.inputs {
+				t.Log(input)
+				var ttlv TTLV
+				err = xml.Unmarshal([]byte(input), &ttlv)
+				require.NoError(t, err)
+
+				assert.Equal(t, TTLV(expTTLV), ttlv)
+			}
+
 		})
 	}
 }

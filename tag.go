@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"gitlab.protectv.local/regan/kmip.git/internal/kmiputil"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -18,11 +19,51 @@ type enumDef struct {
 
 var enumRegistry = sync.Map{}
 
-func ParseEnum(tag Tag, s string) (uint32, error) {
-	v, _ := enumRegistry.Load(tag)
-	if v != nil {
-		return v.(enumDef).Parse(s)
+func parseOneInteger(tag Tag, s string) (int32, error) {
+	if strings.HasPrefix(s, "0x") {
+		b, err := hex.DecodeString(s[2:])
+		if err != nil {
+			return 0, merry.Here(ErrInvalidHexString).WithCause(err)
+		}
+		if len(b) != 4 {
+			return 0, merry.Here(ErrInvalidHexString).Append("must be 4 bytes (8 hex characters)")
+		}
+		return int32(binary.BigEndian.Uint32(b)), nil
 	}
+	i, err := strconv.ParseInt(s, 10, 32)
+	if err == nil {
+		return int32(i), nil
+	}
+	if v, ok := enumRegistry.Load(tag); ok {
+		if u, ok := v.(enumDef).Parse(s); ok {
+			return int32(u), nil
+		}
+	}
+	return 0, merry.New("must be number, hex string, or mask value name")
+}
+
+func ParseInteger(tag Tag, s string) (int32, error) {
+	if strings.IndexAny(s, "| ") < 0 {
+		return parseOneInteger(tag, s)
+	}
+	// split values, look up each, and recombine
+	s = strings.Replace(s, "|", " ", -1)
+	parts := strings.Split(s, " ")
+	var v int32
+	for _, part := range parts {
+		if len(part) == 0 {
+			continue
+		}
+		i, err := parseOneInteger(tag, part)
+		if err != nil {
+			return 0, err
+		}
+		v |= i
+	}
+	return v, nil
+}
+
+func ParseEnum(tag Tag, s string) (uint32, error) {
 	if strings.HasPrefix(s, "0x") {
 		b, err := hex.DecodeString(s[2:])
 		if err != nil {
@@ -33,7 +74,18 @@ func ParseEnum(tag Tag, s string) (uint32, error) {
 		}
 		return binary.BigEndian.Uint32(b), nil
 	}
-	return 0, merry.New("unable to parse enum value")
+	u, err := strconv.ParseUint(s, 10, 32)
+	if err == nil {
+		// it was a raw number
+		return uint32(u), nil
+	}
+	v, _ := enumRegistry.Load(tag)
+	if v != nil {
+		if u, ok := v.(enumDef).Parse(s); ok {
+			return u, nil
+		}
+	}
+	return 0, merry.New("must be a number, hex string, or enum value name")
 }
 
 func EnumToString(tag Tag, i uint32) string {
@@ -48,7 +100,7 @@ func EnumToString(tag Tag, i uint32) string {
 }
 
 type EnumTypeDef struct {
-	Parse  func(s string) (uint32, error)
+	Parse  func(s string) (uint32, bool)
 	String func(v uint32) string
 }
 

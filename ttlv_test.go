@@ -940,6 +940,108 @@ func TestTTLV_UnmarshalXML(t *testing.T) {
 	}
 }
 
+func TestTTLV_UnmarshalXML_errors(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		msg   string
+	}{
+		{
+			name:  "invalidtag",
+			input: `<Elephant type="Boolean" value="true"/>`,
+			msg:   "invalid tag \"Elephant\"",
+		},
+		{
+			name:  "invalidtype",
+			input: `<BatchCount type="Car" value="true"/>`,
+			msg:   "invalid type \"Car\"",
+		},
+		{
+			name:  "boolinvalid",
+			input: `<BatchCount type="Boolean" value="frank"/>`,
+			msg:   "BatchCount: invalid Boolean value: must be 0, 1, true, or false: strconv.ParseBool: parsing \"frank\": invalid syntax",
+		},
+		{
+			name:  "bytesinvalidhex",
+			input: `<BatchCount type="ByteString" value="0T"/>`,
+			msg:   "BatchCount: invalid ByteString value: encoding/hex: invalid byte: U+0054 'T'",
+		},
+		{
+			name:  "bytesinvalidprefix",
+			input: `<BatchCount type="ByteString" value="0xFF5601"/>`,
+			msg:   "BatchCount: invalid ByteString value: should not have 0x prefix",
+		},
+		{
+			name:  "intervalinvalid",
+			input: `<BatchCount type="Interval" value="red"/>`,
+			msg:   "BatchCount: invalid Interval value: must be number: strconv.ParseUint: parsing \"red\": invalid syntax",
+		},
+		{
+			name:  "datetimeinvalid",
+			input: `<BatchCount type="DateTime" value="notadate"/>`,
+			msg:   "BatchCount: invalid DateTime value: must be ISO8601 format: parsing time \"notadate\" as \"2006-01-02T15:04:05.999999999Z07:00\": cannot parse \"notadate\" as \"2006\"",
+		},
+		{
+			name:  "integerinvalidvalue",
+			input: `<BatchCount type="Integer" value="red"/>`,
+			msg:   "BatchCount: invalid Integer value: must be number, hex string, or mask value name",
+		},
+		{
+			name:  "integerinvalidhex",
+			input: `<BatchCount type="Integer" value="0x0000000T"/>`,
+			msg:   "BatchCount: invalid Integer value: invalid hex string: encoding/hex: invalid byte: U+0054 'T'",
+		},
+		{
+			name:  "integerinvalidlen",
+			input: `<BatchCount type="Integer" value="0x000000000F"/>`,
+			msg:   "BatchCount: invalid Integer value: invalid hex string: must be 4 bytes (8 hex characters)",
+		},
+		{
+			name:  "longintegerinvalid",
+			input: `<BatchCount type="LongInteger" value="red"/>`,
+			msg:   "BatchCount: invalid LongInteger value: must be number: strconv.ParseInt: parsing \"red\": invalid syntax",
+		},
+		{
+			name:  "bigintegerinvalid",
+			input: `<BatchCount type="BigInteger" value="red"/>`,
+			msg:   "BatchCount: invalid BigInteger value: encoding/hex: invalid byte: U+0072 'r'",
+		},
+		{
+			name:  "bigintegerinvalidlen",
+			input: `<BatchCount type="BigInteger" value="000000000F"/>`,
+			msg:   "BatchCount: invalid BigInteger value: must be multiple of 8 bytes (16 hex characters)",
+		},
+		{
+			name:  "bigintegerinvalidprefix",
+			input: `<BatchCount type="BigInteger" value="0x0000000F"/>`,
+			msg:   "BatchCount: invalid BigInteger value: should not have 0x prefix",
+		},
+		{
+			name:  "enuminvalidhex",
+			input: `<ObjectType type="Enumeration" value="0x0000000T"/>`,
+			msg:   "ObjectType: invalid Enumeration value: invalid hex string: encoding/hex: invalid byte: U+0054 'T'",
+		},
+		{
+			name:  "enuminvalidlen",
+			input: `<ObjectType type="Enumeration" value="0x0000000002"/>`,
+			msg:   "ObjectType: invalid Enumeration value: invalid hex string: must be 4 bytes (8 hex characters)",
+		},
+		{
+			name:  "enuminvalidname",
+			input: `<ObjectType type="Enumeration" value="NotAValue"/>`,
+			msg:   "ObjectType: invalid Enumeration value: must be a number, hex string, or enum value name",
+		},
+	}
+
+	for _, testcase := range tests {
+		t.Run(testcase.name, func(t *testing.T) {
+			err := xml.Unmarshal([]byte(testcase.input), &TTLV{})
+			require.EqualError(t, err, testcase.msg)
+		})
+
+	}
+}
+
 // hex2bytes converts hex string to bytes.  Any non-hex characters in the string are stripped first.
 // panics on error
 func hex2bytes(s string) []byte {

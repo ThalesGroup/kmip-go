@@ -170,7 +170,7 @@ func ParseTag(s string) (Tag, error) {
 	if v, ok := _TagNameToValueMap[s]; ok {
 		return v, nil
 	}
-	return TagNone, nil
+	return TagNone, merry.Errorf("invalid tag \"%s\"", s)
 }
 
 func (t Tag) MarshalText() (text []byte, err error) {

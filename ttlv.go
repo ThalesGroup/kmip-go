@@ -162,45 +162,58 @@ func unmarshalXMLTval(buf *encBuf, tval *xmltval, attrTag Tag) error {
 	case TypeBoolean:
 		b, err := strconv.ParseBool(tval.Value)
 		if err != nil {
-			return err
+			return merry.Prependf(err, "%s: invalid Boolean value: must be 0, 1, true, or false", tag.String())
 		}
 		buf.encodeBool(tag, b)
 	case TypeTextString:
 		buf.encodeTextString(tag, tval.Value)
 	case TypeByteString:
+		// TODO: consider allowing this, just strip off the 0x prefix
+		// it's not to spec, but its a simple accommodation
+		if strings.HasPrefix(tval.Value, "0x") {
+			return merry.Errorf("%s: invalid ByteString value: should not have 0x prefix", tag.String())
+		}
 		b, err := hex.DecodeString(tval.Value)
 		if err != nil {
-			return err
+			return merry.Prependf(err, "%s: invalid ByteString value", tag.String())
 		}
 		buf.encodeByteString(tag, b)
 	case TypeInterval:
 		u, err := strconv.ParseUint(tval.Value, 10, 64)
 		if err != nil {
-			return err
+			return merry.Prependf(err, "%s: invalid Interval value: must be number", tag.String())
 		}
 		buf.encodeInterval(tag, time.Duration(u)*time.Second)
 	case TypeDateTime:
 		d, err := time.Parse(time.RFC3339Nano, tval.Value)
 		if err != nil {
-			return err
+			return merry.Prependf(err, "%s: invalid DateTime value: must be ISO8601 format", tag.String())
 		}
 		buf.encodeDateTime(tag, d)
 	case TypeInteger:
 		i, err := ParseInteger(tag, strings.Replace(tval.Value, " ", "|", -1))
 		if err != nil {
-			return err
+			return merry.Prependf(err, "%s: invalid Integer value", tag.String())
 		}
 		buf.encodeInt(tag, int32(i))
 	case TypeLongInteger:
 		i, err := strconv.ParseInt(tval.Value, 10, 64)
 		if err != nil {
-			return err
+			return merry.Prependf(err, "%s: invalid LongInteger value: must be number", tag.String())
 		}
 		buf.encodeLongInt(tag, i)
 	case TypeBigInteger:
+		// TODO: consider allowing this, just strip off the 0x prefix
+		// it's not to spec, but its a simple accommodation
+		if strings.HasPrefix(tval.Value, "0x") {
+			return merry.Errorf("%s: invalid BigInteger value: should not have 0x prefix", tag.String())
+		}
 		b, err := hex.DecodeString(tval.Value)
 		if err != nil {
-			return err
+			return merry.Prependf(err, "%s: invalid BigInteger value", tag.String())
+		}
+		if len(b)%8 != 0 {
+			return merry.Errorf("%s: invalid BigInteger value: must be multiple of 8 bytes (16 hex characters)", tag.String())
 		}
 		n := &big.Int{}
 		unmarshalBigInt(n, b)
@@ -212,7 +225,7 @@ func unmarshalXMLTval(buf *encBuf, tval *xmltval, attrTag Tag) error {
 		}
 		e, err := ParseEnum(enumTag, tval.Value)
 		if err != nil {
-			return err
+			return merry.Prependf(err, "%s: invalid Enumeration value", tag.String())
 		}
 		buf.encodeEnum(tag, e)
 	case TypeStructure:
@@ -336,7 +349,9 @@ func (t *TTLV) unmarshalJSON(b []byte, attrTag Tag) error {
 		default:
 			return merry.Errorf("%s: invalid ByteString value: must be hex string", tag.String())
 		case string:
-			if len(tv) >= 2 && tv[:2] == "0x" {
+			// TODO: consider allowing this, just strip off the 0x prefix
+			// it's not to spec, but its a simple accommodation
+			if strings.HasPrefix(tv, "0x") {
 				return merry.Errorf("%s: invalid ByteString value: should not have 0x prefix", tag.String())
 			}
 			b, err := hex.DecodeString(tv)

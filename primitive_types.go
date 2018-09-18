@@ -3,6 +3,7 @@ package kmip
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/ansel1/merry"
 	"strings"
 )
 
@@ -64,7 +65,7 @@ func ParseType(s string) (Type, error) {
 	if v, ok := _TypeNameToValueMap[s]; ok {
 		return v, nil
 	} else {
-		return v, fmt.Errorf("%s is not a valid Type", s)
+		return v, merry.Errorf("invalid type \"%s\"", s)
 	}
 }
 

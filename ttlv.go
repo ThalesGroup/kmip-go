@@ -130,77 +130,127 @@ func (t TTLV) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return nil
 }
 
-func (t *TTLV) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	out := struct {
-		XMLName  xml.Name
-		Tag      string `xml:"tag,omitempty,attr"`
-		Type     string `xml:"type,attr,omitempty"`
-		Value    string `xml:"value,attr,omitempty"`
-		Children []TTLV
-	}{}
-	err := d.DecodeElement(&out, &start)
-	if err != nil {
-		return err
+type xmltval struct {
+	XMLName  xml.Name
+	Tag      string     `xml:"tag,omitempty,attr"`
+	Type     string     `xml:"type,attr,omitempty"`
+	Value    string     `xml:"value,attr,omitempty"`
+	Children []*xmltval `xml:",any"`
+}
+
+func unmarshalXMLTval(buf *encBuf, tval *xmltval, attrTag Tag) error {
+	if tval.Tag == "" {
+		tval.Tag = tval.XMLName.Local
 	}
 
-	if out.Tag == "" {
-		out.Tag = out.XMLName.Local
-	}
-
-	tag, err := ParseTag(out.Tag)
+	tag, err := ParseTag(tval.Tag)
 	if err != nil {
 		return err
 	}
 
 	var tp Type
-	if out.Type == "" {
+	if tval.Type == "" {
 		tp = TypeStructure
 	} else {
-		tp, err = ParseType(out.Type)
+		tp, err = ParseType(tval.Type)
 		if err != nil {
 			return err
 		}
 	}
 
-	var buf encBuf
-
 	switch tp {
 	case TypeBoolean:
-		b, err := strconv.ParseBool(out.Value)
+		b, err := strconv.ParseBool(tval.Value)
 		if err != nil {
 			return err
 		}
 		buf.encodeBool(tag, b)
 	case TypeTextString:
-		buf.encodeTextString(tag, out.Value)
+		buf.encodeTextString(tag, tval.Value)
 	case TypeByteString:
-		b, err := hex.DecodeString(out.Value)
+		b, err := hex.DecodeString(tval.Value)
 		if err != nil {
 			return err
 		}
 		buf.encodeByteString(tag, b)
 	case TypeInterval:
-		u, err := strconv.ParseUint(out.Value, 10, 64)
+		u, err := strconv.ParseUint(tval.Value, 10, 64)
 		if err != nil {
 			return err
 		}
 		buf.encodeInterval(tag, time.Duration(u)*time.Second)
 	case TypeDateTime:
-		d, err := time.Parse(time.RFC3339Nano, out.Value)
+		d, err := time.Parse(time.RFC3339Nano, tval.Value)
 		if err != nil {
 			return err
 		}
 		buf.encodeDateTime(tag, d)
 	case TypeInteger:
-		i, err := ParseInteger(tag, strings.Replace(out.Value, " ", "|", -1))
+		i, err := ParseInteger(tag, strings.Replace(tval.Value, " ", "|", -1))
 		if err != nil {
 			return err
 		}
 		buf.encodeInt(tag, int32(i))
+	case TypeLongInteger:
+		i, err := strconv.ParseInt(tval.Value, 10, 64)
+		if err != nil {
+			return err
+		}
+		buf.encodeLongInt(tag, i)
+	case TypeBigInteger:
+		b, err := hex.DecodeString(tval.Value)
+		if err != nil {
+			return err
+		}
+		n := &big.Int{}
+		unmarshalBigInt(n, b)
+		buf.encodeBigInt(tag, n)
+	case TypeEnumeration:
+		enumTag := tag
+		if tag == TagAttributeValue && attrTag != TagNone {
+			enumTag = attrTag
+		}
+		e, err := ParseEnum(enumTag, tval.Value)
+		if err != nil {
+			return err
+		}
+		buf.encodeEnum(tag, e)
+	case TypeStructure:
+		i := buf.startStruct(tag)
+		var attrTag Tag
+		for _, c := range tval.Children {
+			offset := buf.Len()
+			err := unmarshalXMLTval(buf, c, attrTag)
+			if err != nil {
+				return err
+			}
+			// check whether the TTLV we just unmarshaled is an AttributeName
+			ttlv := TTLV(buf.Bytes()[offset:])
+			if ttlv.Tag() == TagAttributeName {
+				// try to parse the value as a tag name, which may be used later
+				// when unmarshaling the AttributeValue
+				attrTag, _ = ParseTag(NormalizeName(ttlv.ValueTextString()))
+			}
+		}
+		buf.endStruct(i)
+	}
+	return nil
+}
 
+func (t *TTLV) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+
+	var out xmltval
+	err := d.DecodeElement(&out, &start)
+	if err != nil {
+		return err
 	}
 
-	*t = TTLV(buf.Bytes())
+	var buf encBuf
+	err = unmarshalXMLTval(&buf, &out, TagNone)
+	if err != nil {
+		return err
+	}
+	*t = buf.Bytes()
 	return nil
 }
 
@@ -350,26 +400,6 @@ func (t *TTLV) unmarshalJSON(b []byte, attrTag Tag) error {
 				return merry.Prependf(err, "%s: invalid Integer value", tag.String())
 			}
 			enc.encodeInt(tag, int32(i))
-			//if IsBitMask(tag) {
-			//	v, err := ParseEnum(tag, tv)
-			//	if err != nil {
-			//		return merry.Prependf(err, "%s: invalid Integer value", tag.String())
-			//	}
-			//	enc.encodeInt(tag, int32(v))
-			//} else {
-			//	if len(tv) >= 2 && tv[:2] != "0x" {
-			//		return merry.Errorf("%s: invalid Integer value: hex value must start with 0x", tag.String())
-			//	}
-			//	b, err := hex.DecodeString(tv[2:])
-			//	if err != nil {
-			//		return merry.Prependf(err, "%s: invalid Integer value", tag.String())
-			//	}
-			//	if len(b) != 4 {
-			//		return merry.Errorf("%s: invalid Integer value: must be 4 bytes (8 hex characters)", tag.String())
-			//	}
-			//	v := binary.BigEndian.Uint32(b)
-			//	enc.encodeInt(tag, int32(v))
-			//}
 		case float64:
 			enc.encodeInt(tag, int32(tv))
 		}

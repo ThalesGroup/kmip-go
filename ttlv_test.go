@@ -869,65 +869,58 @@ func TestTTLV_UnmarshalXML(t *testing.T) {
 			},
 			exp: TaggedValue{Tag: TagCryptographicUsageMask, Value: CryptographicUsageMaskDecrypt | CryptographicUsageMaskExport},
 		},
-		//{
-		//	name: "longinteger",
-		//	inputs: []string{
-		//		`{"tag":"BatchCount","type":"LongInteger","value":"0x0000000000000005"}`,
-		//		`{"tag":"BatchCount","type":"LongInteger","value":5}`,
-		//	},
-		//	exp: TaggedValue{Tag: TagBatchCount, Value: int64(5)},
-		//},
-		//{
-		//	name: "biginteger",
-		//	inputs: []string{
-		//		`{"tag":"BatchCount","type":"BigInteger","value":"0x0000000000000005"}`,
-		//		`{"tag":"BatchCount","type":"BigInteger","value":"0x00000000000000000000000000000005"}`,
-		//		`{"tag":"BatchCount","type":"BigInteger","value":5}`,
-		//	},
-		//	exp: TaggedValue{Tag: TagBatchCount, Value: big.NewInt(5)},
-		//},
-		//{
-		//	name: "enumeration",
-		//	inputs: []string{
-		//		`{"tag":"ObjectType","type":"Enumeration","value":2}`,
-		//		`{"tag":"ObjectType","type":"Enumeration","value":"0x00000002"}`,
-		//		`{"tag":"ObjectType","type":"Enumeration","value":"SymmetricKey"}`,
-		//	},
-		//	exp: TaggedValue{Tag: TagObjectType, Value: ObjectTypeSymmetricKey},
-		//},
-		//{
-		//	name: "structure",
-		//	inputs: []string{
-		//		`{
-		//			"tag":"BatchCount",
-		//			"value":[
-		//				{"tag":"CryptographicUsageMask", "type":"Integer", "value":"Decrypt|Encrypt"},
-		//				{"tag":"CryptographicAlgorithm", "type":"Enumeration", "value":"Blowfish"},
-		//				{"tag":"ObjectType", "type":"Structure", "value":[
-		//					{"tag":"Operation", "type":"TextString", "value":"red"}
-		//				]}
-		//			]
-		//		}`,
-		//	},
-		//	exp: Structure{Tag: TagBatchCount, Values: []interface{}{
-		//		TaggedValue{Tag: TagCryptographicUsageMask, Value: CryptographicUsageMaskDecrypt | CryptographicUsageMaskEncrypt},
-		//		TaggedValue{Tag: TagCryptographicAlgorithm, Value: CryptographicAlgorithmBlowfish},
-		//		Structure{Tag: TagObjectType, Values: []interface{}{
-		//			TaggedValue{Tag: TagOperation, Value: "red"},
-		//		}},
-		//	}},
-		//},
-		//{
-		//	name: "attributes",
-		//	exp: Structure{Tag: TagAttribute, Values: []interface{}{
-		//		TaggedValue{Tag: TagAttributeName, Value: "Key Format Type"},
-		//		TaggedValue{Tag: TagAttributeValue, Value: KeyFormatTypeX_509},
-		//	}},
-		//	inputs: []string{`{"tag":"Attribute","value":[
-		//		{"tag":"AttributeName","type":"TextString","value":"Key Format Type"},
-		//		{"tag":"AttributeValue","type":"Enumeration","value":"X_509"}
-		//	]}`},
-		//},
+		{
+			name: "longinteger",
+			inputs: []string{
+				`<BatchCount type="LongInteger" value="5"/>`,
+			},
+			exp: TaggedValue{Tag: TagBatchCount, Value: int64(5)},
+		},
+		{
+			name: "biginteger",
+			inputs: []string{
+				`<BatchCount type="BigInteger" value="00000000000000000000000000000005"/>`,
+			},
+			exp: TaggedValue{Tag: TagBatchCount, Value: big.NewInt(5)},
+		},
+		{
+			name: "enumeration",
+			inputs: []string{
+				`<ObjectType type="Enumeration" value="0x00000002"/>`,
+				`<ObjectType type="Enumeration" value="SymmetricKey"/>`,
+			},
+			exp: TaggedValue{Tag: TagObjectType, Value: ObjectTypeSymmetricKey},
+		},
+		{
+			name: "structure",
+			inputs: []string{
+				`<BatchCount>
+						<CryptographicUsageMask type="Integer" value="Decrypt|Encrypt"/>
+						<CryptographicAlgorithm type="Enumeration" value="Blowfish"/>
+						<ObjectType>
+							<Operation type="TextString" value="red"/>
+						</ObjectType>
+				</BatchCount>`,
+			},
+			exp: Structure{Tag: TagBatchCount, Values: []interface{}{
+				TaggedValue{Tag: TagCryptographicUsageMask, Value: CryptographicUsageMaskDecrypt | CryptographicUsageMaskEncrypt},
+				TaggedValue{Tag: TagCryptographicAlgorithm, Value: CryptographicAlgorithmBlowfish},
+				Structure{Tag: TagObjectType, Values: []interface{}{
+					TaggedValue{Tag: TagOperation, Value: "red"},
+				}},
+			}},
+		},
+		{
+			name: "attributes",
+			exp: Structure{Tag: TagAttribute, Values: []interface{}{
+				TaggedValue{Tag: TagAttributeName, Value: "Key Format Type"},
+				TaggedValue{Tag: TagAttributeValue, Value: KeyFormatTypeX_509},
+			}},
+			inputs: []string{`<Attribute>
+				<AttributeName type="TextString" value="Key Format Type"/>
+				<AttributeValue type="Enumeration" value="X_509"/>
+			</Attribute>`},
+		},
 	}
 	for _, testcase := range tests {
 		t.Run(testcase.name, func(t *testing.T) {

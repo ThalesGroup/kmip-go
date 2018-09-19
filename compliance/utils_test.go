@@ -266,6 +266,127 @@ func TestTTLV_Cmp(t *testing.T) {
 			isEq:    false,
 			expVars: map[string]string{"$COLOR_0": "red"},
 		},
+		{
+			name: "attrs",
+			v1: &TTLV{
+				Tag:  "white",
+				Type: "green",
+				Children: []*TTLV{
+					{Tag: "Attribute", Children: []*TTLV{
+						{Tag: "AttributeName", Value: "Color"},
+						{Tag: "AttributeValue", Value: "red"},
+					}},
+				},
+			},
+			v2: &TTLV{
+				Tag:  "white",
+				Type: "green",
+				Children: []*TTLV{
+					{Tag: "Attribute", Children: []*TTLV{
+						{Tag: "AttributeName", Value: "Color"},
+						{Tag: "AttributeValue", Value: "red"},
+					}},
+				},
+			},
+			isEq: true,
+		},
+		{
+			name: "attrsunordered",
+			v1: &TTLV{
+				Tag:  "white",
+				Type: "green",
+				Children: []*TTLV{
+					{Tag: "Attribute", Children: []*TTLV{
+						{Tag: "AttributeName", Value: "Color"},
+						{Tag: "AttributeValue", Value: "red"},
+					}},
+					{Tag: "Attribute", Children: []*TTLV{
+						{Tag: "AttributeName", Value: "Size"},
+						{Tag: "AttributeValue", Value: "big"},
+					}},
+				},
+			},
+			v2: &TTLV{
+				Tag:  "white",
+				Type: "green",
+				Children: []*TTLV{
+					{Tag: "Attribute", Children: []*TTLV{
+						{Tag: "AttributeName", Value: "Size"},
+						{Tag: "AttributeValue", Value: "big"},
+					}},
+					{Tag: "Attribute", Children: []*TTLV{
+						{Tag: "AttributeName", Value: "Color"},
+						{Tag: "AttributeValue", Value: "red"},
+					}},
+				},
+			},
+			isEq: true,
+		},
+		{
+			name: "attrsneq",
+			v1: &TTLV{
+				Tag:  "white",
+				Type: "green",
+				Children: []*TTLV{
+					{Tag: "Attribute", Children: []*TTLV{
+						{Tag: "AttributeName", Value: "Color"},
+						{Tag: "AttributeValue", Value: "red"},
+					}},
+					{Tag: "Attribute", Children: []*TTLV{
+						{Tag: "AttributeName", Value: "Size"},
+						{Tag: "AttributeValue", Value: "big"},
+					}},
+				},
+			},
+			v2: &TTLV{
+				Tag:  "white",
+				Type: "green",
+				Children: []*TTLV{
+					{Tag: "Attribute", Children: []*TTLV{
+						{Tag: "AttributeName", Value: "Size"},
+						{Tag: "AttributeValue", Value: "small"},
+					}},
+					{Tag: "Attribute", Children: []*TTLV{
+						{Tag: "AttributeName", Value: "Color"},
+						{Tag: "AttributeValue", Value: "red"},
+					}},
+				},
+			},
+			isEq: false,
+		},
+		{
+			name: "attrsvariables",
+			v1: &TTLV{
+				Tag:  "white",
+				Type: "green",
+				Children: []*TTLV{
+					{Tag: "Attribute", Children: []*TTLV{
+						{Tag: "AttributeName", Value: "Color"},
+						{Tag: "AttributeValue", Value: "red"},
+					}},
+					{Tag: "Attribute", Children: []*TTLV{
+						{Tag: "AttributeName", Value: "Size"},
+						{Tag: "AttributeValue", Value: "$SIZE"},
+					}},
+				},
+			},
+			v2: &TTLV{
+				Tag:  "white",
+				Type: "green",
+				Children: []*TTLV{
+					{Tag: "Attribute", Children: []*TTLV{
+						{Tag: "AttributeName", Value: "Size"},
+						{Tag: "AttributeValue", Value: "small"},
+					}},
+					{Tag: "Attribute", Children: []*TTLV{
+						{Tag: "AttributeName", Value: "Color"},
+						{Tag: "AttributeValue", Value: "red"},
+					}},
+				},
+			},
+			isEq:    true,
+			expVars: map[string]string{"$SIZE": "small"},
+		},
 	}
 
 	for _, testcase := range tests {

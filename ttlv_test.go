@@ -518,6 +518,17 @@ func TestTTLV_UnmarshalJSON(t *testing.T) {
 				{"tag":"AttributeValue","type":"Enumeration","value":"X_509"}
 			]}`},
 		},
+		{
+			name: "attributesmask",
+			exp: Structure{Tag: TagAttribute, Values: []interface{}{
+				TaggedValue{Tag: TagAttributeName, Value: "Cryptographic Usage Mask"},
+				TaggedValue{Tag: TagAttributeValue, Value: CryptographicUsageMaskEncrypt},
+			}},
+			inputs: []string{`{"tag":"Attribute","value":[
+				{"tag":"AttributeName","type":"TextString","value":"Cryptographic Usage Mask"},
+				{"tag":"AttributeValue","type":"Integer","value":"Encrypt"}
+			]}`},
+		},
 	}
 	for _, testcase := range tests {
 		t.Run(testcase.name, func(t *testing.T) {
@@ -539,6 +550,7 @@ func TestTTLV_UnmarshalJSON(t *testing.T) {
 
 func TestTTLV_MarshalJSON(t *testing.T) {
 	tests := []struct {
+		name string
 		in  interface{}
 		exp string
 	}{
@@ -649,6 +661,17 @@ func TestTTLV_MarshalJSON(t *testing.T) {
 			]}`,
 		},
 		{
+			name:"attributesmask",
+			in: Structure{Tag: TagAttribute, Values: []interface{}{
+				TaggedValue{Tag: TagAttributeName, Value: "Cryptographic Usage Mask"},
+				TaggedValue{Tag: TagAttributeValue, Value: CryptographicUsageMaskExport},
+			}},
+			exp: `{"tag":"Attribute","value":[
+				{"tag":"AttributeName","type":"TextString","value":"Cryptographic Usage Mask"},
+				{"tag":"AttributeValue","type":"Integer","value":"Export"}
+			]}`,
+		},
+		{
 			in: Structure{Tag: TagAttribute, Values: []interface{}{
 				TaggedValue{Tag: TagAttributeName, Value: "Key Format Type"},
 				TaggedValue{Tag: TagAttributeValue, Value: EnumInt(0x00000300)},
@@ -665,7 +688,7 @@ func TestTTLV_MarshalJSON(t *testing.T) {
 	}
 
 	for _, testcase := range tests {
-		t.Run("", func(t *testing.T) {
+		t.Run(testcase.name, func(t *testing.T) {
 			b, err := Marshal(testcase.in)
 			require.NoError(t, err)
 			ttlv := TTLV(b)
@@ -768,6 +791,14 @@ func TestTTLV_MarshalXML(t *testing.T) {
 				TaggedValue{Tag: TagAttributeValue, Value: KeyFormatTypeX_509},
 			}},
 			exp: `<Attribute><AttributeName type="TextString" value="Key Format Type"></AttributeName><AttributeValue type="Enumeration" value="X_509"></AttributeValue></Attribute>`,
+		},
+		{
+			name: "attributesmask",
+			in: Structure{Tag: TagAttribute, Values: []interface{}{
+				TaggedValue{Tag: TagAttributeName, Value: "Cryptographic Usage Mask"},
+				TaggedValue{Tag: TagAttributeValue, Value: CryptographicUsageMaskExport},
+			}},
+			exp: `<Attribute><AttributeName type="TextString" value="Cryptographic Usage Mask"></AttributeName><AttributeValue type="Integer" value="Export"></AttributeValue></Attribute>`,
 		},
 	}
 
@@ -919,6 +950,17 @@ func TestTTLV_UnmarshalXML(t *testing.T) {
 			inputs: []string{`<Attribute>
 				<AttributeName type="TextString" value="Key Format Type"/>
 				<AttributeValue type="Enumeration" value="X_509"/>
+			</Attribute>`},
+		},
+		{
+			name: "attributesmask",
+			exp: Structure{Tag: TagAttribute, Values: []interface{}{
+				TaggedValue{Tag: TagAttributeName, Value: "Cryptographic Usage Mask"},
+				TaggedValue{Tag: TagAttributeValue, Value: CryptographicUsageMaskEncrypt},
+			}},
+			inputs: []string{`<Attribute>
+				<AttributeName type="TextString" value="Cryptographic Usage Mask"/>
+				<AttributeValue type="Integer" value="Encrypt"/>
 			</Attribute>`},
 		},
 	}

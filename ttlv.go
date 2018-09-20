@@ -55,8 +55,6 @@ func (t TTLV) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 
 	switch t.Type() {
 	case TypeStructure:
-		// TODO: handle translation of Attribute structures
-
 		se := xml.StartElement{Name: out.XMLName}
 		if out.Type != "" {
 			se.Attr = append(se.Attr, xml.Attr{Name: xml.Name{Local: "type"}, Value: out.Type})
@@ -76,13 +74,13 @@ func (t TTLV) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 				// try to map the attribute name to a tag
 				attrTag, _ = ParseTag(NormalizeName(n.ValueTextString()))
 			}
-			if n.Tag() == TagAttributeValue && n.Type() == TypeEnumeration {
+			if n.Tag() == TagAttributeValue && (n.Type() == TypeEnumeration || n.Type() == TypeInteger) {
 				e.EncodeToken(xml.StartElement{
 					Name: xml.Name{Local: TagAttributeValue.String()},
 					Attr: []xml.Attr{
 						{
 							Name:  xml.Name{Local: "type"},
-							Value: TypeEnumeration.String(),
+							Value: n.Type().String(),
 						},
 						{
 							Name:  xml.Name{Local: "value"},
@@ -191,7 +189,11 @@ func unmarshalXMLTval(buf *encBuf, tval *xmltval, attrTag Tag) error {
 		}
 		buf.encodeDateTime(tag, d)
 	case TypeInteger:
-		i, err := ParseInteger(tag, strings.Replace(tval.Value, " ", "|", -1))
+		enumTag := tag
+		if tag == TagAttributeValue && attrTag != TagNone {
+			enumTag = attrTag
+		}
+		i, err := ParseInteger(enumTag, strings.Replace(tval.Value, " ", "|", -1))
 		if err != nil {
 			return merry.Prependf(err, "%s: invalid Integer value", tag.String())
 		}
@@ -410,7 +412,11 @@ func (t *TTLV) unmarshalJSON(b []byte, attrTag Tag) error {
 		default:
 			return merry.Errorf("%s: invalid Integer value: must be number, hex string, or mask value name", tag.String())
 		case string:
-			i, err := ParseInteger(tag, tv)
+			enumTag := tag
+			if tag == TagAttributeValue && attrTag != TagNone {
+				enumTag = attrTag
+			}
+			i, err := ParseInteger(enumTag, tv)
 			if err != nil {
 				return merry.Prependf(err, "%s: invalid Integer value", tag.String())
 			}
@@ -583,11 +589,17 @@ func (t TTLV) MarshalJSON() ([]byte, error) {
 				// try to map the attribute name to a tag
 				attrTag, _ = ParseTag(NormalizeName(c.ValueTextString()))
 			}
-			if c.Tag() == TagAttributeValue && c.Type() == TypeEnumeration {
+
+			switch {
+			case c.Tag() == TagAttributeValue && c.Type() == TypeEnumeration:
 				sb.WriteString(`{"tag":"AttributeValue","type":"Enumeration","value":"`)
 				sb.WriteString(EnumToString(attrTag, c.ValueEnumeration()))
 				sb.WriteString(`"}`)
-			} else {
+			case c.Tag() == TagAttributeValue && c.Type() == TypeInteger:
+				sb.WriteString(`{"tag":"AttributeValue","type":"Integer","value":"`)
+				sb.WriteString(EnumToString(attrTag, c.ValueEnumeration()))
+				sb.WriteString(`"}`)
+			default:
 				v, err := c.MarshalJSON()
 				if err != nil {
 					return nil, err

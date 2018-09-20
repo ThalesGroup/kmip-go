@@ -232,12 +232,12 @@ func (dec *Decoder) NextTTLV() (TTLV, error) {
 	// first, read the header
 	header, err := dec.bufr.Peek(8)
 	if err != nil {
-		return nil, err
+		return nil, merry.Wrap(err)
 	}
 
 	if err := TTLV(header).ValidHeader(); err != nil {
 		// bad header, abort
-		return TTLV(header), err
+		return TTLV(header), merry.Prependf(err, "invalid header: %s", TTLV(header))
 	}
 
 	// allocate a buffer large enough for the entire message
@@ -248,7 +248,7 @@ func (dec *Decoder) NextTTLV() (TTLV, error) {
 	for {
 		n, err := dec.bufr.Read(buf[totRead:])
 		if err != nil {
-			return TTLV(buf), err
+			return TTLV(buf), merry.Wrap(err)
 		}
 
 		totRead += n

@@ -37,7 +37,7 @@ type CreateResponsePayload struct {
 }
 
 type CreateHandler struct {
-	Create func(payload *CreateRequestPayload) (*CreateResponsePayload, error)
+	Create func(ctx context.Context, payload *CreateRequestPayload) (*CreateResponsePayload, error)
 }
 
 func (h *CreateHandler) HandleItem(ctx context.Context, req *Request) (*ResponseBatchItem, error) {
@@ -47,12 +47,12 @@ func (h *CreateHandler) HandleItem(ctx context.Context, req *Request) (*Response
 		return nil, err
 	}
 
-	respPayload, err := h.Create(&payload)
+	respPayload, err := h.Create(ctx, &payload)
 	if err != nil {
 		return nil, err
 	}
 
-	req.IDPlaceholder = respPayload.TemplateAttribute.Get(TagUniqueIdentifier.String()).(string)
+	req.IDPlaceholder = respPayload.TemplateAttribute.GetTag(TagUniqueIdentifier, 0).(string)
 
 	return &ResponseBatchItem{
 		ResponsePayload: respPayload,

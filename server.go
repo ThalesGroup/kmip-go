@@ -7,6 +7,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"github.com/ansel1/merry"
 	"github.com/gemalto/flume"
 	"io"
 	"net"
@@ -287,7 +288,7 @@ func (c *conn) serve(ctx context.Context) {
 		//c.setState(c.rwc, StateActive)
 		//}
 		if err != nil {
-			if err == io.EOF {
+			if merry.Is(err, io.EOF) {
 				fmt.Println("client closed connection")
 				return
 			}

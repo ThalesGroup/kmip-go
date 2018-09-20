@@ -1,6 +1,10 @@
 package kmip
 
-import "math/big"
+import (
+	"bytes"
+	"github.com/ansel1/merry"
+	"math/big"
+)
 
 // 2.1 Base Objects
 //
@@ -381,16 +385,207 @@ type TransparentECPublicKey struct {
 //
 // The Template-Attribute, Common Template-Attribute, Private Key Template-Attribute, and Public Key
 // Template-Attribute structures are defined identically as follows:
+//type TemplateAttribute struct {
+//	Attribute []Attribute
+//}
+
 type TemplateAttribute struct {
-	Attribute []Attribute
+	Name []Name
+	Attributes map[string]map[int]interface{}
 }
 
-func (t *TemplateAttribute) Get(s string) interface{}               { return nil }
-func (t *TemplateAttribute) GetAll(s string) []Attribute            { return nil }
-func (t *TemplateAttribute) GetIndex(s string, i int) []interface{} { return nil }
-func (t *TemplateAttribute) Add(a Attribute)                        {}
-func (t *TemplateAttribute) Replace(a Attribute) *Attribute         { return nil }
-func (t *TemplateAttribute) Delete(a Attribute) *Attribute          { return nil }
+func (t *TemplateAttribute) UnmarshalTTLV(ttlv TTLV, disallowExtraValues bool) error {
+	if len(ttlv) == 0 {
+		return nil
+	}
+
+	if t == nil {
+		*t = TemplateAttribute{}
+	}
+
+	for n := ttlv.ValueStructure(); n != nil; n = n.Next() {
+		switch n.Tag() {
+		case TagName:
+			d := NewDecoder(bytes.NewReader(n))
+			if disallowExtraValues {
+				d.DisallowExtraValues()
+			}
+			err := Unmarshal(n, &t.Attributes)
+			if err != nil {
+				return nil
+			}
+		case TagAttribute:
+			var a Attribute
+			err := Unmarshal(n, &a)
+			if err != nil {
+				return nil
+			}
+
+		default:
+			if disallowExtraValues {
+				return merry.Here(ErrUnexpectedValue)
+			}
+		}
+	}
+
+
+}
+
+func (t *TemplateAttribute) MarshalTTLV(e *Encoder, tag Tag) error {
+	if t == nil {
+		return nil
+	}
+	return e.EncodeStructure(tag, func(e *Encoder) error {
+		if len(t.Name) > 0 {
+			err := e.EncodeValue(TagName, t.Name)
+			if err != nil {
+				return err
+			}
+		}
+		for name, m := range t.Attributes {
+			for idx, v := range m {
+				if v != DeletedMarker {
+					err := e.EncodeStructure(TagAttribute, func(e *Encoder) error {
+						err := e.EncodeValue(TagAttributeName, name)
+						if err != nil {
+							return err
+						}
+						if idx != 0 {
+							err := e.EncodeValue(TagAttributeIndex, idx)
+							if err != nil {
+								return err
+							}
+						}
+						return e.EncodeValue(TagAttributeValue, v)
+					})
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
+		return nil
+	})
+}
+
+type deletedMarker int
+
+const DeletedMarker = deletedMarker(0)
+
+func (t *TemplateAttribute) Get(s string, idx int) interface{} {
+	if t == nil {
+		return nil
+	}
+	//for i := range t.Attribute {
+	//	if t.Attribute[i].AttributeName == s && t.Attribute[i].AttributeIndex == idx {
+	//		return t.Attribute[i].AttributeValue
+	//	}
+	//}
+	//return nil
+	v := t.Attributes[s][idx]
+	if v == DeletedMarker {
+		return nil
+	}
+	return v
+}
+
+func (t *TemplateAttribute) GetTag(tag Tag, idx int) interface{} {
+	return t.Get(tag.String(), idx)
+}
+
+func (t *TemplateAttribute) GetAll(s string) map[int]interface{} {
+	if t == nil {
+		return nil
+	}
+	//var ret []Attribute
+	//for i := range t.Attribute {
+	//	if t.Attribute[i].AttributeName == s {
+	//		ret = append(ret, t.Attribute[i])
+	//	}
+	//}
+	return t.Attributes[s]
+}
+
+func (t *TemplateAttribute) GetAllTag(tag Tag) map[int]interface{} {
+	return t.GetAll(tag.String())
+}
+
+func (t *TemplateAttribute) getOrCreate(name string) map[int]interface{} {
+	if t.Attributes == nil {
+		t.Attributes = map[string]map[int]interface{}{}
+	}
+	m := t.Attributes[name]
+	if m == nil {
+		m = map[int]interface{}{}
+		t.Attributes[name] = m
+	}
+	return m
+}
+
+func (t *TemplateAttribute) Add(a Attribute) {
+	//a.AttributeIndex = 0
+	//for i := range t.Attribute {
+	//	if t.Attribute[i].AttributeName == a.AttributeName {
+	//		if n := t.Attribute[i].AttributeIndex; n >= a.AttributeIndex {
+	//			a.AttributeIndex = n + 1
+	//		}
+	//	}
+	//}
+	//t.Attribute = append(t.Attribute, a)
+
+	m := t.getOrCreate(a.AttributeName)
+	for i := range m {
+		if i >= a.AttributeIndex {
+			a.AttributeIndex = i + 1
+		}
+	}
+	m[a.AttributeIndex] = a.AttributeValue
+}
+
+func (t TemplateAttribute) Set(a Attribute) interface{} {
+	m := t.getOrCreate(a.AttributeName)
+	p := m[a.AttributeIndex]
+	m[a.AttributeIndex] = a.AttributeValue
+
+	if p != nil {
+		return p
+	}
+	return p
+	//if t == nil || t.Attribute == nil {
+	//	return nil
+	//}
+	//for i := range t.Attribute {
+	//	if t.Attribute[i].AttributeName == a.AttributeName && t.Attribute[i].AttributeIndex == a.AttributeIndex {
+	//		replaced := t.Attribute[i]
+	//		t.Attribute[i] = a
+	//		return &replaced
+	//	}
+	//}
+	//t.Attribute = append(t.Attribute, a)
+	//return nil
+}
+
+func (t TemplateAttribute) Delete(a Attribute) interface{} {
+
+	//if t == nil || t.Attribute == nil {
+	//	return nil
+	//}
+	//for i := range t.Attribute {
+	//	if t.Attribute[i].AttributeName == a.AttributeName && t.Attribute[i].AttributeIndex == a.AttributeIndex {
+	//		replaced := t.Attribute[i]
+	//		t.Attribute = append(t.Attribute[:i], t.Attribute[i+1:]...)
+	//		return &replaced
+	//	}
+	//}
+	//return nil
+
+	m := t.Attributes[a.AttributeName]
+	p, ok := m[a.AttributeIndex]
+	if ok {
+		m[a.AttributeIndex] = DeletedMarker
+	}
+	return p
+}
 
 // CommonTemplateAttribute 2.1.8 Table 29
 //

@@ -2,6 +2,19 @@ package kmip
 
 // 3
 
+// Name 3.2 Table 57
+//
+// The Name attribute is a structure (see Table 57) used to identify and locate an object.
+// This attribute is assigned by the client, and the Name Value is intended to be in a form that
+// humans are able to interpret. The key management system MAY specify rules by which the client
+// creates valid names. Clients are informed of such rules by a mechanism that is not specified by
+// this standard. Names SHALL be unique within a given key management domain,
+// but are NOT REQUIRED to be globally unique.
+type Name struct {
+	NameValue string
+	NameType NameType
+}
+
 // Cryptographic Parameters 3.6 Table 65
 //
 // The Cryptographic Parameters attribute is a structure (see Table 65) that contains a set of OPTIONAL

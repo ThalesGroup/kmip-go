@@ -166,10 +166,10 @@ func TestUnmarshal(t *testing.T) {
 			skipExactRoundtripTest: true,
 		},
 		{
-			in:  TaggedValue{Tag: TagComment, Value: "red"},
+			in:  TaggedValue{Tag: TagBatchCount, Value: "red"},
 			ptr: new(interface{}),
 			expected: func() interface{} {
-				b, err := Marshal(TaggedValue{Tag: TagComment, Value: "red"})
+				b, err := Marshal(TaggedValue{Tag: TagBatchCount, Value: "red"})
 				if err != nil {
 					panic(err)
 				}
@@ -413,7 +413,7 @@ func TestDecoder_DisallowUnknownFields(t *testing.T) {
 
 			// verify that it bombs is flag is on
 			dec = NewDecoder(bytes.NewReader(b))
-			dec.DisallowExtraValues()
+			dec.DisallowExtraValues = true
 			err = dec.Decode(&a)
 			require.Error(t, err)
 			require.True(t, merry.Is(err, ErrUnexpectedValue))

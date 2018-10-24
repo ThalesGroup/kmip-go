@@ -10,7 +10,7 @@ import (
 type Decoder struct {
 	r                   io.Reader
 	bufr                *bufio.Reader
-	disallowExtraValues bool
+	DisallowExtraValues bool
 
 	currStruct reflect.Type
 	currField  string
@@ -31,12 +31,17 @@ func (dec *Decoder) Reset(r io.Reader) {
 	dec.bufr.Reset(r)
 }
 
-func (dec *Decoder) DisallowExtraValues() { dec.disallowExtraValues = true }
-
 func (dec *Decoder) Decode(v interface{}) error {
-	ttlv, err := dec.NextTTLV()
-	if err != nil {
-		return err
+	return dec.DecodeValue(v, nil)
+}
+
+func (dec *Decoder) DecodeValue(v interface{}, ttlv TTLV) error {
+	if ttlv == nil {
+		var err error
+		ttlv, err = dec.NextTTLV()
+		if err != nil {
+			return err
+		}
 	}
 	val := reflect.ValueOf(v)
 	if val.Kind() != reflect.Ptr {
@@ -55,15 +60,22 @@ func (dec *Decoder) unmarshal(val reflect.Value, ttlv TTLV) error {
 		}
 	}
 
-	if val.Type().Implements(unmarshalerType) {
-		return val.Interface().(Unmarshaler).UnmarshalTTLV(ttlv, dec.disallowExtraValues)
-	}
-
 	if val.Kind() == reflect.Ptr {
 		if val.IsNil() {
 			val.Set(reflect.New(val.Type().Elem()))
 		}
 		val = val.Elem()
+	}
+
+	if val.Type().Implements(unmarshalerType) {
+		return val.Interface().(Unmarshaler).UnmarshalTTLV(dec, ttlv)
+	}
+
+	if val.CanAddr() {
+		valAddr := val.Addr()
+		if valAddr.CanInterface() && valAddr.Type().Implements(unmarshalerType) {
+			return valAddr.Interface().(Unmarshaler).UnmarshalTTLV(dec, ttlv)
+		}
 	}
 
 	switch val.Kind() {
@@ -197,16 +209,16 @@ func (dec *Decoder) unmarshal(val reflect.Value, ttlv TTLV) error {
 
 func (dec *Decoder) unmarshalStructure(ttlv TTLV, val reflect.Value) error {
 
-	ti, err := getTypeInfo(val.Type())
+	fields, err := getFieldsInfo(val.Type())
 	if err != nil {
 		return err
 	}
 
 	// push currStruct (caller will pop)
-	dec.currStruct = ti.typ
+	dec.currStruct = val.Type()
 Next:
 	for n := ttlv.ValueStructure(); n != nil; n = n.Next() {
-		for _, field := range ti.fields {
+		for _, field := range fields {
 			if field.tag == n.Tag() {
 				// push currField
 				currField := dec.currField
@@ -221,7 +233,7 @@ Next:
 			}
 		}
 		// should only get here if no fields matched the value
-		if dec.disallowExtraValues {
+		if dec.DisallowExtraValues {
 			return dec.newUnmarshalerError(ttlv, val.Type(), ErrUnexpectedValue)
 		}
 	}

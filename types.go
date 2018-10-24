@@ -5,7 +5,7 @@ type Marshaler interface {
 }
 
 type Unmarshaler interface {
-	UnmarshalTTLV(ttlv TTLV, disallowExtraValues bool) error
+	UnmarshalTTLV(d *Decoder, ttlv TTLV) error
 }
 
 type Structure struct {

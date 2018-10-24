@@ -167,7 +167,7 @@ func TestTTLV_UnmarshalTTLV(t *testing.T) {
 	enc := NewEncoder(buf)
 	require.NoError(t, enc.EncodeValue(TagComment, "red"))
 
-	err := ttlv.UnmarshalTTLV(TTLV(buf.Bytes()), false)
+	err := ttlv.UnmarshalTTLV(nil, TTLV(buf.Bytes()))
 	require.NoError(t, err)
 
 	require.NotNil(t, ttlv)
@@ -181,7 +181,7 @@ func TestTTLV_UnmarshalTTLV(t *testing.T) {
 	// copy some marker bytes into the end.  after unmarshaling, the marker bytes should
 	// be intact, since they are in the end part of the buffer
 	copy(ttlv[buf.Len():], []byte("whitewhale"))
-	err = ttlv.UnmarshalTTLV(TTLV(buf.Bytes()), false)
+	err = ttlv.UnmarshalTTLV(nil, TTLV(buf.Bytes()))
 
 	require.NoError(t, err)
 	require.Equal(t, TTLV(buf.Bytes()), ttlv)
@@ -193,7 +193,7 @@ func TestTTLV_UnmarshalTTLV(t *testing.T) {
 	// everything still works
 
 	ttlv = make(TTLV, buf.Len()-2)
-	err = ttlv.UnmarshalTTLV(TTLV(buf.Bytes()), false)
+	err = ttlv.UnmarshalTTLV(nil, TTLV(buf.Bytes()))
 
 	require.NoError(t, err)
 	require.Equal(t, TTLV(buf.Bytes()), ttlv)
@@ -551,8 +551,8 @@ func TestTTLV_UnmarshalJSON(t *testing.T) {
 func TestTTLV_MarshalJSON(t *testing.T) {
 	tests := []struct {
 		name string
-		in  interface{}
-		exp string
+		in   interface{}
+		exp  string
 	}{
 		{
 			in:  TaggedValue{Tag: TagBatchCount, Value: 10},
@@ -661,7 +661,7 @@ func TestTTLV_MarshalJSON(t *testing.T) {
 			]}`,
 		},
 		{
-			name:"attributesmask",
+			name: "attributesmask",
 			in: Structure{Tag: TagAttribute, Values: []interface{}{
 				TaggedValue{Tag: TagAttributeName, Value: "Cryptographic Usage Mask"},
 				TaggedValue{Tag: TagAttributeValue, Value: CryptographicUsageMaskExport},

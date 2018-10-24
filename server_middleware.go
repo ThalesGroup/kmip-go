@@ -175,9 +175,10 @@ func (h *StandardProtocolHandler) handleRequest(ctx context.Context, req *Reques
 	// That's done by a particular item handler.
 	req.DisallowExtraValues = req.Message.RequestHeader.ProtocolVersion.ProtocolVersionMinor == h.ProtocolVersion.ProtocolVersionMinor
 	req.decoder = NewDecoder(nil)
-	req.decoder.disallowExtraValues = req.DisallowExtraValues
+	req.decoder.DisallowExtraValues = req.DisallowExtraValues
 
 	h.MessageHandler.HandleMessage(ctx, req, resp)
+	resp.ResponseHeader.BatchCount = len(resp.BatchItem)
 
 	respTTLV := resp.Bytes()
 

@@ -1,8 +1,6 @@
 package kmip
 
 import (
-	"bytes"
-	"github.com/ansel1/merry"
 	"math/big"
 )
 
@@ -27,6 +25,39 @@ type Attribute struct {
 	AttributeName  string
 	AttributeIndex int `kmip:",omitempty"`
 	AttributeValue interface{}
+}
+
+func (a *Attribute) UnmarshalTTLV(d *Decoder, ttlv TTLV) error {
+	if len(ttlv) == 0 {
+		return nil
+	}
+
+	if a == nil {
+		*a = Attribute{}
+	}
+
+	// cast a to a different type, to avoid recursive calls to UnmarshalTTLV
+	type attribute Attribute
+	err := d.DecodeValue((*attribute)(a), ttlv)
+	if err != nil {
+		return err
+	}
+
+	av := a.AttributeValue.(TTLV)
+
+	switch av.Type() {
+	case TypeEnumeration:
+		tag, _ := ParseTag(a.AttributeName)
+		if tag != TagNone {
+			a.AttributeValue = EnumToTypedEnum(tag, ttlv.ValueEnumeration())
+		} else {
+			a.AttributeValue = av.Value()
+		}
+	default:
+		a.AttributeValue = av.Value()
+	}
+
+	return nil
 }
 
 // Credential 2.1.2 Table 3
@@ -390,45 +421,42 @@ type TransparentECPublicKey struct {
 //}
 
 type TemplateAttribute struct {
-	Name []Name
+	Name       []Name
 	Attributes map[string]map[int]interface{}
 }
 
-func (t *TemplateAttribute) UnmarshalTTLV(ttlv TTLV, disallowExtraValues bool) error {
+func (t *TemplateAttribute) UnmarshalTTLV(d *Decoder, ttlv TTLV) error {
 	if len(ttlv) == 0 {
 		return nil
+	}
+
+	attr := struct {
+		Name      []Name
+		Attribute []Attribute
+	}{}
+	err := d.DecodeValue(&attr, ttlv)
+	if err != nil {
+		return err
 	}
 
 	if t == nil {
 		*t = TemplateAttribute{}
 	}
 
-	for n := ttlv.ValueStructure(); n != nil; n = n.Next() {
-		switch n.Tag() {
-		case TagName:
-			d := NewDecoder(bytes.NewReader(n))
-			if disallowExtraValues {
-				d.DisallowExtraValues()
-			}
-			err := Unmarshal(n, &t.Attributes)
-			if err != nil {
-				return nil
-			}
-		case TagAttribute:
-			var a Attribute
-			err := Unmarshal(n, &a)
-			if err != nil {
-				return nil
-			}
-
-		default:
-			if disallowExtraValues {
-				return merry.Here(ErrUnexpectedValue)
-			}
+	t.Name = attr.Name
+	for _, a := range attr.Attribute {
+		if t.Attributes == nil {
+			t.Attributes = map[string]map[int]interface{}{}
 		}
+		idxMap := t.Attributes[a.AttributeName]
+		if idxMap == nil {
+			idxMap = map[int]interface{}{}
+			t.Attributes[a.AttributeName] = idxMap
+		}
+		idxMap[a.AttributeIndex] = a.AttributeValue
 	}
 
-
+	return nil
 }
 
 func (t *TemplateAttribute) MarshalTTLV(e *Encoder, tag Tag) error {
@@ -542,14 +570,17 @@ func (t *TemplateAttribute) Add(a Attribute) {
 	m[a.AttributeIndex] = a.AttributeValue
 }
 
+func (t TemplateAttribute) Set2(name string, val interface{}, idx int) interface{} {
+	m := t.getOrCreate(name)
+	p := m[idx]
+	m[idx] = val
+	return p
+}
+
 func (t TemplateAttribute) Set(a Attribute) interface{} {
 	m := t.getOrCreate(a.AttributeName)
 	p := m[a.AttributeIndex]
 	m[a.AttributeIndex] = a.AttributeValue
-
-	if p != nil {
-		return p
-	}
 	return p
 	//if t == nil || t.Attribute == nil {
 	//	return nil

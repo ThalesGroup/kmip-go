@@ -12,7 +12,7 @@ package kmip
 // but are NOT REQUIRED to be globally unique.
 type Name struct {
 	NameValue string
-	NameType NameType
+	NameType  NameType
 }
 
 // Cryptographic Parameters 3.6 Table 65

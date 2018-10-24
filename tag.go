@@ -88,6 +88,16 @@ func ParseEnum(tag Tag, s string) (uint32, error) {
 	return 0, merry.New("must be a number, hex string, or enum value name")
 }
 
+func EnumToTypedEnum(tag Tag, i uint32) interface{} {
+	v, _ := enumRegistry.Load(tag)
+	if v != nil {
+		if v.(enumDef).Typed != nil {
+			return v.(enumDef).Typed(i)
+		}
+	}
+	return i
+}
+
 func EnumToString(tag Tag, i uint32) string {
 	v, _ := enumRegistry.Load(tag)
 	if v != nil {
@@ -102,6 +112,7 @@ func EnumToString(tag Tag, i uint32) string {
 type EnumTypeDef struct {
 	Parse  func(s string) (uint32, bool)
 	String func(v uint32) string
+	Typed  func(v uint32) interface{}
 }
 
 func RegisterEnum(tag Tag, def EnumTypeDef) {

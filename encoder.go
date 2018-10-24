@@ -372,8 +372,13 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 		// push current struct onto stack
 		currStruct := e.currStruct
 		e.currStruct = typ.Name()
-		err := e.EncodeStructure(tag, func(e *Encoder) error {
-			for _, field := range typeInfo.fields {
+
+		fields, err := getFieldsInfo(typ)
+		if err != nil {
+			return err
+		}
+		err = e.EncodeStructure(tag, func(e *Encoder) error {
+			for _, field := range fields {
 				fv := v.FieldByIndex(field.index)
 
 				// note: we're staying in reflection world here instead of
@@ -661,11 +666,6 @@ func getTypeInfo(typ reflect.Type) (ti typeInfo, err error) {
 	// TODO: required tags support, from a subfield like xml.Name
 	ti.tag, _ = ParseTag(typ.Name())
 	ti.typ = typ
-	ti.name = typ.Name()
-
-	if typ.Kind() == reflect.Struct {
-		ti.fields, err = getFieldsInfo(typ)
-	}
 	return
 }
 
@@ -732,7 +732,7 @@ func getFieldInfo(typ reflect.Type, sf reflect.StructField) (fi fieldInfo, err e
 		err := &MarshalerError{
 			Type:   sf.Type,
 			Struct: typ.Name(),
-			Field:  fi.name,
+			Field:  sf.Name,
 		}
 		return fi, merry.WithCause(err, ErrTagConflict).Appendf(`field tag "%s" conflicts type's tag "%s"`, fi.tag, fi.ti.tag)
 	}
@@ -752,7 +752,7 @@ func getFieldInfo(typ reflect.Type, sf reflect.StructField) (fi fieldInfo, err e
 		err := &MarshalerError{
 			Type:   sf.Type,
 			Struct: typ.Name(),
-			Field:  fi.name,
+			Field:  sf.Name,
 		}
 		return fi, merry.WithCause(err, ErrNoTag)
 	}
@@ -799,8 +799,6 @@ type typeInfo struct {
 	typ         reflect.Type
 	tag         Tag
 	tagRequired bool
-	name        string
-	fields      []fieldInfo
 }
 
 type fieldFlags int

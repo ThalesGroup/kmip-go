@@ -18,9 +18,12 @@
   version = "v1.1.1"
 
 [[projects]]
-  digest = "1:db2da41e1fc67f418efcc5ff3e685040790b832260c1b10f0f4d2d0bca014b62"
+  digest = "1:e5aaf7002548446987090cb360300afd4ba5069505ece5f99c747d7f2cec7780"
   name = "github.com/gemalto/flume"
-  packages = ["."]
+  packages = [
+    ".",
+    "flumetest",
+  ]
   pruneopts = "UT"
   revision = "375ee8ead59fcf2204ff09f06d80be2bd400f7b7"
   version = "v0.9.0"
@@ -85,6 +88,14 @@
   version = "v1.2.2"
 
 [[projects]]
+  branch = "master"
+  digest = "1:b0613aa92bca583c12d4816a0594f89a11e0e8bfdac4a700d621a6ea2def2483"
+  name = "gitlab.protectv.local/regan/flume.git"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "22f97a8fcbfc2070b4330ec964366e05036b3390"
+
+[[projects]]
   digest = "1:3c1a69cdae3501bf75e76d0d86dc6f2b0a7421bc205c0cb7b96b19eed464a34d"
   name = "go.uber.org/atomic"
   packages = ["."]
@@ -129,8 +140,10 @@
   input-imports = [
     "github.com/ansel1/merry",
     "github.com/gemalto/flume",
+    "github.com/gemalto/flume/flumetest",
     "github.com/go-errors/errors",
     "github.com/google/uuid",
+    "github.com/pmezard/go-difflib/difflib",
     "github.com/stretchr/testify/assert",
     "github.com/stretchr/testify/require",
   ]

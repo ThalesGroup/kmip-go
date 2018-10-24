@@ -7,8 +7,7 @@ package mock
 import "gitlab.protectv.local/regan/kmip.git"
 
 func NewMockServer() *MockServer {
-	m := MockServer{
-	}
+	m := MockServer{}
 
 	return &m
 }

@@ -26,7 +26,7 @@ type MarshalerError struct {
 func (e *MarshalerError) Error() string {
 	msg := "kmip: error marshaling value"
 	if e.Type != nil {
-		msg += " of type " + e.Type.Name()
+		msg += " of type " + e.Type.String()
 	}
 	if e.Struct != "" {
 		msg += " in struct field " + e.Struct + "." + e.Field

@@ -7,7 +7,7 @@ import "math/big"
 // 2.2.1
 
 type Certificate struct {
-	CertificateType CertificateType
+	CertificateType  CertificateType
 	CertificateValue []byte
 }
 
@@ -32,12 +32,12 @@ type PrivateKey struct {
 // 2.2.5
 
 type SplitKey struct {
-	SplitKeyParts int
+	SplitKeyParts     int
 	KeyPartIdentifier int
 	SplitKeyThreshold int
-	SplitKeyMethod SplitKeyMethod
-	PrimeFieldSize *big.Int `kmip:",omitempty"`
-	KeyBlock KeyBlock
+	SplitKeyMethod    SplitKeyMethod
+	PrimeFieldSize    *big.Int `kmip:",omitempty"`
+	KeyBlock          KeyBlock
 }
 
 // 2.2.6
@@ -50,13 +50,13 @@ type Template struct {
 
 type SecretData struct {
 	SecretDataType SecretDataType
-	KeyBlock KeyBlock
+	KeyBlock       KeyBlock
 }
 
 // 2.2.8
 
 type OpaqueObject struct {
-	OpaqueDataType OpaqueDataType
+	OpaqueDataType  OpaqueDataType
 	OpaqueDataValue []byte
 }
 
@@ -64,7 +64,5 @@ type OpaqueObject struct {
 
 type PGPKey struct {
 	PGPKeyVersion int
-	KeyBlock KeyBlock
+	KeyBlock      KeyBlock
 }
-
-

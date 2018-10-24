@@ -10,28 +10,28 @@ import (
 // Table 169
 
 type RegisterRequestPayload struct {
-	ObjectType ObjectType
+	ObjectType        ObjectType
 	TemplateAttribute TemplateAttribute
-	Certificate *Certificate
-	SymmetricKey *SymmetricKey
-	PrivateKey *PrivateKey
-	PublicKey *PublicKey
-	SplitKey *SplitKey
-	Template *Template
-	SecretData *SecretData
-	OpaqueObject *OpaqueObject
+	Certificate       *Certificate
+	SymmetricKey      *SymmetricKey
+	PrivateKey        *PrivateKey
+	PublicKey         *PublicKey
+	SplitKey          *SplitKey
+	Template          *Template
+	SecretData        *SecretData
+	OpaqueObject      *OpaqueObject
 }
 
 // Table 170
 
 type RegisterResponsePayload struct {
-	UniqueIdentifier string
+	UniqueIdentifier  string
 	TemplateAttribute TemplateAttribute
 }
 
 type RegisterHandler struct {
 	SkipValidation bool
-	RegisterFunc func(context.Context, *RegisterRequestPayload) (*RegisterResponsePayload, error)
+	RegisterFunc   func(context.Context, *RegisterRequestPayload) (*RegisterResponsePayload, error)
 }
 
 func (h *RegisterHandler) HandleItem(ctx context.Context, req *Request) (item *ResponseBatchItem, err error) {
@@ -73,7 +73,7 @@ func (h *RegisterHandler) HandleItem(ctx context.Context, req *Request) (item *R
 		return nil, err
 	}
 
-	req.IDPlaceholder = respPayload.TemplateAttribute.GetTag(TagUniqueIdentifier, 0).(string)
+	req.IDPlaceholder = respPayload.UniqueIdentifier
 
 	return &ResponseBatchItem{
 		ResponsePayload: respPayload,

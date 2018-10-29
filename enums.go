@@ -1236,8 +1236,13 @@ func init() {
 	})
 }
 
-func (c CredentialType) EnumValue() uint32 {
-	return uint32(c)
+// func (c CredentialType) EnumValue() uint32 {
+// 	return uint32(c)
+// }
+
+func (c CredentialType) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(c))
+	return nil
 }
 
 func RegisterCredentialType(c CredentialType, name string) {
@@ -1295,8 +1300,13 @@ func init() {
 	})
 }
 
-func (k KeyCompressionType) EnumValue() uint32 {
-	return uint32(k)
+// func (k KeyCompressionType) EnumValue() uint32 {
+// 	return uint32(k)
+// }
+
+func (k KeyCompressionType) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(k))
+	return nil
 }
 
 func RegisterKeyCompressionType(k KeyCompressionType, name string) {
@@ -1408,8 +1418,13 @@ func init() {
 	})
 }
 
-func (k KeyFormatType) EnumValue() uint32 {
-	return uint32(k)
+// func (k KeyFormatType) EnumValue() uint32 {
+// 	return uint32(k)
+// }
+
+func (k KeyFormatType) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(k))
+	return nil
 }
 
 func RegisterKeyFormatType(k KeyFormatType, name string) {
@@ -1470,8 +1485,13 @@ func init() {
 	})
 }
 
-func (w WrappingMethod) EnumValue() uint32 {
-	return uint32(w)
+// func (w WrappingMethod) EnumValue() uint32 {
+// 	return uint32(w)
+// }
+
+func (w WrappingMethod) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(w))
+	return nil
 }
 
 func RegisterWrappingMethod(w WrappingMethod, name string) {
@@ -1721,8 +1741,13 @@ func init() {
 	})
 }
 
-func (r RecommendedCurve) EnumValue() uint32 {
-	return uint32(r)
+// func (r RecommendedCurve) EnumValue() uint32 {
+// 	return uint32(r)
+// }
+
+func (r RecommendedCurve) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(r))
+	return nil
 }
 
 func RegisterRecommendedCurve(r RecommendedCurve, name string) {
@@ -1774,8 +1799,13 @@ func init() {
 	})
 }
 
-func (c CertificateType) EnumValue() uint32 {
-	return uint32(c)
+// func (c CertificateType) EnumValue() uint32 {
+// 	return uint32(c)
+// }
+
+func (c CertificateType) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(c))
+	return nil
 }
 
 func RegisterCertificateType(c CertificateType, name string) {
@@ -1878,8 +1908,13 @@ func init() {
 	})
 }
 
-func (d DigitalSignatureAlgorithm) EnumValue() uint32 {
-	return uint32(d)
+// func (d DigitalSignatureAlgorithm) EnumValue() uint32 {
+// 	return uint32(d)
+// }
+
+func (d DigitalSignatureAlgorithm) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(d))
+	return nil
 }
 
 func RegisterDigitalSignatureAlgorithm(d DigitalSignatureAlgorithm, name string) {
@@ -1937,8 +1972,13 @@ func init() {
 	})
 }
 
-func (s SplitKeyMethod) EnumValue() uint32 {
-	return uint32(s)
+// func (s SplitKeyMethod) EnumValue() uint32 {
+// 	return uint32(s)
+// }
+
+func (s SplitKeyMethod) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(s))
+	return nil
 }
 
 func RegisterSplitKeyMethod(s SplitKeyMethod, name string) {
@@ -1990,8 +2030,13 @@ func init() {
 	})
 }
 
-func (s SecretDataType) EnumValue() uint32 {
-	return uint32(s)
+// func (s SecretDataType) EnumValue() uint32 {
+// 	return uint32(s)
+// }
+
+func (s SecretDataType) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(s))
+	return nil
 }
 
 func RegisterSecretDataType(s SecretDataType, name string) {
@@ -2034,8 +2079,13 @@ func init() {
 	})
 }
 
-func (o OpaqueDataType) EnumValue() uint32 {
-	return uint32(o)
+// func (o OpaqueDataType) EnumValue() uint32 {
+// 	return uint32(o)
+// }
+
+func (o OpaqueDataType) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(o))
+	return nil
 }
 
 func RegisterOpaqueDataType(o OpaqueDataType, name string) {
@@ -2087,8 +2137,13 @@ func init() {
 	})
 }
 
-func (n NameType) EnumValue() uint32 {
-	return uint32(n)
+// func (n NameType) EnumValue() uint32 {
+// 	return uint32(n)
+// }
+
+func (n NameType) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(n))
+	return nil
 }
 
 func RegisterNameType(n NameType, name string) {
@@ -2161,8 +2216,13 @@ func init() {
 	})
 }
 
-func (o ObjectType) EnumValue() uint32 {
-	return uint32(o)
+// func (o ObjectType) EnumValue() uint32 {
+// 	return uint32(o)
+// }
+
+func (o ObjectType) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(o))
+	return nil
 }
 
 func RegisterObjectType(o ObjectType, name string) {
@@ -2328,8 +2388,13 @@ func init() {
 	})
 }
 
-func (c CryptographicAlgorithm) EnumValue() uint32 {
-	return uint32(c)
+// func (c CryptographicAlgorithm) EnumValue() uint32 {
+// 	return uint32(c)
+// }
+
+func (c CryptographicAlgorithm) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(c))
+	return nil
 }
 
 func RegisterCryptographicAlgorithm(c CryptographicAlgorithm, name string) {
@@ -2429,8 +2494,13 @@ func init() {
 	})
 }
 
-func (b BlockCipherMode) EnumValue() uint32 {
-	return uint32(b)
+// func (b BlockCipherMode) EnumValue() uint32 {
+// 	return uint32(b)
+// }
+
+func (b BlockCipherMode) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(b))
+	return nil
 }
 
 func RegisterBlockCipherMode(b BlockCipherMode, name string) {
@@ -2506,8 +2576,13 @@ func init() {
 	})
 }
 
-func (p PaddingMethod) EnumValue() uint32 {
-	return uint32(p)
+// func (p PaddingMethod) EnumValue() uint32 {
+// 	return uint32(p)
+// }
+
+func (p PaddingMethod) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(p))
+	return nil
 }
 
 func RegisterPaddingMethod(p PaddingMethod, name string) {
@@ -2613,8 +2688,13 @@ func init() {
 	})
 }
 
-func (h HashingAlgorithm) EnumValue() uint32 {
-	return uint32(h)
+// func (h HashingAlgorithm) EnumValue() uint32 {
+// 	return uint32(h)
+// }
+
+func (h HashingAlgorithm) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(h))
+	return nil
 }
 
 func RegisterHashingAlgorithm(h HashingAlgorithm, name string) {
@@ -2732,8 +2812,13 @@ func init() {
 	})
 }
 
-func (k KeyRoleType) EnumValue() uint32 {
-	return uint32(k)
+// func (k KeyRoleType) EnumValue() uint32 {
+// 	return uint32(k)
+// }
+
+func (k KeyRoleType) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(k))
+	return nil
 }
 
 func RegisterKeyRoleType(k KeyRoleType, name string) {
@@ -2797,8 +2882,13 @@ func init() {
 	})
 }
 
-func (s State) EnumValue() uint32 {
-	return uint32(s)
+// func (s State) EnumValue() uint32 {
+// 	return uint32(s)
+// }
+
+func (s State) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(s))
+	return nil
 }
 
 func RegisterState(s State, name string) {
@@ -2865,8 +2955,13 @@ func init() {
 	})
 }
 
-func (r RevocationReasonCode) EnumValue() uint32 {
-	return uint32(r)
+// func (r RevocationReasonCode) EnumValue() uint32 {
+// 	return uint32(r)
+// }
+
+func (r RevocationReasonCode) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(r))
+	return nil
 }
 
 func RegisterRevocationReasonCode(r RevocationReasonCode, name string) {
@@ -2951,8 +3046,13 @@ func init() {
 	})
 }
 
-func (l LinkType) EnumValue() uint32 {
-	return uint32(l)
+// func (l LinkType) EnumValue() uint32 {
+// 	return uint32(l)
+// }
+
+func (l LinkType) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(l))
+	return nil
 }
 
 func RegisterLinkType(l LinkType, name string) {
@@ -3022,8 +3122,13 @@ func init() {
 	})
 }
 
-func (d DerivationMethod) EnumValue() uint32 {
-	return uint32(d)
+// func (d DerivationMethod) EnumValue() uint32 {
+// 	return uint32(d)
+// }
+
+func (d DerivationMethod) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(d))
+	return nil
 }
 
 func RegisterDerivationMethod(d DerivationMethod, name string) {
@@ -3081,8 +3186,13 @@ func init() {
 	})
 }
 
-func (c CertificateRequestType) EnumValue() uint32 {
-	return uint32(c)
+// func (c CertificateRequestType) EnumValue() uint32 {
+// 	return uint32(c)
+// }
+
+func (c CertificateRequestType) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(c))
+	return nil
 }
 
 func RegisterCertificateRequestType(c CertificateRequestType, name string) {
@@ -3137,8 +3247,13 @@ func init() {
 	})
 }
 
-func (v ValidityIndicator) EnumValue() uint32 {
-	return uint32(v)
+// func (v ValidityIndicator) EnumValue() uint32 {
+// 	return uint32(v)
+// }
+
+func (v ValidityIndicator) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(v))
+	return nil
 }
 
 func RegisterValidityIndicator(v ValidityIndicator, name string) {
@@ -3220,8 +3335,13 @@ func init() {
 	})
 }
 
-func (q QueryFunction) EnumValue() uint32 {
-	return uint32(q)
+// func (q QueryFunction) EnumValue() uint32 {
+// 	return uint32(q)
+// }
+
+func (q QueryFunction) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(q))
+	return nil
 }
 
 func RegisterQueryFunction(q QueryFunction, name string) {
@@ -3282,8 +3402,13 @@ func init() {
 	})
 }
 
-func (c CancellationResult) EnumValue() uint32 {
-	return uint32(c)
+// func (c CancellationResult) EnumValue() uint32 {
+// 	return uint32(c)
+// }
+
+func (c CancellationResult) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(c))
+	return nil
 }
 
 func RegisterCancellationResult(c CancellationResult, name string) {
@@ -3335,8 +3460,13 @@ func init() {
 	})
 }
 
-func (p PutFunction) EnumValue() uint32 {
-	return uint32(p)
+// func (p PutFunction) EnumValue() uint32 {
+// 	return uint32(p)
+// }
+
+func (p PutFunction) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(p))
+	return nil
 }
 
 func RegisterPutFunction(p PutFunction, name string) {
@@ -3511,8 +3641,13 @@ func init() {
 	})
 }
 
-func (o Operation) EnumValue() uint32 {
-	return uint32(o)
+// func (o Operation) EnumValue() uint32 {
+// 	return uint32(o)
+// }
+
+func (o Operation) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(o))
+	return nil
 }
 
 func RegisterOperation(o Operation, name string) {
@@ -3570,8 +3705,13 @@ func init() {
 	})
 }
 
-func (r ResultStatus) EnumValue() uint32 {
-	return uint32(r)
+// func (r ResultStatus) EnumValue() uint32 {
+// 	return uint32(r)
+// }
+
+func (r ResultStatus) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(r))
+	return nil
 }
 
 func RegisterResultStatus(r ResultStatus, name string) {
@@ -3692,8 +3832,13 @@ func init() {
 	})
 }
 
-func (r ResultReason) EnumValue() uint32 {
-	return uint32(r)
+// func (r ResultReason) EnumValue() uint32 {
+// 	return uint32(r)
+// }
+
+func (r ResultReason) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(r))
+	return nil
 }
 
 func RegisterResultReason(r ResultReason, name string) {
@@ -3748,8 +3893,13 @@ func init() {
 	})
 }
 
-func (b BatchErrorContinuationOption) EnumValue() uint32 {
-	return uint32(b)
+// func (b BatchErrorContinuationOption) EnumValue() uint32 {
+// 	return uint32(b)
+// }
+
+func (b BatchErrorContinuationOption) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(b))
+	return nil
 }
 
 func RegisterBatchErrorContinuationOption(b BatchErrorContinuationOption, name string) {
@@ -3801,8 +3951,13 @@ func init() {
 	})
 }
 
-func (u UsageLimitsUnit) EnumValue() uint32 {
-	return uint32(u)
+// func (u UsageLimitsUnit) EnumValue() uint32 {
+// 	return uint32(u)
+// }
+
+func (u UsageLimitsUnit) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(u))
+	return nil
 }
 
 func RegisterUsageLimitsUnit(u UsageLimitsUnit, name string) {
@@ -3854,8 +4009,13 @@ func init() {
 	})
 }
 
-func (e EncodingOption) EnumValue() uint32 {
-	return uint32(e)
+// func (e EncodingOption) EnumValue() uint32 {
+// 	return uint32(e)
+// }
+
+func (e EncodingOption) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(e))
+	return nil
 }
 
 func RegisterEncodingOption(e EncodingOption, name string) {
@@ -3907,8 +4067,13 @@ func init() {
 	})
 }
 
-func (o ObjectGroupMember) EnumValue() uint32 {
-	return uint32(o)
+// func (o ObjectGroupMember) EnumValue() uint32 {
+// 	return uint32(o)
+// }
+
+func (o ObjectGroupMember) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(o))
+	return nil
 }
 
 func RegisterObjectGroupMember(o ObjectGroupMember, name string) {
@@ -3975,8 +4140,13 @@ func init() {
 	})
 }
 
-func (a AlternativeNameType) EnumValue() uint32 {
-	return uint32(a)
+// func (a AlternativeNameType) EnumValue() uint32 {
+// 	return uint32(a)
+// }
+
+func (a AlternativeNameType) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(a))
+	return nil
 }
 
 func RegisterAlternativeNameType(a AlternativeNameType, name string) {
@@ -4028,8 +4198,13 @@ func init() {
 	})
 }
 
-func (k KeyValueLocationType) EnumValue() uint32 {
-	return uint32(k)
+// func (k KeyValueLocationType) EnumValue() uint32 {
+// 	return uint32(k)
+// }
+
+func (k KeyValueLocationType) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(k))
+	return nil
 }
 
 func RegisterKeyValueLocationType(k KeyValueLocationType, name string) {
@@ -4084,8 +4259,13 @@ func init() {
 	})
 }
 
-func (a AttestationType) EnumValue() uint32 {
-	return uint32(a)
+// func (a AttestationType) EnumValue() uint32 {
+// 	return uint32(a)
+// }
+
+func (a AttestationType) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(a))
+	return nil
 }
 
 func RegisterAttestationType(a AttestationType, name string) {
@@ -4149,8 +4329,13 @@ func init() {
 	})
 }
 
-func (r RNGAlgorithm) EnumValue() uint32 {
-	return uint32(r)
+// func (r RNGAlgorithm) EnumValue() uint32 {
+// 	return uint32(r)
+// }
+
+func (r RNGAlgorithm) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(r))
+	return nil
 }
 
 func RegisterRNGAlgorithm(r RNGAlgorithm, name string) {
@@ -4211,8 +4396,13 @@ func init() {
 	})
 }
 
-func (d DRBGAlgorithm) EnumValue() uint32 {
-	return uint32(d)
+// func (d DRBGAlgorithm) EnumValue() uint32 {
+// 	return uint32(d)
+// }
+
+func (d DRBGAlgorithm) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(d))
+	return nil
 }
 
 func RegisterDRBGAlgorithm(d DRBGAlgorithm, name string) {
@@ -4279,8 +4469,13 @@ func init() {
 	})
 }
 
-func (f FIPS186Variation) EnumValue() uint32 {
-	return uint32(f)
+// func (f FIPS186Variation) EnumValue() uint32 {
+// 	return uint32(f)
+// }
+
+func (f FIPS186Variation) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(f))
+	return nil
 }
 
 func RegisterFIPS186Variation(f FIPS186Variation, name string) {
@@ -4335,8 +4530,13 @@ func init() {
 	})
 }
 
-func (v ValidationAuthorityType) EnumValue() uint32 {
-	return uint32(v)
+// func (v ValidationAuthorityType) EnumValue() uint32 {
+// 	return uint32(v)
+// }
+
+func (v ValidationAuthorityType) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(v))
+	return nil
 }
 
 func RegisterValidationAuthorityType(v ValidationAuthorityType, name string) {
@@ -4397,8 +4597,13 @@ func init() {
 	})
 }
 
-func (v ValidationType) EnumValue() uint32 {
-	return uint32(v)
+// func (v ValidationType) EnumValue() uint32 {
+// 	return uint32(v)
+// }
+
+func (v ValidationType) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(v))
+	return nil
 }
 
 func RegisterValidationType(v ValidationType, name string) {
@@ -4912,8 +5117,13 @@ func init() {
 	})
 }
 
-func (p ProfileName) EnumValue() uint32 {
-	return uint32(p)
+// func (p ProfileName) EnumValue() uint32 {
+// 	return uint32(p)
+// }
+
+func (p ProfileName) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(p))
+	return nil
 }
 
 func RegisterProfileName(p ProfileName, name string) {
@@ -4968,8 +5178,13 @@ func init() {
 	})
 }
 
-func (u UnwrapMode) EnumValue() uint32 {
-	return uint32(u)
+// func (u UnwrapMode) EnumValue() uint32 {
+// 	return uint32(u)
+// }
+
+func (u UnwrapMode) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(u))
+	return nil
 }
 
 func RegisterUnwrapMode(u UnwrapMode, name string) {
@@ -5036,8 +5251,13 @@ func init() {
 	})
 }
 
-func (d DestroyAction) EnumValue() uint32 {
-	return uint32(d)
+// func (d DestroyAction) EnumValue() uint32 {
+// 	return uint32(d)
+// }
+
+func (d DestroyAction) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(d))
+	return nil
 }
 
 func RegisterDestroyAction(d DestroyAction, name string) {
@@ -5092,8 +5312,13 @@ func init() {
 	})
 }
 
-func (s ShreddingAlgorithm) EnumValue() uint32 {
-	return uint32(s)
+// func (s ShreddingAlgorithm) EnumValue() uint32 {
+// 	return uint32(s)
+// }
+
+func (s ShreddingAlgorithm) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(s))
+	return nil
 }
 
 func RegisterShreddingAlgorithm(s ShreddingAlgorithm, name string) {
@@ -5148,8 +5373,13 @@ func init() {
 	})
 }
 
-func (r RNGMode) EnumValue() uint32 {
-	return uint32(r)
+// func (r RNGMode) EnumValue() uint32 {
+// 	return uint32(r)
+// }
+
+func (r RNGMode) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(r))
+	return nil
 }
 
 func RegisterRNGMode(r RNGMode, name string) {
@@ -5210,8 +5440,13 @@ func init() {
 	})
 }
 
-func (c ClientRegistrationMethod) EnumValue() uint32 {
-	return uint32(c)
+// func (c ClientRegistrationMethod) EnumValue() uint32 {
+// 	return uint32(c)
+// }
+
+func (c ClientRegistrationMethod) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(c))
+	return nil
 }
 
 func RegisterClientRegistrationMethod(c ClientRegistrationMethod, name string) {
@@ -5263,8 +5498,13 @@ func init() {
 	})
 }
 
-func (k KeyWrapType) EnumValue() uint32 {
-	return uint32(k)
+// func (k KeyWrapType) EnumValue() uint32 {
+// 	return uint32(k)
+// }
+
+func (k KeyWrapType) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(k))
+	return nil
 }
 
 func RegisterKeyWrapType(k KeyWrapType, name string) {
@@ -5313,8 +5553,13 @@ func init() {
 	})
 }
 
-func (m MaskGenerator) EnumValue() uint32 {
-	return uint32(m)
+// func (m MaskGenerator) EnumValue() uint32 {
+// 	return uint32(m)
+// }
+
+func (m MaskGenerator) MarshalTTLV(enc *Encoder, tag Tag) error {
+	enc.EncodeEnumeration(tag, uint32(m))
+	return nil
 }
 
 func RegisterMaskGenerator(m MaskGenerator, name string) {

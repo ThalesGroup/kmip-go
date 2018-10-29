@@ -18,23 +18,15 @@
   version = "v1.1.1"
 
 [[projects]]
-  digest = "1:e5aaf7002548446987090cb360300afd4ba5069505ece5f99c747d7f2cec7780"
+  digest = "1:7d7eff71d9458fc48d0dfd8db6ac37188e8748246733e9bb350ca6fde7ffd3c5"
   name = "github.com/gemalto/flume"
   packages = [
     ".",
     "flumetest",
   ]
   pruneopts = "UT"
-  revision = "375ee8ead59fcf2204ff09f06d80be2bd400f7b7"
-  version = "v0.9.0"
-
-[[projects]]
-  digest = "1:aacef5f5e45685f2aeda5534d0a750dee6859de7e9088cdd06192787bb01ae6d"
-  name = "github.com/go-errors/errors"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "a6af135bd4e28680facf08a3d206b454abc877a4"
-  version = "v1.0.1"
+  revision = "64a3f5304b66a8ae5d7a3746f3c7eaa61930466d"
+  version = "v0.9.2"
 
 [[projects]]
   digest = "1:8f8811f9be822914c3a25c6a071e93beb4c805d7b026cbf298bc577bc1cc945b"
@@ -88,14 +80,6 @@
   version = "v1.2.2"
 
 [[projects]]
-  branch = "master"
-  digest = "1:b0613aa92bca583c12d4816a0594f89a11e0e8bfdac4a700d621a6ea2def2483"
-  name = "gitlab.protectv.local/regan/flume.git"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "22f97a8fcbfc2070b4330ec964366e05036b3390"
-
-[[projects]]
   digest = "1:3c1a69cdae3501bf75e76d0d86dc6f2b0a7421bc205c0cb7b96b19eed464a34d"
   name = "go.uber.org/atomic"
   packages = ["."]
@@ -128,11 +112,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:6eb2645d74b43d9c87b51947df39f7c668a4f422cd512053f7f6f75bfaad0197"
+  digest = "1:f22e437d9328275884d0ae018ed0de4c280871c944a5ab332aa37fd71fb5801b"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "d0be0721c37eeb5299f245a996a483160fc36940"
+  revision = "95b1ffbd15a57cc5abb3f04402b9e8ec0016a52c"
 
 [solve-meta]
   analyzer-name = "dep"
@@ -141,7 +125,6 @@
     "github.com/ansel1/merry",
     "github.com/gemalto/flume",
     "github.com/gemalto/flume/flumetest",
-    "github.com/go-errors/errors",
     "github.com/google/uuid",
     "github.com/pmezard/go-difflib/difflib",
     "github.com/stretchr/testify/assert",

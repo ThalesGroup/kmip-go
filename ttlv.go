@@ -1,7 +1,6 @@
 package kmip
 
 import (
-	"bytes"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
@@ -75,7 +74,7 @@ func (t TTLV) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 				attrTag, _ = ParseTag(NormalizeName(n.ValueTextString()))
 			}
 			if n.Tag() == TagAttributeValue && (n.Type() == TypeEnumeration || n.Type() == TypeInteger) {
-				e.EncodeToken(xml.StartElement{
+				err := e.EncodeToken(xml.StartElement{
 					Name: xml.Name{Local: TagAttributeValue.String()},
 					Attr: []xml.Attr{
 						{
@@ -88,10 +87,14 @@ func (t TTLV) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 						},
 					},
 				})
-				e.EncodeToken(xml.EndElement{Name: xml.Name{Local: "AttributeValue"}})
-			} else {
-				err := e.Encode(n)
 				if err != nil {
+					return err
+				}
+				if err := e.EncodeToken(xml.EndElement{Name: xml.Name{Local: "AttributeValue"}}); err != nil {
+					return err
+				}
+			} else {
+				if err := e.Encode(n); err != nil {
 					return err
 				}
 			}
@@ -842,9 +845,9 @@ func (t TTLV) Next() TTLV {
 }
 
 func (t TTLV) String() string {
-	buf := bytes.NewBuffer(nil)
-	Print(buf, "", t)
-	return buf.String()
+	var sb strings.Builder
+	Print(&sb, "", t)
+	return sb.String()
 }
 
 func Print(w io.Writer, indent string, t TTLV) (err error) {
@@ -862,7 +865,7 @@ func Print(w io.Writer, indent string, t TTLV) (err error) {
 			// print the err, and as much of the truncated header as we have
 			fmt.Fprintf(w, " %#x", []byte(t))
 			return
-		case ErrInvalidLen, ErrValueTruncated:
+		case ErrInvalidLen, ErrValueTruncated, ErrInvalidTag:
 			// Something is wrong with the value.  Print the error, and the value
 			fmt.Fprintf(w, " %#x", t.ValueRaw())
 			return

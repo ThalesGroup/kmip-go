@@ -613,7 +613,7 @@ func TestTTLV_MarshalJSON(t *testing.T) {
 			exp: `{"tag":"KeyFormatType","type":"Enumeration","value":"X_509"}`,
 		},
 		{
-			in:  TaggedValue{Tag: TagKeyFormatType, Value: EnumInt(0x00050000)},
+			in:  TaggedValue{Tag: TagKeyFormatType, Value: EnumValue(0x00050000)},
 			exp: `{"tag":"KeyFormatType","type":"Enumeration","value":"0x00050000"}`,
 		},
 		{
@@ -674,7 +674,7 @@ func TestTTLV_MarshalJSON(t *testing.T) {
 		{
 			in: Structure{Tag: TagAttribute, Values: []interface{}{
 				TaggedValue{Tag: TagAttributeName, Value: "Key Format Type"},
-				TaggedValue{Tag: TagAttributeValue, Value: EnumInt(0x00000300)},
+				TaggedValue{Tag: TagAttributeValue, Value: EnumValue(0x00000300)},
 			}},
 			exp: `{"tag":"Attribute","value":[
 				{"tag":"AttributeName","type":"TextString","value":"Key Format Type"},

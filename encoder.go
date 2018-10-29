@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/hex"
+	"errors"
 	"github.com/ansel1/merry"
-	"github.com/go-errors/errors"
 	"io"
 	"math"
 	"math/big"
@@ -17,7 +17,7 @@ import (
 const kmipStructTag = "kmip"
 
 type Encoder struct {
-	structDepth int
+	encodeDepth int
 	w           io.Writer
 	encBuf      encBuf
 
@@ -31,25 +31,33 @@ func NewEncoder(w io.Writer) *Encoder {
 	return &Encoder{w: w}
 }
 
-func (e *Encoder) EncodeValue(tag Tag, v interface{}) error {
-	err := e.encode(tag, v)
-	if err != nil {
-		return err
-	}
-	return e.flush()
-}
-
 func (e *Encoder) Encode(v interface{}) error {
-	err := e.encode(TagNone, v)
+	return e.EncodeValue(TagNone, v)
+}
+
+func (e *Encoder) EncodeValue(tag Tag, v interface{}) error {
+	e.encodeDepth++
+	err := e.encode(tag, v)
+	e.encodeDepth--
 	if err != nil {
 		return err
 	}
-	return e.flush()
-
+	return e.Flush()
 }
 
-func (e *Encoder) flush() error {
-	if e.structDepth > 0 {
+func (e *Encoder) EncodeStructure(tag Tag, f func(e *Encoder) error) error {
+	i := e.encBuf.startStruct(tag)
+	err := f(e)
+	e.encBuf.endStruct(i)
+	return err
+}
+
+func (e *Encoder) EncodeEnumeration(tag Tag, v uint32) {
+	e.encBuf.encodeEnum(tag, v)
+}
+
+func (e *Encoder) Flush() error {
+	if e.encodeDepth > 0 {
 		return nil
 	}
 	_, err := e.encBuf.WriteTo(e.w)
@@ -59,31 +67,19 @@ func (e *Encoder) flush() error {
 
 func (e *Encoder) encode(tag Tag, v interface{}) error {
 
-	switch t := v.(type) {
-	case nil:
-		return nil
-	case Marshaler:
-		return t.MarshalTTLV(e, tag)
-	}
-
-	// if no tag is specified, we need to use the reflect path to see if we can infer it
-	if !tag.valid() {
-		return e.encodeReflectValue(tag, reflect.ValueOf(v), 0)
-	}
-
 	// try non-reflection encoding first
-	err := e.encodeInterfaceValue(tag, v)
+	err := e.encodeFast(tag, v)
 
 	// fallback on reflection encoding
-	if err == errNoEncoder {
-		err = e.encodeReflectValue(tag, reflect.ValueOf(v), 0)
+	if err == errEncodeSlow {
+		return e.encodeSlow(tag, reflect.ValueOf(v), 0)
 	}
 	return err
 }
 
-var errNoEncoder = errors.New("no non-reflect encoders")
+var errEncodeSlow = errors.New("requires reflection encoder path")
 
-func (e *Encoder) newMarshalingError(tag Tag, t reflect.Type, cause error) merry.Error {
+func (e *Encoder) marshalingError(tag Tag, t reflect.Type, cause error) merry.Error {
 	err := &MarshalerError{
 		Type:   t,
 		Struct: e.currStruct,
@@ -93,7 +89,23 @@ func (e *Encoder) newMarshalingError(tag Tag, t reflect.Type, cause error) merry
 	return merry.WrapSkipping(err, 1).WithCause(cause)
 }
 
-func (e *Encoder) encodeInterfaceValue(tag Tag, v interface{}) error {
+func (e *Encoder) encodeInt32(tag Tag, i int32) {
+	if IsEnumeration(tag) {
+		e.encBuf.encodeEnum(tag, uint32(i))
+		return
+	}
+	e.encBuf.encodeInt(tag, i)
+}
+
+func (e *Encoder) encodeInt64(tag Tag, i int64) {
+	if IsEnumeration(tag) {
+		e.encBuf.encodeEnum(tag, uint32(i))
+		return
+	}
+	e.encBuf.encodeLongInt(tag, i)
+}
+
+func (e *Encoder) encodeFast(tag Tag, v interface{}) error {
 	// these are fast path encoders, which avoid reflect
 	// in as many cases as possible.
 	//
@@ -103,45 +115,55 @@ func (e *Encoder) encodeInterfaceValue(tag Tag, v interface{}) error {
 	// reflection altogether, which does provide a good boost
 
 	switch t := v.(type) {
-	case EnumValuer:
-		e.encBuf.encodeEnum(tag, t.EnumValue())
+	case nil:
+		return nil
+	case Marshaler:
+		return t.MarshalTTLV(e, tag)
+	}
+
+	if tag == TagNone {
+		// if no tag is specified, we need to use the reflect path to see if we can infer it
+		return errEncodeSlow
+	}
+
+	switch t := v.(type) {
 	case TTLV:
 		// raw TTLV value
 		e.encBuf.Write(t)
 	case int:
 		if t > math.MaxInt32 {
-			return e.newMarshalingError(tag, intType, ErrIntOverflow)
+			return e.marshalingError(tag, intType, ErrIntOverflow)
 		}
-		e.encBuf.encodeInt(tag, int32(t))
+		e.encodeInt32(tag, int32(t))
 	case int8:
-		e.encBuf.encodeInt(tag, int32(t))
+		e.encodeInt32(tag, int32(t))
 	case int16:
-		e.encBuf.encodeInt(tag, int32(t))
+		e.encodeInt32(tag, int32(t))
 	case int32:
-		e.encBuf.encodeInt(tag, t)
+		e.encodeInt32(tag, int32(t))
 	case uint:
 		if t > math.MaxInt32 {
-			return e.newMarshalingError(tag, uintType, ErrIntOverflow)
+			return e.marshalingError(tag, uintType, ErrIntOverflow)
 		}
-		e.encBuf.encodeInt(tag, int32(t))
+		e.encodeInt32(tag, int32(t))
 	case uint8:
-		e.encBuf.encodeInt(tag, int32(t))
+		e.encodeInt32(tag, int32(t))
 	case uint16:
-		e.encBuf.encodeInt(tag, int32(t))
+		e.encodeInt32(tag, int32(t))
 	case uint32:
 		if t > math.MaxInt32 {
-			return e.newMarshalingError(tag, uint32Type, ErrIntOverflow)
+			return e.marshalingError(tag, uint32Type, ErrIntOverflow)
 		}
-		e.encBuf.encodeInt(tag, int32(t))
+		e.encodeInt32(tag, int32(t))
 	case bool:
 		e.encBuf.encodeBool(tag, t)
 	case int64:
-		e.encBuf.encodeLongInt(tag, t)
+		e.encodeInt64(tag, t)
 	case uint64:
 		if t > math.MaxInt64 {
-			return e.newMarshalingError(tag, uint64Type, ErrLongIntOverflow)
+			return e.marshalingError(tag, uint64Type, ErrLongIntOverflow)
 		}
-		e.encBuf.encodeLongInt(tag, int64(t))
+		e.encodeInt64(tag, int64(t))
 	case time.Time:
 		e.encBuf.encodeDateTime(tag, t)
 	case time.Duration:
@@ -163,9 +185,9 @@ func (e *Encoder) encodeInterfaceValue(tag Tag, v interface{}) error {
 			}
 		}
 	case uintptr, float32, float64, complex64, complex128:
-		return e.newMarshalingError(tag, reflect.TypeOf(v), ErrUnsupportedTypeError)
+		return e.marshalingError(tag, reflect.TypeOf(v), ErrUnsupportedTypeError)
 	default:
-		return errNoEncoder
+		return errEncodeSlow
 	}
 	return nil
 }
@@ -181,8 +203,8 @@ var uint64Type = reflect.TypeOf((*uint64)(nil)).Elem()
 var bigIntPtrType = reflect.TypeOf((*big.Int)(nil))
 var bigIntType = bigIntPtrType.Elem()
 var durationType = reflect.TypeOf(time.Nanosecond)
-var marshalerEnumType = reflect.TypeOf((*EnumValuer)(nil)).Elem()
 var ttlvType = reflect.TypeOf((*TTLV)(nil)).Elem()
+var enumValueType = reflect.TypeOf((*EnumValue)(nil)).Elem()
 
 var invalidValue = reflect.Value{}
 
@@ -246,15 +268,15 @@ func (e *Encoder) encodeReflectEnum(tag Tag, v reflect.Value) error {
 		// can only be encoded as an enum if they are hex strings starting with 0x
 		s := v.String()
 		if !strings.HasPrefix(s, "0x") {
-			return e.newMarshalingError(tag, v.Type(), ErrInvalidHexString).Append("string enum values must be hex strings starting with 0x")
+			return e.marshalingError(tag, v.Type(), ErrInvalidHexString).Append("string enum values must be hex strings starting with 0x")
 		}
 		s = s[2:]
 		if len(s) != 8 {
-			return e.newMarshalingError(tag, v.Type(), ErrInvalidHexString).Appendf("invalid length, must be 8 (4 bytes), got %d", len(s))
+			return e.marshalingError(tag, v.Type(), ErrInvalidHexString).Appendf("invalid length, must be 8 (4 bytes), got %d", len(s))
 		}
 		b, err := hex.DecodeString(s)
 		if err != nil {
-			return e.newMarshalingError(tag, v.Type(), merry.WithCause(ErrInvalidHexString, err))
+			return e.marshalingError(tag, v.Type(), merry.WithCause(ErrInvalidHexString, err))
 		}
 
 		u := binary.BigEndian.Uint32(b)
@@ -263,24 +285,25 @@ func (e *Encoder) encodeReflectEnum(tag Tag, v reflect.Value) error {
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		i := v.Uint()
 		if i > math.MaxUint32 {
-			return e.newMarshalingError(tag, v.Type(), ErrIntOverflow)
+			return e.marshalingError(tag, v.Type(), ErrIntOverflow)
 		}
 		e.encBuf.encodeEnum(tag, uint32(i))
 		return nil
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		i := v.Int()
 		if i > math.MaxUint32 {
-			return e.newMarshalingError(tag, v.Type(), ErrIntOverflow)
+			return e.marshalingError(tag, v.Type(), ErrIntOverflow)
 		}
 		e.encBuf.encodeEnum(tag, uint32(i))
 		return nil
 	default:
-		return e.newMarshalingError(tag, v.Type(), ErrUnsupportedEnumTypeError)
+		return e.marshalingError(tag, v.Type(), ErrUnsupportedEnumTypeError)
 	}
 }
 
-func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags) error {
+func (e *Encoder) encodeSlow(tag Tag, v reflect.Value, flags fieldFlags) error {
 
+	// if pointer or interface
 	v = indirect(v)
 	if !v.IsValid() {
 		return nil
@@ -301,17 +324,17 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 			return nil
 		}
 		e.encBuf.Write(v.Bytes())
+	case typ == enumValueType:
+		if flags&fOmitEmpty != 0 && isEmptyValue(v) {
+			return nil
+		}
+		e.encBuf.encodeEnum(tag, uint32(v.Uint()))
+		return nil
 	case typ.Implements(marshalerType):
 		if flags&fOmitEmpty != 0 && isEmptyValue(v) {
 			return nil
 		}
 		return v.Interface().(Marshaler).MarshalTTLV(e, tag)
-	case typ.Implements(marshalerEnumType):
-		if flags&fOmitEmpty != 0 && isEmptyValue(v) {
-			return nil
-		}
-		e.encBuf.encodeEnum(tag, v.Interface().(EnumValuer).EnumValue())
-		return nil
 	case v.CanAddr():
 		pv := v.Addr()
 		pvtyp := pv.Type()
@@ -321,12 +344,6 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 				return nil
 			}
 			return pv.Interface().(Marshaler).MarshalTTLV(e, tag)
-		case pvtyp.Implements(marshalerEnumType):
-			if flags&fOmitEmpty != 0 && isEmptyValue(v) {
-				return nil
-			}
-			e.encBuf.encodeEnum(tag, pv.Interface().(EnumValuer).EnumValue())
-			return nil
 		}
 	}
 
@@ -336,7 +353,7 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 		reflect.Complex64,
 		reflect.Complex128,
 		reflect.Interface:
-		return e.newMarshalingError(tag, v.Type(), ErrUnsupportedTypeError)
+		return e.marshalingError(tag, v.Type(), ErrUnsupportedTypeError)
 	}
 
 	// skip if value is empty and tags include omitempty
@@ -352,11 +369,6 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 		tag = typeInfo.tag
 	}
 
-	if !tag.valid() {
-		// error, no value tag to use
-		return e.newMarshalingError(tag, typ, ErrInvalidTag).Append(tag.String())
-	}
-
 	if flags&fEnum != 0 {
 		return e.encodeReflectEnum(tag, v)
 	}
@@ -364,7 +376,7 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 	switch typ {
 	case timeType, bigIntType, bigIntPtrType, durationType:
 		// these are some special types which are handled by the non-reflect path
-		return e.encodeInterfaceValue(tag, v.Interface())
+		return e.encodeFast(tag, v.Interface())
 	}
 
 	switch typ.Kind() {
@@ -416,7 +428,7 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 				// push the currField
 				currField := e.currField
 				e.currField = field.name
-				err := e.encodeReflectValue(field.tag, fv, field.flags)
+				err := e.encodeSlow(field.tag, fv, field.flags)
 				// pop the currField
 				e.currField = currField
 				if err != nil {
@@ -442,7 +454,7 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 		for i := 0; i < v.Len(); i++ {
 			// turn off the omit empty flag.  applies at the field level,
 			// not to each member of the slice
-			err := e.encodeReflectValue(tag, v.Index(i), flags&^fOmitEmpty)
+			err := e.encodeSlow(tag, v.Index(i), flags&^fOmitEmpty)
 			if err != nil {
 				return err
 			}
@@ -475,22 +487,6 @@ func (e *Encoder) encodeReflectValue(tag Tag, v reflect.Value, flags fieldFlags)
 	}
 	return nil
 
-}
-
-func (e *Encoder) EncodeStructure(tag Tag, f func(e *Encoder) error) error {
-	if !tag.valid() {
-		return merry.Here(ErrInvalidTag).Append(tag.String())
-	}
-
-	e.structDepth++
-	i := e.encBuf.startStruct(tag)
-	err := f(e)
-	e.encBuf.endStruct(i)
-	e.structDepth--
-	if err != nil {
-		return err
-	}
-	return e.flush()
 }
 
 // encBuf encodes basic KMIP types into TTLV
@@ -570,10 +566,6 @@ func (h *encBuf) encodeBigInt(tag Tag, i *big.Int) {
 }
 
 func (h *encBuf) encodeInt(tag Tag, i int32) {
-	if IsEnumeration(tag) {
-		h.encodeEnum(tag, uint32(i))
-		return
-	}
 	h.encodeHeader(tag, TypeInteger, lenInt)
 	h.encodeIntVal(i)
 	h.Write(h.scratch[:16])
@@ -598,10 +590,6 @@ func (h *encBuf) encodeBool(tag Tag, b bool) {
 }
 
 func (h *encBuf) encodeLongInt(tag Tag, i int64) {
-	if IsEnumeration(tag) {
-		h.encodeEnum(tag, uint32(i))
-		return
-	}
 	h.encodeHeader(tag, TypeLongInteger, lenLongInt)
 	h.encodeLongIntVal(i)
 	h.Write(h.scratch[:16])
@@ -693,14 +681,6 @@ func getFieldInfo(typ reflect.Type, sf reflect.StructField) (fi fieldInfo, err e
 				fi.tag, err = ParseTag(value)
 				if err != nil {
 					return
-				}
-				if !fi.tag.valid() {
-					var err error = &MarshalerError{
-						Type:   typ,
-						Struct: typ.Name(),
-						Field:  sf.Name,
-					}
-					err = merry.WithCause(err, ErrInvalidTag).Append(fi.tag.String())
 				}
 			}
 		} else {

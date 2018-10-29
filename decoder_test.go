@@ -285,15 +285,7 @@ func TestUnmarshal(t *testing.T) {
 		}
 		t.Run(test.name, func(t *testing.T) {
 
-			tv := test.in
-
-			switch ttv := tv.(type) {
-			case Marshaler:
-			default:
-				tv = TaggedValue{Tag: TagBatchCount, Value: ttv}
-			}
-
-			b, err := Marshal(tv)
+			b, err := Marshal(TaggedValue{Tag: TagBatchCount, Value: test.in})
 			require.NoError(t, err)
 
 			v := reflect.New(reflect.TypeOf(test.ptr).Elem())

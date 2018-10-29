@@ -374,54 +374,6 @@ func (*MarshalableSlicePtr) MarshalTTLV(e *Encoder, tag Tag) error {
 	return e.EncodeValue(tag, 5)
 }
 
-type MarshalerEnumFloat32 float32
-
-func (MarshalerEnumFloat32) EnumValue() uint32 {
-	return 5
-}
-
-type MarshalerEnumFloat32Ptr float32
-
-func (*MarshalerEnumFloat32Ptr) EnumValue() uint32 {
-	return 5
-}
-
-type MarshalerEnumFloat64 float64
-
-func (MarshalerEnumFloat64) EnumValue() uint32 {
-	return 5
-}
-
-type MarshalerEnumFloat64Ptr float64
-
-func (*MarshalerEnumFloat64Ptr) EnumValue() uint32 {
-	return 5
-}
-
-type MarshalerEnumMap map[string]string
-
-func (MarshalerEnumMap) EnumValue() uint32 {
-	return 5
-}
-
-type MarshalerEnumMapPtr map[string]string
-
-func (*MarshalerEnumMapPtr) EnumValue() uint32 {
-	return 5
-}
-
-type MarshalerEnumSlice []string
-
-func (MarshalerEnumSlice) EnumValue() uint32 {
-	return 5
-}
-
-type MarshalerEnumSlicePtr []string
-
-func (*MarshalerEnumSlicePtr) EnumValue() uint32 {
-	return 5
-}
-
 func TestEncoder_EncodeValue(t *testing.T) {
 
 	type AttributeValue string
@@ -551,7 +503,7 @@ func TestEncoder_EncodeValue(t *testing.T) {
 		{
 			name:     "enum",
 			v:        CredentialTypeAttestation,
-			expected: TaggedValue{Tag: TagCancellationResult, Value: EnumInt(0x03)},
+			expected: TaggedValue{Tag: TagCancellationResult, Value: EnumValue(0x03)},
 		},
 		// slice
 		{
@@ -1013,18 +965,12 @@ func TestEncoder_EncodeValue(t *testing.T) {
 				Attribute      Marshalablefloat32
 				AttributeValue Marshalablefloat32 `kmip:",omitempty"`
 				ArchiveDate    Marshalablefloat32 `kmip:",omitempty"`
-				BatchCount     MarshalerEnumFloat32
-				BatchItem      MarshalerEnumFloat32 `kmip:",omitempty"`
-				Authentication MarshalerEnumFloat32 `kmip:",omitempty"`
 			}{
 				AttributeValue: Marshalablefloat32(6),
-				BatchItem:      MarshalerEnumFloat32(7),
 			},
 			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
 				TaggedValue{Tag: TagAttribute, Value: int32(5)},
 				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
-				TaggedValue{Tag: TagBatchCount, Value: EnumInt(5)},
-				TaggedValue{Tag: TagBatchItem, Value: EnumInt(5)},
 			}},
 		},
 		{
@@ -1033,18 +979,12 @@ func TestEncoder_EncodeValue(t *testing.T) {
 				Attribute      Marshalablefloat32Ptr
 				AttributeValue Marshalablefloat32Ptr `kmip:",omitempty"`
 				ArchiveDate    Marshalablefloat32Ptr `kmip:",omitempty"`
-				BatchCount     MarshalerEnumFloat32Ptr
-				BatchItem      MarshalerEnumFloat32Ptr `kmip:",omitempty"`
-				Authentication MarshalerEnumFloat32Ptr `kmip:",omitempty"`
 			}{
 				AttributeValue: Marshalablefloat32Ptr(7),
-				BatchItem:      MarshalerEnumFloat32Ptr(7),
 			},
 			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
 				TaggedValue{Tag: TagAttribute, Value: int32(5)},
 				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
-				TaggedValue{Tag: TagBatchCount, Value: EnumInt(5)},
-				TaggedValue{Tag: TagBatchItem, Value: EnumInt(5)},
 			}},
 		},
 		{
@@ -1053,18 +993,12 @@ func TestEncoder_EncodeValue(t *testing.T) {
 				Attribute      Marshalablefloat64
 				AttributeValue Marshalablefloat64 `kmip:",omitempty"`
 				ArchiveDate    Marshalablefloat64 `kmip:",omitempty"`
-				BatchCount     MarshalerEnumFloat64
-				BatchItem      MarshalerEnumFloat64 `kmip:",omitempty"`
-				Authentication MarshalerEnumFloat64 `kmip:",omitempty"`
 			}{
 				AttributeValue: Marshalablefloat64(7),
-				BatchItem:      MarshalerEnumFloat64(7),
 			},
 			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
 				TaggedValue{Tag: TagAttribute, Value: int32(5)},
 				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
-				TaggedValue{Tag: TagBatchCount, Value: EnumInt(5)},
-				TaggedValue{Tag: TagBatchItem, Value: EnumInt(5)},
 			}},
 		},
 		{
@@ -1073,18 +1007,12 @@ func TestEncoder_EncodeValue(t *testing.T) {
 				Attribute      Marshalablefloat64Ptr
 				AttributeValue Marshalablefloat64Ptr `kmip:",omitempty"`
 				ArchiveDate    Marshalablefloat64Ptr `kmip:",omitempty"`
-				BatchCount     MarshalerEnumFloat64Ptr
-				BatchItem      MarshalerEnumFloat64Ptr `kmip:",omitempty"`
-				Authentication MarshalerEnumFloat64Ptr `kmip:",omitempty"`
 			}{
 				AttributeValue: Marshalablefloat64Ptr(7),
-				BatchItem:      MarshalerEnumFloat64Ptr(7),
 			},
 			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
 				TaggedValue{Tag: TagAttribute, Value: int32(5)},
 				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
-				TaggedValue{Tag: TagBatchCount, Value: EnumInt(5)},
-				TaggedValue{Tag: TagBatchItem, Value: EnumInt(5)},
 			}},
 		},
 		{
@@ -1094,23 +1022,14 @@ func TestEncoder_EncodeValue(t *testing.T) {
 				Attribute      MarshalableMap
 				AttributeValue MarshalableMap `kmip:",omitempty"`
 				ArchiveDate    MarshalableMap `kmip:",omitempty"`
-				Comment        MarshalerEnumMap
-				BatchCount     MarshalerEnumMap
-				BatchItem      MarshalerEnumMap `kmip:",omitempty"`
-				Authentication MarshalerEnumMap `kmip:",omitempty"`
 			}{
 				Attribute:      MarshalableMap{},
 				AttributeValue: MarshalableMap{"color": "red"},
 				ArchiveDate:    MarshalableMap{},
-				BatchCount:     MarshalerEnumMap{},
-				BatchItem:      MarshalerEnumMap{"color": "red"},
-				Authentication: MarshalerEnumMap{},
 			},
 			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
 				TaggedValue{Tag: TagAttribute, Value: int32(5)},
 				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
-				TaggedValue{Tag: TagBatchCount, Value: EnumInt(5)},
-				TaggedValue{Tag: TagBatchItem, Value: EnumInt(5)},
 			}},
 		},
 		{
@@ -1120,23 +1039,14 @@ func TestEncoder_EncodeValue(t *testing.T) {
 				Attribute      MarshalableMapPtr
 				AttributeValue MarshalableMapPtr `kmip:",omitempty"`
 				ArchiveDate    MarshalableMapPtr `kmip:",omitempty"`
-				Comment        MarshalerEnumMapPtr
-				BatchCount     MarshalerEnumMapPtr
-				BatchItem      MarshalerEnumMapPtr `kmip:",omitempty"`
-				Authentication MarshalerEnumMapPtr `kmip:",omitempty"`
 			}{
 				Attribute:      MarshalableMapPtr{},
 				AttributeValue: MarshalableMapPtr{"color": "red"},
 				ArchiveDate:    MarshalableMapPtr{},
-				BatchCount:     MarshalerEnumMapPtr{},
-				BatchItem:      MarshalerEnumMapPtr{"color": "red"},
-				Authentication: MarshalerEnumMapPtr{},
 			},
 			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
 				TaggedValue{Tag: TagAttribute, Value: int32(5)},
 				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
-				TaggedValue{Tag: TagBatchCount, Value: EnumInt(5)},
-				TaggedValue{Tag: TagBatchItem, Value: EnumInt(5)},
 			}},
 		},
 		{
@@ -1146,23 +1056,14 @@ func TestEncoder_EncodeValue(t *testing.T) {
 				Attribute      MarshalableSlice
 				AttributeValue MarshalableSlice `kmip:",omitempty"`
 				ArchiveDate    MarshalableSlice `kmip:",omitempty"`
-				Comment        MarshalerEnumSlice
-				BatchCount     MarshalerEnumSlice
-				BatchItem      MarshalerEnumSlice `kmip:",omitempty"`
-				Authentication MarshalerEnumSlice `kmip:",omitempty"`
 			}{
 				Attribute:      MarshalableSlice{},
 				AttributeValue: MarshalableSlice{"color"},
 				ArchiveDate:    MarshalableSlice{},
-				BatchCount:     MarshalerEnumSlice{},
-				BatchItem:      MarshalerEnumSlice{"color"},
-				Authentication: MarshalerEnumSlice{},
 			},
 			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
 				TaggedValue{Tag: TagAttribute, Value: int32(5)},
 				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
-				TaggedValue{Tag: TagBatchCount, Value: EnumInt(5)},
-				TaggedValue{Tag: TagBatchItem, Value: EnumInt(5)},
 			}},
 		},
 		{
@@ -1172,23 +1073,14 @@ func TestEncoder_EncodeValue(t *testing.T) {
 				Attribute      MarshalableSlicePtr
 				AttributeValue MarshalableSlicePtr `kmip:",omitempty"`
 				ArchiveDate    MarshalableSlicePtr `kmip:",omitempty"`
-				Comment        MarshalerEnumSlicePtr
-				BatchCount     MarshalerEnumSlicePtr
-				BatchItem      MarshalerEnumSlicePtr `kmip:",omitempty"`
-				Authentication MarshalerEnumSlicePtr `kmip:",omitempty"`
 			}{
 				Attribute:      MarshalableSlicePtr{},
 				AttributeValue: MarshalableSlicePtr{"color"},
 				ArchiveDate:    MarshalableSlicePtr{},
-				BatchCount:     MarshalerEnumSlicePtr{},
-				BatchItem:      MarshalerEnumSlicePtr{"color"},
-				Authentication: MarshalerEnumSlicePtr{},
 			},
 			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
 				TaggedValue{Tag: TagAttribute, Value: int32(5)},
 				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
-				TaggedValue{Tag: TagBatchCount, Value: EnumInt(5)},
-				TaggedValue{Tag: TagBatchItem, Value: EnumInt(5)},
 			}},
 		},
 		{
@@ -1219,17 +1111,17 @@ func TestEncoder_EncodeValue(t *testing.T) {
 				Uint64:  11,
 			},
 			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
-				TaggedValue{Tag: TagComment, Value: EnumInt(1)},
-				TaggedValue{Tag: TagCommonTemplateAttribute, Value: EnumInt(2)},
-				TaggedValue{Tag: TagCompromiseDate, Value: EnumInt(3)},
-				TaggedValue{Tag: TagCompromiseOccurrenceDate, Value: EnumInt(4)},
-				TaggedValue{Tag: TagContactInformation, Value: EnumInt(5)},
-				TaggedValue{Tag: TagCorrelationValue, Value: EnumInt(6)},
-				TaggedValue{Tag: TagCounterLength, Value: EnumInt(7)},
-				TaggedValue{Tag: TagCredential, Value: EnumInt(8)},
-				TaggedValue{Tag: TagCredentialType, Value: EnumInt(9)},
-				TaggedValue{Tag: TagCredentialValue, Value: EnumInt(10)},
-				TaggedValue{Tag: TagCriticalityIndicator, Value: EnumInt(11)},
+				TaggedValue{Tag: TagComment, Value: EnumValue(1)},
+				TaggedValue{Tag: TagCommonTemplateAttribute, Value: EnumValue(2)},
+				TaggedValue{Tag: TagCompromiseDate, Value: EnumValue(3)},
+				TaggedValue{Tag: TagCompromiseOccurrenceDate, Value: EnumValue(4)},
+				TaggedValue{Tag: TagContactInformation, Value: EnumValue(5)},
+				TaggedValue{Tag: TagCorrelationValue, Value: EnumValue(6)},
+				TaggedValue{Tag: TagCounterLength, Value: EnumValue(7)},
+				TaggedValue{Tag: TagCredential, Value: EnumValue(8)},
+				TaggedValue{Tag: TagCredentialType, Value: EnumValue(9)},
+				TaggedValue{Tag: TagCredentialValue, Value: EnumValue(10)},
+				TaggedValue{Tag: TagCriticalityIndicator, Value: EnumValue(11)},
 			}},
 		},
 		{
@@ -1277,10 +1169,10 @@ func TestEncoder_EncodeValue(t *testing.T) {
 					Structure{Tag: TagCertificateIssuer, Values: []interface{}{
 						TaggedValue{Tag: TagCertificateIssuerAlternativeName, Value: "rick"},
 						TaggedValue{Tag: TagCertificateIssuerC, Value: "bob"},
-						TaggedValue{Tag: TagCertificateIssuerEmail, Value: EnumInt(0)},
-						TaggedValue{Tag: TagCertificateIssuerCN, Value: EnumInt(2)},
-						TaggedValue{Tag: TagCertificateIssuerUID, Value: EnumInt(3)},
-						TaggedValue{Tag: TagCertificateLength, Value: EnumInt(10)},
+						TaggedValue{Tag: TagCertificateIssuerEmail, Value: EnumValue(0)},
+						TaggedValue{Tag: TagCertificateIssuerCN, Value: EnumValue(2)},
+						TaggedValue{Tag: TagCertificateIssuerUID, Value: EnumValue(3)},
+						TaggedValue{Tag: TagCertificateLength, Value: EnumValue(10)},
 					}},
 				}},
 				TaggedValue{Tag: TagBlockCipherMode, Value: int32(5)},
@@ -1405,6 +1297,6 @@ func BenchmarkEncodeSlice(b *testing.B) {
 	rv := reflect.ValueOf(v)
 
 	for i := 0; i < b.N; i++ {
-		enc.encodeReflectValue(TagNone, rv, 0)
+		enc.encodeSlow(TagNone, rv, 0)
 	}
 }

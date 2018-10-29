@@ -36,22 +36,14 @@ type TaggedValue struct {
 
 func (t TaggedValue) MarshalTTLV(e *Encoder, tag Tag) error {
 	// if tag is set, override the suggested tag
-	if t.Tag != 0 {
+	if t.Tag != TagNone {
 		tag = t.Tag
 	}
 
 	return e.EncodeValue(tag, t.Value)
 }
 
-type EnumValuer interface {
-	EnumValue() uint32
-}
-
-type EnumInt uint32
-
-func (i EnumInt) EnumValue() uint32 {
-	return uint32(i)
-}
+type EnumValue uint32
 
 type Authentication struct {
 	Credential []Credential

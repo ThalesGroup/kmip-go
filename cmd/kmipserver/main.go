@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gemalto/flume"
 	"gitlab.protectv.local/regan/kmip.git"
+	"gitlab.protectv.local/regan/kmip.git/ttlv"
 )
 
 func main() {
@@ -31,7 +32,7 @@ func main() {
 
 	kmip.DefaultProtocolHandler.LogTraffic = true
 
-	kmip.DefaultOperationMux.Handle(kmip.OperationDiscoverVersions, &kmip.DiscoverVersionsHandler{
+	kmip.DefaultOperationMux.Handle(ttlv.OperationDiscoverVersions, &kmip.DiscoverVersionsHandler{
 		SupportedVersions: []kmip.ProtocolVersion{
 			{
 				ProtocolVersionMajor: 1,

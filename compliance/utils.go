@@ -3,7 +3,7 @@ package compliance
 import (
 	"encoding/xml"
 	"github.com/pmezard/go-difflib/difflib"
-	"gitlab.protectv.local/regan/kmip.git"
+	"gitlab.protectv.local/regan/kmip.git/ttlv"
 	"regexp"
 	"sort"
 	"strconv"
@@ -305,7 +305,7 @@ func compare(v1, v2 *TTLV, vars map[string]string) (eq bool, v1out *TTLV, v2out 
 
 func isIgnoredTag(tag string) bool {
 	switch tag {
-	case kmip.TagServerCorrelationValue.String(), kmip.TagClientCorrelationValue.String():
+	case ttlv.TagServerCorrelationValue.String(), ttlv.TagClientCorrelationValue.String():
 		return true
 	}
 	return false

@@ -1,5 +1,7 @@
 package kmip
 
+import "gitlab.protectv.local/regan/kmip.git/ttlv"
+
 // 3
 
 // Name 3.2 Table 57
@@ -12,7 +14,7 @@ package kmip
 // but are NOT REQUIRED to be globally unique.
 type Name struct {
 	NameValue string
-	NameType  NameType
+	NameType  ttlv.NameType
 }
 
 // Cryptographic Parameters 3.6 Table 65
@@ -45,22 +47,22 @@ type Name struct {
 //
 // Initial Counter Value is the starting counter value for CTR mode (for [RFC3686] it is 1).
 type CryptographicParameters struct {
-	BlockCipherMode           BlockCipherMode           `kmip:",omitempty"`
-	PaddingMethod             PaddingMethod             `kmip:",omitempty"`
-	HashingAlgorithm          HashingAlgorithm          `kmip:",omitempty"`
-	KeyRoleType               KeyRoleType               `kmip:",omitempty"`
-	DigitalSignatureAlgorithm DigitalSignatureAlgorithm `kmip:",omitempty"`
-	CryptographicAlgorithm    CryptographicAlgorithm    `kmip:",omitempty"`
-	RandomIV                  bool                      `kmip:",omitempty"`
-	IVLength                  int                       `kmip:",omitempty"`
-	TagLength                 int                       `kmip:",omitempty"`
-	FixedFieldLength          int                       `kmip:",omitempty"`
-	InvocationFieldLength     int                       `kmip:",omitempty"`
-	CounterLength             int                       `kmip:",omitempty"`
-	InitialCounterValue       int                       `kmip:",omitempty"`
-	SaltLength                int                       `kmip:",omitempty"`
-	MaskGenerator             MaskGenerator             `kmip:",omitempty" default:"1"` // defaults to MGF1
-	MaskHashingAlgorithm      HashingAlgorithm          `kmip:",omitempty" default:"4"` // defaults to SHA-1
-	PSource                   []byte                    `kmip:",omitempty"`
-	TrailerField              int                       `kmip:",omitempty"`
+	BlockCipherMode           ttlv.BlockCipherMode           `kmip:",omitempty"`
+	PaddingMethod             ttlv.PaddingMethod             `kmip:",omitempty"`
+	HashingAlgorithm          ttlv.HashingAlgorithm          `kmip:",omitempty"`
+	KeyRoleType               ttlv.KeyRoleType               `kmip:",omitempty"`
+	DigitalSignatureAlgorithm ttlv.DigitalSignatureAlgorithm `kmip:",omitempty"`
+	CryptographicAlgorithm    ttlv.CryptographicAlgorithm    `kmip:",omitempty"`
+	RandomIV                  bool                           `kmip:",omitempty"`
+	IVLength                  int                            `kmip:",omitempty"`
+	TagLength                 int                            `kmip:",omitempty"`
+	FixedFieldLength          int                            `kmip:",omitempty"`
+	InvocationFieldLength     int                            `kmip:",omitempty"`
+	CounterLength             int                            `kmip:",omitempty"`
+	InitialCounterValue       int                            `kmip:",omitempty"`
+	SaltLength                int                            `kmip:",omitempty"`
+	MaskGenerator             ttlv.MaskGenerator             `kmip:",omitempty" default:"1"` // defaults to MGF1
+	MaskHashingAlgorithm      ttlv.HashingAlgorithm          `kmip:",omitempty" default:"4"` // defaults to SHA-1
+	PSource                   []byte                         `kmip:",omitempty"`
+	TrailerField              int                            `kmip:",omitempty"`
 }

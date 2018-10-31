@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"gitlab.protectv.local/regan/kmip.git"
+	"gitlab.protectv.local/regan/kmip.git/ttlv"
 )
 
 func main() {
@@ -59,7 +60,7 @@ func client() {
 		BatchItem: []kmip.RequestBatchItem{
 			{
 				UniqueBatchItemID: biID[:],
-				Operation:         kmip.OperationDiscoverVersions,
+				Operation:         ttlv.OperationDiscoverVersions,
 				RequestPayload: kmip.DiscoverVersionsRequestPayload{
 					ProtocolVersion: []kmip.ProtocolVersion{
 						{ProtocolVersionMajor: 1, ProtocolVersionMinor: 2},
@@ -69,14 +70,14 @@ func client() {
 		},
 	}
 
-	mmsg, err := kmip.Marshal(msg)
+	mmsg, err := ttlv.Marshal(msg)
 	if err != nil {
 		panic(err)
 	}
 
 	fmt.Println("== REQUEST ==")
 	fmt.Println("")
-	fmt.Println(kmip.TTLV(mmsg))
+	fmt.Println(ttlv.TTLV(mmsg))
 	fmt.Println("")
 
 	n, err := conn.Write(mmsg)
@@ -94,14 +95,14 @@ func client() {
 
 	fmt.Println("read", n, "bytes")
 
-	ttlv := kmip.TTLV(buf)
+	ttlvV := ttlv.TTLV(buf)
 
 	fmt.Println("")
 	fmt.Println("== RESPONSE ==")
-	if ttlv.Valid() == nil {
+	if ttlvV.Valid() == nil {
 
 		fmt.Println("")
-		fmt.Println(ttlv)
+		fmt.Println(ttlvV)
 	} else {
 		fmt.Println("response is invalid:")
 		fmt.Println(kmip.Details(err))

@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gitlab.protectv.local/regan/kmip.git"
 	"gitlab.protectv.local/regan/kmip.git/mock"
+	"gitlab.protectv.local/regan/kmip.git/ttlv"
 	"io"
 	"net"
 	"os"
@@ -35,7 +36,7 @@ func (mc *MockClient) Do(req []byte) ([]byte, error) {
 
 	// assume the req is xml, convert it to TTLV
 
-	var reqTTLV kmip.TTLV
+	var reqTTLV ttlv.TTLV
 	err := xml.Unmarshal(req, &reqTTLV)
 	if err != nil {
 		return nil, merry.Wrap(err)
@@ -58,14 +59,14 @@ func (mc *MockClient) Do(req []byte) ([]byte, error) {
 	//	return nil, merry.Wrap(err)
 	//}
 
-	dec := kmip.NewDecoder(bufio.NewReader(conn))
+	dec := ttlv.NewDecoder(bufio.NewReader(conn))
 	respTTLV, err := dec.NextTTLV()
 	if err != nil {
 		return nil, merry.Wrap(err)
 	}
 
 	// convert the TTLV back to xml
-	respXML, err := xml.MarshalIndent(kmip.TTLV(respTTLV), "", "  ")
+	respXML, err := xml.MarshalIndent(ttlv.TTLV(respTTLV), "", "  ")
 	if err != nil {
 		return nil, merry.Wrap(err)
 	}
@@ -84,7 +85,7 @@ func init() {
 	flumetest.SetDefaults()
 
 	ms := mock.NewMockServer()
-	ms.Handle(kmip.OperationRegister, &kmip.RegisterHandler{
+	ms.Handle(ttlv.OperationRegister, &kmip.RegisterHandler{
 		RegisterFunc: func(ctx context.Context, payload *kmip.RegisterRequestPayload) (*kmip.RegisterResponsePayload, error) {
 			attrs := kmip.TemplateAttribute{}
 			attrs.Set2("Rank and File", "red", 0)

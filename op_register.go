@@ -3,6 +3,7 @@ package kmip
 import (
 	"context"
 	"github.com/ansel1/merry"
+	"gitlab.protectv.local/regan/kmip.git/ttlv"
 )
 
 // 4.3
@@ -10,7 +11,7 @@ import (
 // Table 169
 
 type RegisterRequestPayload struct {
-	ObjectType        ObjectType
+	ObjectType        ttlv.ObjectType
 	TemplateAttribute TemplateAttribute
 	Certificate       *Certificate
 	SymmetricKey      *SymmetricKey
@@ -45,26 +46,26 @@ func (h *RegisterHandler) HandleItem(ctx context.Context, req *Request) (item *R
 		var payloadPresent bool
 		switch payload.ObjectType {
 		default:
-			return nil, WithResultReason(merry.UserError("Object Type is not recognized"), ResultReasonInvalidField)
-		case ObjectTypeCertificate:
+			return nil, WithResultReason(merry.UserError("Object Type is not recognized"), ttlv.ResultReasonInvalidField)
+		case ttlv.ObjectTypeCertificate:
 			payloadPresent = payload.Certificate != nil
-		case ObjectTypeSymmetricKey:
+		case ttlv.ObjectTypeSymmetricKey:
 			payloadPresent = payload.SymmetricKey != nil
-		case ObjectTypePrivateKey:
+		case ttlv.ObjectTypePrivateKey:
 			payloadPresent = payload.PrivateKey != nil
-		case ObjectTypePublicKey:
+		case ttlv.ObjectTypePublicKey:
 			payloadPresent = payload.PublicKey != nil
-		case ObjectTypeSplitKey:
+		case ttlv.ObjectTypeSplitKey:
 			payloadPresent = payload.SplitKey != nil
-		case ObjectTypeTemplate:
+		case ttlv.ObjectTypeTemplate:
 			payloadPresent = payload.Template != nil
-		case ObjectTypeSecretData:
+		case ttlv.ObjectTypeSecretData:
 			payloadPresent = payload.SecretData != nil
-		case ObjectTypeOpaqueObject:
+		case ttlv.ObjectTypeOpaqueObject:
 			payloadPresent = payload.OpaqueObject != nil
 		}
 		if !payloadPresent {
-			return nil, WithResultReason(merry.UserErrorf("Object Type %s does not match type of cryptographic object provided", payload.ObjectType.String()), ResultReasonInvalidField)
+			return nil, WithResultReason(merry.UserErrorf("Object Type %s does not match type of cryptographic object provided", payload.ObjectType.String()), ttlv.ResultReasonInvalidField)
 		}
 	}
 

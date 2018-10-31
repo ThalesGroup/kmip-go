@@ -7,6 +7,7 @@ import (
 	"github.com/ansel1/merry"
 	"github.com/gemalto/flume"
 	"github.com/google/uuid"
+	"gitlab.protectv.local/regan/kmip.git/ttlv"
 	"io"
 	"sync"
 	"time"
@@ -63,17 +64,17 @@ type StandardProtocolHandler struct {
 }
 
 func (h *StandardProtocolHandler) parseMessage(ctx context.Context, req *Request) error {
-	ttlv := req.TTLV
-	if err := ttlv.Valid(); err != nil {
+	ttlvV := req.TTLV
+	if err := ttlvV.Valid(); err != nil {
 		return merry.Prepend(err, "invalid ttlv")
 	}
 
-	if ttlv.Tag() != TagRequestMessage {
-		return merry.Errorf("invalid tag: expected RequestMessage, was %s", ttlv.Tag().String())
+	if ttlvV.Tag() != ttlv.TagRequestMessage {
+		return merry.Errorf("invalid tag: expected RequestMessage, was %s", ttlvV.Tag().String())
 	}
 
 	var message RequestMessage
-	err := Unmarshal(ttlv, &message)
+	err := ttlv.Unmarshal(ttlvV, &message)
 	if err != nil {
 		return merry.Prepend(err, "failed to parse message")
 	}
@@ -88,7 +89,7 @@ var responsePool = sync.Pool{}
 type Response struct {
 	ResponseMessage
 	buf bytes.Buffer
-	enc *Encoder
+	enc *ttlv.Encoder
 }
 
 func newResponse() *Response {
@@ -99,7 +100,7 @@ func newResponse() *Response {
 		return r
 	}
 	r := Response{}
-	r.enc = NewEncoder(&r.buf)
+	r.enc = ttlv.NewEncoder(&r.buf)
 	return &r
 }
 
@@ -123,10 +124,10 @@ func (r *Response) Bytes() []byte {
 	return r.buf.Bytes()
 }
 
-func (r *Response) errorResponse(reason ResultReason, msg string) {
+func (r *Response) errorResponse(reason ttlv.ResultReason, msg string) {
 	r.BatchItem = []ResponseBatchItem{
 		{
-			ResultStatus:  ResultStatusOperationFailed,
+			ResultStatus:  ttlv.ResultStatusOperationFailed,
 			ResultReason:  reason,
 			ResultMessage: msg,
 		},
@@ -150,7 +151,7 @@ func (h *StandardProtocolHandler) handleRequest(ctx context.Context, req *Reques
 	resp.ResponseHeader.ServerCorrelationValue = scv
 
 	if err := h.parseMessage(ctx, req); err != nil {
-		resp.errorResponse(ResultReasonInvalidMessage, err.Error())
+		resp.errorResponse(ttlv.ResultReasonInvalidMessage, err.Error())
 		return
 	}
 
@@ -163,7 +164,7 @@ func (h *StandardProtocolHandler) handleRequest(ctx context.Context, req *Reques
 
 	clientMajorVersion := req.Message.RequestHeader.ProtocolVersion.ProtocolVersionMajor
 	if clientMajorVersion != h.ProtocolVersion.ProtocolVersionMajor {
-		resp.errorResponse(ResultReasonInvalidMessage,
+		resp.errorResponse(ttlv.ResultReasonInvalidMessage,
 			fmt.Sprintf("mismatched protocol versions, client: %d, server: %d", clientMajorVersion, h.ProtocolVersion.ProtocolVersionMajor))
 		return
 	}
@@ -174,7 +175,7 @@ func (h *StandardProtocolHandler) handleRequest(ctx context.Context, req *Reques
 	// this in this higher level handler, since we (the protocol/message handlers) don't unmarshal the payload.
 	// That's done by a particular item handler.
 	req.DisallowExtraValues = req.Message.RequestHeader.ProtocolVersion.ProtocolVersionMinor == h.ProtocolVersion.ProtocolVersionMinor
-	req.decoder = NewDecoder(nil)
+	req.decoder = ttlv.NewDecoder(nil)
 	req.decoder.DisallowExtraValues = req.DisallowExtraValues
 
 	h.MessageHandler.HandleMessage(ctx, req, resp)
@@ -184,7 +185,7 @@ func (h *StandardProtocolHandler) handleRequest(ctx context.Context, req *Reques
 
 	if req.Message.RequestHeader.MaximumResponseSize > 0 && len(respTTLV) > req.Message.RequestHeader.MaximumResponseSize {
 		// new error resp
-		resp.errorResponse(ResultReasonResponseTooLarge, "")
+		resp.errorResponse(ttlv.ResultReasonResponseTooLarge, "")
 		respTTLV = resp.Bytes()
 	}
 
@@ -203,10 +204,10 @@ func (h *StandardProtocolHandler) ServeKMIP(ctx context.Context, req *Request, w
 
 	var err error
 	if h.LogTraffic {
-		ttlv := resp.Bytes()
+		ttlvV := resp.Bytes()
 
-		logger.Debug("traffic log", "request", req.TTLV.String(), "response", TTLV(ttlv).String())
-		_, err = writer.Write(ttlv)
+		logger.Debug("traffic log", "request", req.TTLV.String(), "response", ttlv.TTLV(ttlvV).String())
+		_, err = writer.Write(ttlvV)
 	} else {
 		_, err = resp.buf.WriteTo(writer)
 	}
@@ -217,12 +218,12 @@ func (h *StandardProtocolHandler) ServeKMIP(ctx context.Context, req *Request, w
 	releaseResponse(resp)
 }
 
-func (r *ResponseMessage) addFailure(reason ResultReason, msg string) {
+func (r *ResponseMessage) addFailure(reason ttlv.ResultReason, msg string) {
 	if msg == "" {
 		msg = reason.String()
 	}
 	r.BatchItem = append(r.BatchItem, ResponseBatchItem{
-		ResultStatus:  ResultStatusOperationFailed,
+		ResultStatus:  ttlv.ResultStatusOperationFailed,
 		ResultReason:  reason,
 		ResultMessage: msg,
 	})
@@ -230,7 +231,7 @@ func (r *ResponseMessage) addFailure(reason ResultReason, msg string) {
 
 type OperationMux struct {
 	mu           sync.RWMutex
-	handlers     map[Operation]ItemHandler
+	handlers     map[ttlv.Operation]ItemHandler
 	ErrorHandler ErrorHandler
 }
 
@@ -246,7 +247,7 @@ func (f ErrorHandlerFunc) HandleError(err error) *ResponseBatchItem {
 
 var DefaultErrorHandler = ErrorHandlerFunc(func(err error) *ResponseBatchItem {
 	reason := GetResultReason(err)
-	if reason == ResultReason(0) {
+	if reason == ttlv.ResultReason(0) {
 		// error not handled
 		return nil
 	}
@@ -259,9 +260,9 @@ var DefaultErrorHandler = ErrorHandlerFunc(func(err error) *ResponseBatchItem {
 	return newFailedResponseBatchItem(reason, msg)
 })
 
-func newFailedResponseBatchItem(reason ResultReason, msg string) *ResponseBatchItem {
+func newFailedResponseBatchItem(reason ttlv.ResultReason, msg string) *ResponseBatchItem {
 	return &ResponseBatchItem{
-		ResultStatus:  ResultStatusOperationFailed,
+		ResultStatus:  ttlv.ResultStatusOperationFailed,
 		ResultReason:  reason,
 		ResultMessage: msg,
 	}
@@ -272,7 +273,7 @@ func (m *OperationMux) bi(ctx context.Context, req *Request, reqItem *RequestBat
 	req.CurrentItem = reqItem
 	h := m.handlerForOp(reqItem.Operation)
 	if h == nil {
-		return newFailedResponseBatchItem(ResultReasonOperationNotSupported, "")
+		return newFailedResponseBatchItem(ttlv.ResultReasonOperationNotSupported, "")
 	}
 
 	resp, err := h.HandleItem(ctx, req)
@@ -301,18 +302,18 @@ func (m *OperationMux) HandleMessage(ctx context.Context, req *Request, resp *Re
 	}
 }
 
-func (m *OperationMux) Handle(op Operation, handler ItemHandler) {
+func (m *OperationMux) Handle(op ttlv.Operation, handler ItemHandler) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
 	if m.handlers == nil {
-		m.handlers = map[Operation]ItemHandler{}
+		m.handlers = map[ttlv.Operation]ItemHandler{}
 	}
 
 	m.handlers[op] = handler
 }
 
-func (m *OperationMux) handlerForOp(op Operation) ItemHandler {
+func (m *OperationMux) handlerForOp(op ttlv.Operation) ItemHandler {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -320,6 +321,6 @@ func (m *OperationMux) handlerForOp(op Operation) ItemHandler {
 }
 
 func (m *OperationMux) missingHandler(ctx context.Context, req *Request, resp *ResponseMessage) error {
-	resp.addFailure(ResultReasonOperationNotSupported, "")
+	resp.addFailure(ttlv.ResultReasonOperationNotSupported, "")
 	return nil
 }

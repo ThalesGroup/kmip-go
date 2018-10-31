@@ -1,13 +1,16 @@
 package kmip
 
-import "math/big"
+import (
+	"gitlab.protectv.local/regan/kmip.git/ttlv"
+	"math/big"
+)
 
 // 2.2
 
 // 2.2.1
 
 type Certificate struct {
-	CertificateType  CertificateType
+	CertificateType  ttlv.CertificateType
 	CertificateValue []byte
 }
 
@@ -35,7 +38,7 @@ type SplitKey struct {
 	SplitKeyParts     int
 	KeyPartIdentifier int
 	SplitKeyThreshold int
-	SplitKeyMethod    SplitKeyMethod
+	SplitKeyMethod    ttlv.SplitKeyMethod
 	PrimeFieldSize    *big.Int `kmip:",omitempty"`
 	KeyBlock          KeyBlock
 }
@@ -49,14 +52,14 @@ type Template struct {
 // 2.2.7
 
 type SecretData struct {
-	SecretDataType SecretDataType
+	SecretDataType ttlv.SecretDataType
 	KeyBlock       KeyBlock
 }
 
 // 2.2.8
 
 type OpaqueObject struct {
-	OpaqueDataType  OpaqueDataType
+	OpaqueDataType  ttlv.OpaqueDataType
 	OpaqueDataValue []byte
 }
 

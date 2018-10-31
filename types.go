@@ -1,50 +1,5 @@
 package kmip
 
-type Marshaler interface {
-	MarshalTTLV(e *Encoder, tag Tag) error
-}
-
-type Unmarshaler interface {
-	UnmarshalTTLV(d *Decoder, ttlv TTLV) error
-}
-
-type Structure struct {
-	Tag    Tag
-	Values []interface{}
-}
-
-func (s Structure) MarshalTTLV(e *Encoder, tag Tag) error {
-	if s.Tag != 0 {
-		tag = s.Tag
-	}
-
-	return e.EncodeStructure(tag, func(encoder *Encoder) error {
-		for _, v := range s.Values {
-			err := encoder.Encode(v)
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-}
-
-type TaggedValue struct {
-	Tag   Tag
-	Value interface{}
-}
-
-func (t TaggedValue) MarshalTTLV(e *Encoder, tag Tag) error {
-	// if tag is set, override the suggested tag
-	if t.Tag != TagNone {
-		tag = t.Tag
-	}
-
-	return e.EncodeValue(tag, t.Value)
-}
-
-type EnumValue uint32
-
 type Authentication struct {
 	Credential []Credential
 }

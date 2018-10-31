@@ -1,12 +1,14 @@
-package kmip
+package ttlv
 
 import (
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"github.com/ansel1/merry"
+	"gitlab.protectv.local/regan/kmip.git/internal/kmiputil"
 	"io"
 	"math/big"
 	"strconv"
@@ -23,6 +25,12 @@ const lenEnumeration = 4
 const lenLongInt = 8
 const lenBool = 8
 const lenHeader = lenTag + 1 + lenLen // tag + type + len
+
+var ErrValueTruncated = errors.New("value truncated")
+var ErrHeaderTruncated = errors.New("header truncated")
+var ErrInvalidLen = errors.New("invalid length")
+var ErrInvalidType = errors.New("invalid KMIP type")
+var ErrInvalidTag = errors.New("invalid tag")
 
 type TTLV []byte
 
@@ -71,7 +79,7 @@ func (t TTLV) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 			// to their string variants
 			if n.Tag() == TagAttributeName {
 				// try to map the attribute name to a tag
-				attrTag, _ = ParseTag(NormalizeName(n.ValueTextString()))
+				attrTag, _ = ParseTag(kmiputil.NormalizeName(n.ValueTextString()))
 			}
 			if n.Tag() == TagAttributeValue && (n.Type() == TypeEnumeration || n.Type() == TypeInteger) {
 				err := e.EncodeToken(xml.StartElement{
@@ -126,9 +134,7 @@ func (t TTLV) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 		out.Value = strconv.FormatUint(uint64(t.ValueInterval()/time.Second), 10)
 	}
 
-	e.Encode(&out)
-
-	return nil
+	return e.Encode(&out)
 }
 
 type xmltval struct {
@@ -247,7 +253,7 @@ func unmarshalXMLTval(buf *encBuf, tval *xmltval, attrTag Tag) error {
 			if ttlv.Tag() == TagAttributeName {
 				// try to parse the value as a tag name, which may be used later
 				// when unmarshaling the AttributeValue
-				attrTag, _ = ParseTag(NormalizeName(ttlv.ValueTextString()))
+				attrTag, _ = ParseTag(kmiputil.NormalizeName(ttlv.ValueTextString()))
 			}
 		}
 		buf.endStruct(i)
@@ -501,9 +507,9 @@ func (t *TTLV) unmarshalJSON(b []byte, attrTag Tag) error {
 				return err
 			}
 			if TagAttributeName == scratch.Tag() {
-				attrTag, _ = ParseTag(NormalizeName(scratch.ValueTextString()))
+				attrTag, _ = ParseTag(kmiputil.NormalizeName(scratch.ValueTextString()))
 			}
-			enc.Write(scratch)
+			_, _ = enc.Write(scratch)
 		}
 		enc.endStruct(s)
 	}
@@ -590,7 +596,7 @@ func (t TTLV) MarshalJSON() ([]byte, error) {
 			// to their string variants
 			if c.Tag() == TagAttributeName {
 				// try to map the attribute name to a tag
-				attrTag, _ = ParseTag(NormalizeName(c.ValueTextString()))
+				attrTag, _ = ParseTag(kmiputil.NormalizeName(c.ValueTextString()))
 			}
 
 			switch {

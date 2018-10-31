@@ -1,4 +1,4 @@
-package kmip
+package ttlv
 
 import (
 	"bytes"

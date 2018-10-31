@@ -1,11 +1,23 @@
-package kmip
+package ttlv
 
 import (
 	"bufio"
+	"bytes"
+	"errors"
 	"github.com/ansel1/merry"
 	"io"
 	"reflect"
 )
+
+var ErrUnexpectedValue = errors.New("no field was found to unmarshal value into")
+
+func Unmarshal(b []byte, v interface{}) error {
+	return NewDecoder(bytes.NewReader(b)).Decode(v)
+}
+
+type Unmarshaler interface {
+	UnmarshalTTLV(d *Decoder, ttlv TTLV) error
+}
 
 type Decoder struct {
 	r                   io.Reader

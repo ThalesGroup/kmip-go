@@ -1,6 +1,7 @@
 package kmip
 
 import (
+	"gitlab.protectv.local/regan/kmip.git/ttlv"
 	"math/big"
 )
 
@@ -27,8 +28,8 @@ type Attribute struct {
 	AttributeValue interface{}
 }
 
-func (a *Attribute) UnmarshalTTLV(d *Decoder, ttlv TTLV) error {
-	if len(ttlv) == 0 {
+func (a *Attribute) UnmarshalTTLV(d *ttlv.Decoder, ttlvV ttlv.TTLV) error {
+	if len(ttlvV) == 0 {
 		return nil
 	}
 
@@ -38,18 +39,18 @@ func (a *Attribute) UnmarshalTTLV(d *Decoder, ttlv TTLV) error {
 
 	// cast a to a different type, to avoid recursive calls to UnmarshalTTLV
 	type attribute Attribute
-	err := d.DecodeValue((*attribute)(a), ttlv)
+	err := d.DecodeValue((*attribute)(a), ttlvV)
 	if err != nil {
 		return err
 	}
 
-	av := a.AttributeValue.(TTLV)
+	av := a.AttributeValue.(ttlv.TTLV)
 
 	switch av.Type() {
-	case TypeEnumeration:
-		tag, _ := ParseTag(a.AttributeName)
-		if tag != TagNone {
-			a.AttributeValue = EnumToTypedEnum(tag, ttlv.ValueEnumeration())
+	case ttlv.TypeEnumeration:
+		tag, _ := ttlv.ParseTag(a.AttributeName)
+		if tag != ttlv.TagNone {
+			a.AttributeValue = ttlv.EnumToTyped(tag, ttlvV.ValueEnumeration())
 		} else {
 			a.AttributeValue = av.Value()
 		}
@@ -69,7 +70,7 @@ func (a *Attribute) UnmarshalTTLV(d *Decoder, ttlv TTLV) error {
 // TODO: add an unmarshal impl to Credential to handle decoding the right kind
 // of credential based on the credential type value
 type Credential struct {
-	CredentialType  CredentialType
+	CredentialType  ttlv.CredentialType
 	CredentialValue interface{}
 }
 
@@ -110,7 +111,7 @@ type DeviceCredentialValue struct {
 // Attestation Measurement or Attestation Assertion fields.
 type AttestationCredentialValue struct {
 	Nonce                  Nonce
-	AttestationType        AttestationType
+	AttestationType        ttlv.AttestationType
 	AttestationMeasurement []byte `kmip:",omitempty"`
 	AttestationAssertion   []byte `kmip:",omitempty"`
 }
@@ -147,12 +148,12 @@ type AttestationCredentialValue struct {
 //
 // TODO: Unmarshaler impl which unmarshals correct KeyValue type.
 type KeyBlock struct {
-	KeyFormatType      KeyFormatType
-	KeyCompressionType KeyCompressionType `kmip:",omitempty"`
+	KeyFormatType      ttlv.KeyFormatType
+	KeyCompressionType ttlv.KeyCompressionType `kmip:",omitempty"`
 	// KeyValue should be either []byte or KeyValue
-	KeyValue               interface{}            `kmip:",omitempty"` // should be either a []byte or KeyValue
-	CryptographicAlgorithm CryptographicAlgorithm `kmip:",omitempty"`
-	CryptographicLength    int                    `kmip:",omitempty"`
+	KeyValue               interface{}                 `kmip:",omitempty"` // should be either a []byte or KeyValue
+	CryptographicAlgorithm ttlv.CryptographicAlgorithm `kmip:",omitempty"`
+	CryptographicLength    int                         `kmip:",omitempty"`
 	KeyWrappingData        *KeyWrappingData
 }
 
@@ -217,12 +218,12 @@ type KeyValue struct {
 // · No Encoding (i.e., the wrapped un-encoded value of the Byte String Key Material field in the Key Value structure).
 // · TTLV Encoding (i.e., the wrapped TTLV-encoded Key Value structure).
 type KeyWrappingData struct {
-	WrappingMethod             WrappingMethod
+	WrappingMethod             ttlv.WrappingMethod
 	EncryptionKeyInformation   *EncryptionKeyInformation
 	MACSignatureKeyInformation *MACSignatureKeyInformation
 	MACSignature               []byte
 	IVCounterNonce             []byte
-	EncodingOption             EncodingOption `kmip:",omitempty" default:"TTLVEncoding"`
+	EncodingOption             ttlv.EncodingOption `kmip:",omitempty" default:"TTLVEncoding"`
 }
 
 // EncryptionKeyInformation 2.1.5 Table 10
@@ -330,7 +331,7 @@ type TransparentDHPublicKey struct {
 // If the Key Format Type in the Key Block is Transparent ECDSA Private Key, then Key Material is a
 // structure as shown in Table 21.
 type TransparentECDSAPrivateKey struct {
-	RecommendedCurve RecommendedCurve
+	RecommendedCurve ttlv.RecommendedCurve
 	D                *big.Int `validate:"required"`
 }
 
@@ -343,7 +344,7 @@ type TransparentECDSAPrivateKey struct {
 // If the Key Format Type in the Key Block is Transparent ECDSA Public Key, then Key Material is a
 // structure as shown in Table 22.
 type TransparentECDSAPublicKey struct {
-	RecommendedCurve RecommendedCurve
+	RecommendedCurve ttlv.RecommendedCurve
 	QString          []byte `validate:"required"`
 }
 
@@ -392,7 +393,7 @@ type TransparentECMQVPublicKey TransparentECPublicKey
 // If the Key Format Type in the Key Block is Transparent EC Private Key, then Key Material is a structure as shown
 // in Table 27.
 type TransparentECPrivateKey struct {
-	RecommendedCurve RecommendedCurve
+	RecommendedCurve ttlv.RecommendedCurve
 	D                *big.Int `validate:"required"`
 }
 
@@ -401,7 +402,7 @@ type TransparentECPrivateKey struct {
 // If the Key Format Type in the Key Block is Transparent EC Public Key, then Key Material is a structure as
 // shown in Table 28.
 type TransparentECPublicKey struct {
-	RecommendedCurve RecommendedCurve
+	RecommendedCurve ttlv.RecommendedCurve
 	QString          []byte `validate:"required"`
 }
 
@@ -425,7 +426,7 @@ type TemplateAttribute struct {
 	Attributes map[string]map[int]interface{}
 }
 
-func (t *TemplateAttribute) UnmarshalTTLV(d *Decoder, ttlv TTLV) error {
+func (t *TemplateAttribute) UnmarshalTTLV(d *ttlv.Decoder, ttlv ttlv.TTLV) error {
 	if len(ttlv) == 0 {
 		return nil
 	}
@@ -459,13 +460,13 @@ func (t *TemplateAttribute) UnmarshalTTLV(d *Decoder, ttlv TTLV) error {
 	return nil
 }
 
-func (t *TemplateAttribute) MarshalTTLV(e *Encoder, tag Tag) error {
+func (t *TemplateAttribute) MarshalTTLV(e *ttlv.Encoder, tag ttlv.Tag) error {
 	if t == nil {
 		return nil
 	}
-	return e.EncodeStructure(tag, func(e *Encoder) error {
+	return e.EncodeStructure(tag, func(e *ttlv.Encoder) error {
 		if len(t.Name) > 0 {
-			err := e.EncodeValue(TagName, t.Name)
+			err := e.EncodeValue(ttlv.TagName, t.Name)
 			if err != nil {
 				return err
 			}
@@ -473,18 +474,18 @@ func (t *TemplateAttribute) MarshalTTLV(e *Encoder, tag Tag) error {
 		for name, m := range t.Attributes {
 			for idx, v := range m {
 				if v != DeletedMarker {
-					err := e.EncodeStructure(TagAttribute, func(e *Encoder) error {
-						err := e.EncodeValue(TagAttributeName, name)
+					err := e.EncodeStructure(ttlv.TagAttribute, func(e *ttlv.Encoder) error {
+						err := e.EncodeValue(ttlv.TagAttributeName, name)
 						if err != nil {
 							return err
 						}
 						if idx != 0 {
-							err := e.EncodeValue(TagAttributeIndex, idx)
+							err := e.EncodeValue(ttlv.TagAttributeIndex, idx)
 							if err != nil {
 								return err
 							}
 						}
-						return e.EncodeValue(TagAttributeValue, v)
+						return e.EncodeValue(ttlv.TagAttributeValue, v)
 					})
 					if err != nil {
 						return err
@@ -517,7 +518,7 @@ func (t *TemplateAttribute) Get(s string, idx int) interface{} {
 	return v
 }
 
-func (t *TemplateAttribute) GetTag(tag Tag, idx int) interface{} {
+func (t *TemplateAttribute) GetTag(tag ttlv.Tag, idx int) interface{} {
 	return t.Get(tag.String(), idx)
 }
 
@@ -534,7 +535,7 @@ func (t *TemplateAttribute) GetAll(s string) map[int]interface{} {
 	return t.Attributes[s]
 }
 
-func (t *TemplateAttribute) GetAllTag(tag Tag) map[int]interface{} {
+func (t *TemplateAttribute) GetAllTag(tag ttlv.Tag) map[int]interface{} {
 	return t.GetAll(tag.String())
 }
 

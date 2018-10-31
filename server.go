@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/ansel1/merry"
 	"github.com/gemalto/flume"
+	"gitlab.protectv.local/regan/kmip.git/ttlv"
 	"io"
 	"net"
 	"runtime"
@@ -211,14 +212,14 @@ type conn struct {
 
 	// bufr reads from rwc.
 	bufr *bufio.Reader
-	dec  *Decoder
+	dec  *ttlv.Decoder
 
 	server *Server
 }
 
 func (c *conn) close() {
 	// TODO: http package has a buffered writer on the conn too, which is flushed here
-	c.rwc.Close()
+	_ = c.rwc.Close()
 }
 
 // Serve a new connection.
@@ -277,7 +278,7 @@ func (c *conn) serve(ctx context.Context) {
 	}
 
 	// TODO: do we really need instance pooling here?  We expect KMIP connections to be long lasting
-	c.dec = NewDecoder(c.rwc)
+	c.dec = ttlv.NewDecoder(c.rwc)
 	c.bufr = bufio.NewReader(c.rwc)
 	//c.bufw = newBufioWriterSize(checkConnErrorWriter{c}, 4<<10)
 
@@ -432,7 +433,7 @@ func (c *conn) readRequest(ctx context.Context) (w *Request, err error) {
 	//peek, _ := c.bufr.Peek(4) // ReadRequest will get err below
 	//c.bufr.Discard(numLeadingCRorLF(peek))
 	//}
-	ttlv, err := c.dec.NextTTLV()
+	ttlvVal, err := c.dec.NextTTLV()
 	if err != nil {
 		return nil, err
 	}
@@ -444,7 +445,7 @@ func (c *conn) readRequest(ctx context.Context) (w *Request, err error) {
 
 	// TODO: use pooling to recycle requests?
 	req := &Request{
-		TTLV:       ttlv,
+		TTLV:       ttlvVal,
 		RemoteAddr: c.remoteAddr,
 		LocalAddr:  c.localAddr,
 		TLS:        c.tlsState,
@@ -461,7 +462,7 @@ func (c *conn) readRequest(ctx context.Context) (w *Request, err error) {
 }
 
 type Request struct {
-	TTLV                TTLV
+	TTLV                ttlv.TTLV
 	Message             *RequestMessage
 	CurrentItem         *RequestBatchItem
 	DisallowExtraValues bool
@@ -472,7 +473,7 @@ type Request struct {
 
 	IDPlaceholder string
 
-	decoder *Decoder
+	decoder *ttlv.Decoder
 }
 
 // coerceToTTLV attempts to coerce an interface value to TTLV.
@@ -480,14 +481,14 @@ type Request struct {
 // places where the value is already a TTLV, and just needs to be
 // type cast.  If v is not TTLV, it will be marshaled.  This latter
 // behavior is slow, so it should be used only in tests.
-func coerceToTTLV(v interface{}) (TTLV, error) {
+func coerceToTTLV(v interface{}) (ttlv.TTLV, error) {
 	switch t := v.(type) {
 	case nil:
 		return nil, nil
-	case TTLV:
+	case ttlv.TTLV:
 		return t, nil
 	default:
-		return Marshal(v)
+		return ttlv.Marshal(v)
 	}
 }
 
@@ -495,7 +496,7 @@ func coerceToTTLV(v interface{}) (TTLV, error) {
 // method over than their own Decoders or Unmarshal().  This method
 // enforces rules about whether extra fields are allowed, and reuses
 // buffers for efficiency.
-func (r *Request) Unmarshal(ttlv TTLV, into interface{}) error {
+func (r *Request) Unmarshal(ttlv ttlv.TTLV, into interface{}) error {
 	if len(ttlv) == 0 {
 		return nil
 	}
@@ -507,11 +508,11 @@ func (r *Request) DecodePayload(v interface{}) error {
 	if r.CurrentItem == nil {
 		return nil
 	}
-	ttlv, err := coerceToTTLV(r.CurrentItem.RequestPayload)
+	ttlvVal, err := coerceToTTLV(r.CurrentItem.RequestPayload)
 	if err != nil {
 		return err
 	}
-	return r.Unmarshal(ttlv, v)
+	return r.Unmarshal(ttlvVal, v)
 }
 
 // onceCloseListener wraps a net.Listener, protecting it from

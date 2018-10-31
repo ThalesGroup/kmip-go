@@ -1,6 +1,9 @@
 package kmip
 
-import "context"
+import (
+	"context"
+	"gitlab.protectv.local/regan/kmip.git/ttlv"
+)
 
 // TODO: should request and response payloads implement validation?
 // Sort of makes sense to run validation over the request at this level, at least for spec
@@ -25,13 +28,13 @@ import "context"
 //
 // TemplateAttribute MUST include CryptographicAlgorithm (3.4) and CryptographicUsageMask (3.19).
 type CreateRequestPayload struct {
-	ObjectType        ObjectType
+	ObjectType        ttlv.ObjectType
 	TemplateAttribute TemplateAttribute
 }
 
 // CreateResponsePayload 4.1 Table 164
 type CreateResponsePayload struct {
-	ObjectType        ObjectType
+	ObjectType        ttlv.ObjectType
 	UniqueIdentifier  string
 	TemplateAttribute *TemplateAttribute
 }
@@ -52,7 +55,7 @@ func (h *CreateHandler) HandleItem(ctx context.Context, req *Request) (*Response
 		return nil, err
 	}
 
-	req.IDPlaceholder = respPayload.TemplateAttribute.GetTag(TagUniqueIdentifier, 0).(string)
+	req.IDPlaceholder = respPayload.TemplateAttribute.GetTag(ttlv.TagUniqueIdentifier, 0).(string)
 
 	return &ResponseBatchItem{
 		ResponsePayload: respPayload,

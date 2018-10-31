@@ -1,10 +1,11 @@
-package kmip
+package ttlv
 
 import (
 	"bytes"
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"github.com/ansel1/merry"
 	"io"
 	"math"
@@ -15,6 +16,63 @@ import (
 )
 
 const kmipStructTag = "kmip"
+
+var ErrIntOverflow = fmt.Errorf("value exceeds max int value %d", math.MaxInt32)
+var ErrLongIntOverflow = fmt.Errorf("value exceeds max long int value %d", math.MaxInt64)
+var ErrUnsupportedEnumTypeError = errors.New("unsupported type for enums, must be string, or int types")
+var ErrUnsupportedTypeError = errors.New("marshaling/unmarshaling is not supported for this type")
+var ErrNoTag = errors.New("unable to determine tag for field")
+var ErrTagConflict = errors.New("")
+
+func Marshal(v interface{}) ([]byte, error) {
+	buf := bytes.NewBuffer(nil)
+	err := NewEncoder(buf).Encode(v)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+type Marshaler interface {
+	MarshalTTLV(e *Encoder, tag Tag) error
+}
+
+type EnumValue uint32
+
+type TaggedValue struct {
+	Tag   Tag
+	Value interface{}
+}
+
+func (t TaggedValue) MarshalTTLV(e *Encoder, tag Tag) error {
+	// if tag is set, override the suggested tag
+	if t.Tag != TagNone {
+		tag = t.Tag
+	}
+
+	return e.EncodeValue(tag, t.Value)
+}
+
+type Structure struct {
+	Tag    Tag
+	Values []interface{}
+}
+
+func (s Structure) MarshalTTLV(e *Encoder, tag Tag) error {
+	if s.Tag != 0 {
+		tag = s.Tag
+	}
+
+	return e.EncodeStructure(tag, func(encoder *Encoder) error {
+		for _, v := range s.Values {
+			err := encoder.Encode(v)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
 
 type Encoder struct {
 	encodeDepth int
@@ -95,6 +153,24 @@ func (e *Encoder) Flush() error {
 	_, err := e.encBuf.WriteTo(e.w)
 	e.encBuf.Reset()
 	return err
+}
+
+type MarshalerError struct {
+	Type   reflect.Type
+	Struct string
+	Field  string
+	Tag    Tag
+}
+
+func (e *MarshalerError) Error() string {
+	msg := "kmip: error marshaling value"
+	if e.Type != nil {
+		msg += " of type " + e.Type.String()
+	}
+	if e.Struct != "" {
+		msg += " in struct field " + e.Struct + "." + e.Field
+	}
+	return msg
 }
 
 func (e *Encoder) marshalingError(tag Tag, t reflect.Type, cause error) merry.Error {

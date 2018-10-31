@@ -1,4 +1,4 @@
-package kmip
+package ttlv
 
 import (
 	"encoding/hex"
@@ -77,9 +77,3 @@ func (t *Type) UnmarshalText(text []byte) (err error) {
 	*t, err = ParseType(string(text))
 	return
 }
-
-type SampleEnum uint32
-
-const (
-	V1 SampleEnum = 0x00000002
-)

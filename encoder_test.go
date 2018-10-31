@@ -183,13 +183,16 @@ type MarshalerStruct struct{}
 
 func (MarshalerStruct) MarshalTTLV(e *Encoder, tag Tag) error {
 	return e.EncodeStructure(TagBatchCount, func(e *Encoder) error {
-		e.EncodeValue(TagActivationDate, 4)
-		e.EncodeValue(TagAlternativeName, 5)
-		e.EncodeValue(TagBatchCount, 3)
-		e.EncodeStructure(TagArchiveDate, func(e *Encoder) error {
+		e.EncodeInt(TagActivationDate, 4)
+		e.EncodeInt(TagAlternativeName, 5)
+		e.EncodeInt(TagBatchCount, 3)
+		err := e.EncodeStructure(TagArchiveDate, func(e *Encoder) error {
 			return e.EncodeValue(TagBatchCount, 3)
 		})
-		e.EncodeValue(TagCancellationResult, "blue")
+		if err != nil {
+			return err
+		}
+		e.EncodeTextString(TagCancellationResult, "blue")
 		return e.EncodeStructure(TagAuthenticatedEncryptionAdditionalData, func(e *Encoder) error {
 			return e.EncodeStructure(TagMaskGenerator, func(e *Encoder) error {
 				return e.EncodeValue(TagBatchCount, 3)
@@ -1297,6 +1300,93 @@ func BenchmarkEncodeSlice(b *testing.B) {
 	rv := reflect.ValueOf(v)
 
 	for i := 0; i < b.N; i++ {
-		enc.encodeSlow(TagNone, rv, 0)
+		_ = enc.encode(TagNone, rv, 0)
+	}
+}
+
+type BatchItem struct {
+	BatchCount            int
+	Attribute             *BatchItem
+	AttributeValue        string
+	WrappingMethod        WrappingMethod
+	CancellationResult    *BatchItem
+	Certificate           int64
+	CertificateIdentifier *big.Int
+	CertificateIssuer     time.Time
+	CertificateRequest    []interface{}
+	CompromiseDate        []byte
+	Credential            bool
+	D                     time.Duration
+}
+
+func (b *BatchItem) MarshalTTLV(e *Encoder, tag Tag) error {
+	return e.EncodeStructure(TagBatchItem, func(e *Encoder) error {
+		e.EncodeInt(TagBatchCount, int32(b.BatchCount))
+		if b.Attribute != nil {
+			if err := b.Attribute.MarshalTTLV(e, TagAttribute); err != nil {
+				return err
+			}
+		}
+		e.EncodeTextString(TagAttributeValue, b.AttributeValue)
+		e.EncodeEnumeration(TagWrappingMethod, uint32(b.WrappingMethod))
+		if b.CancellationResult != nil {
+			if err := b.CancellationResult.MarshalTTLV(e, TagCancellationResult); err != nil {
+				return err
+			}
+		}
+		e.EncodeLongInt(TagCertificate, b.Certificate)
+		e.EncodeBigInt(TagCertificateIdentifier, b.CertificateIdentifier)
+		e.EncodeDateTime(TagCertificateIssuer, b.CertificateIssuer)
+		for _, v := range b.CertificateRequest {
+			if err := e.EncodeValue(TagCertificateRequest, v); err != nil {
+				return err
+			}
+		}
+		e.EncodeByteString(TagCompromiseDate, b.CompromiseDate)
+		e.EncodeBool(TagCredential, b.Credential)
+		e.EncodeInterval(TagD, b.D)
+
+		return nil
+	})
+}
+
+func BenchmarkMarshal_struct(b *testing.B) {
+	s := BatchItem{
+		BatchCount:            10,
+		AttributeValue:        "red",
+		WrappingMethod:        WrappingMethodEncrypt,
+		Certificate:           90,
+		CertificateIdentifier: big.NewInt(200),
+		CertificateIssuer:     time.Now(),
+		CompromiseDate:        []byte("asdfasdfasdfas"),
+		Credential:            true,
+		D:                     time.Minute,
+	}
+	// make a couple clones
+	s1, s2, s3, s4, s5, s6, s7, s8, s9 := s, s, s, s, s, s, s, s, s
+
+	v := &s
+	v.Attribute = &s1
+	v.CancellationResult = &s2
+	v.Attribute.Attribute = &s3
+	v.CancellationResult.CancellationResult = &s4
+	v.Attribute.Attribute.Attribute = &s5
+	v.CancellationResult.CancellationResult.CancellationResult = &s6
+	//v.CertificateRequest = append(v.CertificateRequest, s7, s8, s9)
+	v.CertificateRequest = append(v.CertificateRequest, &s7, &s8, &s9)
+
+	_, e := Marshal(v)
+	require.NoError(b, e)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _ = Marshal(v)
+	}
+}
+
+func BenchmarkEncoder_Encode_interval(b *testing.B) {
+	enc := NewEncoder(ioutil.Discard)
+	for i := 0; i < b.N; i++ {
+		_ = enc.EncodeValue(TagCertificateRequest, time.Minute)
 	}
 }

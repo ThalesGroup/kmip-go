@@ -24,7 +24,7 @@ fmt:
 	go fmt $(PACKAGES)
 
 generate:
-	go install ./cmd/kmipenums
+	go install ./cmd/kmipgen
 	go generate
 	go fmt $(PACKAGES)
 

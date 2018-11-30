@@ -8,7 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ansel1/merry"
-	"gitlab.protectv.local/regan/kmip.git/internal/kmiputil"
+	"github.com/gemalto/kmip-go/internal/kmiputil"
 	"io"
 	"math/big"
 	"strconv"

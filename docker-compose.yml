@@ -4,4 +4,4 @@ services:
     build:
       context: .
     volumes:
-    - ./build:/go/src/gitlab.protectv.local/regan/kmip.git/build
+    - ./build:/go/src/github.com/gemalto/kmip-go/build

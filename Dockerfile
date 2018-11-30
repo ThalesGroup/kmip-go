@@ -5,11 +5,11 @@ FROM golang:1.10.3-alpine
 RUN apk --no-cache add make git curl bash fish
 
 # build tools
-COPY ./Makefile /go/src/gitlab.protectv.local/regan/kmip.git/
-WORKDIR /go/src/gitlab.protectv.local/regan/kmip.git
+COPY ./Makefile /go/src/github.com/gemalto/kmip-go/
+WORKDIR /go/src/github.com/gemalto/kmip-go
 RUN make tools
 
-COPY ./ /go/src/gitlab.protectv.local/regan/kmip.git
+COPY ./ /go/src/github.com/gemalto/kmip-go
 
 CMD make all
 

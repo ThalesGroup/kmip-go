@@ -1,7 +1,7 @@
 package kmip
 
 import (
-	"gitlab.protectv.local/regan/kmip.git/ttlv"
+	"github.com/gemalto/kmip-go/ttlv"
 	"time"
 )
 

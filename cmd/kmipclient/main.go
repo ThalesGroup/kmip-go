@@ -4,9 +4,9 @@ import (
 	"bufio"
 	"crypto/tls"
 	"fmt"
+	"github.com/gemalto/kmip-go"
+	"github.com/gemalto/kmip-go/ttlv"
 	"github.com/google/uuid"
-	"gitlab.protectv.local/regan/kmip.git"
-	"gitlab.protectv.local/regan/kmip.git/ttlv"
 )
 
 func main() {

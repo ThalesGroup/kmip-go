@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ansel1/merry"
-	"gitlab.protectv.local/regan/kmip.git/ttlv"
+	"github.com/gemalto/kmip-go/ttlv"
 )
 
 func Is(err error, originals ...error) bool {

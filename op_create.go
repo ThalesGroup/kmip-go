@@ -2,7 +2,7 @@ package kmip
 
 import (
 	"context"
-	"gitlab.protectv.local/regan/kmip.git/ttlv"
+	"github.com/gemalto/kmip-go/ttlv"
 )
 
 // TODO: should request and response payloads implement validation?

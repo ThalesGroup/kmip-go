@@ -3,7 +3,7 @@ package kmip
 import (
 	"context"
 	"github.com/ansel1/merry"
-	"gitlab.protectv.local/regan/kmip.git/ttlv"
+	"github.com/gemalto/kmip-go/ttlv"
 )
 
 // 4.3

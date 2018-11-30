@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"gitlab.protectv.local/regan/kmip.git/internal/kmiputil"
+	"github.com/gemalto/kmip-go/internal/kmiputil"
 	"strconv"
 	"strings"
 	"sync"

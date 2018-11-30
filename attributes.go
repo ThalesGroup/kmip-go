@@ -1,6 +1,6 @@
 package kmip
 
-import "gitlab.protectv.local/regan/kmip.git/ttlv"
+import "github.com/gemalto/kmip-go/ttlv"
 
 // 3
 

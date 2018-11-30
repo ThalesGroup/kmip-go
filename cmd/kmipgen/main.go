@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"gitlab.protectv.local/regan/kmip.git/internal/kmiputil"
+	"github.com/gemalto/kmip-go/internal/kmiputil"
 	"go/format"
 	"log"
 	"os"
@@ -171,7 +171,7 @@ package ttlv
 
 import (
 	"fmt"
-	"gitlab.protectv.local/regan/kmip.git/internal/kmiputil"
+	"github.com/gemalto/kmip-go/internal/kmiputil"
 	"sort"
 	"strings"
 )

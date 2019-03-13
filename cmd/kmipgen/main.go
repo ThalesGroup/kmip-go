@@ -3,6 +3,8 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -13,6 +15,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"text/template"
 )
@@ -28,8 +31,10 @@ type Specifications struct {
 	Masks []EnumDef `json:"masks"`
 	// Tags is a map of names to tag values.  The name should be
 	// the full name, with spaces, from the spec.
-	Tags    map[string]uint32 `json:"tags"`
-	Package string            `json:"-"`
+	// The values may either be JSON numbers, or a JSON string
+	// containing a hex encoded number, e.g. "0x42015E"
+	Tags    map[string]interface{} `json:"tags"`
+	Package string                 `json:"-"`
 }
 
 // EnumDef describes a single enum or mask value.
@@ -42,7 +47,9 @@ type EnumDef struct {
 	Comment string `json:"comment"`
 	// Values is a map of names to enum values.  Names should be the full name
 	// from the spec, including spaces.
-	Values map[string]uint32 `json:"values"`
+	// The values may either be JSON numbers, or a JSON string
+	// containing a hex encoded number, e.g. "0x42015E"
+	Values map[string]interface{} `json:"values"`
 	// Tags is a list of tag names using this value set.  Names should be the full name
 	//	// from the spec, including spaces.
 	Tags []string `json:"tags"`
@@ -161,7 +168,38 @@ type inputs struct {
 	Masks       []enumVal
 }
 
-func prepareInput(s *Specifications) *inputs {
+func parseUint32(v interface{}) (uint32, error) {
+	switch n := v.(type) {
+	case string:
+
+		if strings.HasPrefix(n, "0x") {
+			b, err := hex.DecodeString(n[2:])
+			if err != nil {
+				return 0, merry.Prepend(err, "invalid hex string")
+			}
+			if len(b) > 4 {
+				return 0, merry.New("invalid hex string: must be max 4 bytes (8 hex characters)")
+			}
+			if len(b) < 4 {
+				b = append(make([]byte, 4-len(b)), b...)
+			}
+			return binary.BigEndian.Uint32(b), nil
+		}
+
+		i, err := strconv.ParseUint(n, 10, 32)
+		if err != nil {
+			return 0, merry.Prependf(err, "invalid integer value (%v)", n)
+		}
+
+		return uint32(i), nil
+	case float64:
+		return uint32(n), nil
+	default:
+		return 0, merry.New("value must be a number, or a hex string, like 0x42015E")
+	}
+}
+
+func prepareInput(s *Specifications) (*inputs, error) {
 	in := inputs{
 		Package: s.Package,
 	}
@@ -175,7 +213,14 @@ func prepareInput(s *Specifications) *inputs {
 	// prepare tag inputs
 	// normalize all the value names
 	for key, value := range s.Tags {
-		in.Tags = append(in.Tags, tagVal{key, kmiputil.NormalizeName(key), value})
+
+		i, err := parseUint32(value)
+		if err != nil {
+			return nil, merry.Prependf(err, "invalid tag value (%v)", value)
+		}
+
+		val := tagVal{key, kmiputil.NormalizeName(key), i}
+		in.Tags = append(in.Tags, val)
 	}
 
 	// sort tags by value
@@ -183,7 +228,7 @@ func prepareInput(s *Specifications) *inputs {
 		return in.Tags[i].Value < in.Tags[j].Value
 	})
 
-	toEnumVal := func(v EnumDef) enumVal {
+	toEnumVal := func(v EnumDef) (enumVal, error) {
 		ev := enumVal{
 			Name:     v.Name,
 			Comment:  v.Comment,
@@ -194,7 +239,13 @@ func prepareInput(s *Specifications) *inputs {
 		// normalize all the value names
 		for key, value := range v.Values {
 			n := kmiputil.NormalizeName(key)
-			ev.Vals = append(ev.Vals, tagVal{key, n, value})
+
+			i, err := parseUint32(value)
+			if err != nil {
+				return enumVal{}, merry.Prependf(err, "invalid tag value (%v)", value)
+			}
+
+			ev.Vals = append(ev.Vals, tagVal{key, n, i})
 		}
 
 		// sort the vals by value order
@@ -206,17 +257,23 @@ func prepareInput(s *Specifications) *inputs {
 		for _, t := range v.Tags {
 			ev.Tags = append(ev.Tags, "Tag"+kmiputil.NormalizeName(t))
 		}
-		return ev
+		return ev, nil
 	}
 
 	// prepare enum and mask values
 	for _, v := range s.Enums {
-		ev := toEnumVal(v)
+		ev, err := toEnumVal(v)
+		if err != nil {
+			return nil, merry.Prependf(err, "error parsing enum %v", v.Name)
+		}
 		in.Enums = append(in.Enums, ev)
 	}
 
 	for _, v := range s.Masks {
-		ev := toEnumVal(v)
+		ev, err := toEnumVal(v)
+		if err != nil {
+			return nil, merry.Prependf(err, "error parsing mask %v", v.Name)
+		}
 		ev.BitMask = true
 		in.Masks = append(in.Masks, ev)
 	}
@@ -229,14 +286,17 @@ func prepareInput(s *Specifications) *inputs {
 		in.Imports = append(in.Imports, "sort", "strings")
 	}
 
-	return &in
+	return &in, nil
 }
 
 func genCode(s *Specifications) (string, error) {
 
 	buf := bytes.NewBuffer(nil)
 
-	in := prepareInput(s)
+	in, err := prepareInput(s)
+	if err != nil {
+		return "", err
+	}
 
 	tmpl := template.New("root")
 	tmpl.Funcs(template.FuncMap{
@@ -248,7 +308,7 @@ func genCode(s *Specifications) (string, error) {
 	template.Must(tmpl.New("enumeration").Parse(enumerationTmpl))
 	template.Must(tmpl.New("mask").Parse(maskTmpl))
 
-	err := tmpl.Execute(buf, in)
+	err = tmpl.Execute(buf, in)
 
 	if err != nil {
 		return "", merry.Prepend(err, "executing template")

@@ -2,8 +2,9 @@
 SHELL = bash
 PACKAGES = $$(go list ./... | grep -v /vendor/)
 BUILD_FLAGS =
+TEST_FLAGS = -vet=-all
 
-all: generate fmt build vet test
+all: generate fmt build test
 
 build:
 	go build $(BUILD_FLAGS) $(PACKAGES)
@@ -27,16 +28,16 @@ generate:
 	go generate $(PACKAGES)
 
 test:
-	go test $(BUILD_FLAGS) $(PACKAGES)
+	go test $(BUILD_FLAGS) $(TEST_FLAGS) $(PACKAGES)
 
 testreport: builddir
 	# runs go test in each package one at a time, generating coverage profiling
     # finally generates a combined junit test report and a test coverage report
     # note: running coverage messes up line numbers in error stacktraces
-	go test $(BUILD_FLAGS) -v -covermode=count -coverprofile=build/coverage.out $(PACKAGES) | tee build/test.out
+	go test $(BUILD_FLAGS) $(TEST_FLAGS) -v -covermode=count -coverprofile=build/coverage.out $(PACKAGES) | tee build/test.out
 	go tool cover -html=build/coverage.out -o build/coverage.html
 	go2xunit -input build/test.out -output build/test.xml
-	! grep -e "--- FAIL" -e "^FAIL" build/test.out
+	@! grep -e "--- FAIL" -e "^FAIL" build/test.out
 
 docker:
 	docker-compose build --pull builder

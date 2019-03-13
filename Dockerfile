@@ -1,4 +1,4 @@
-FROM golang:1.10.3-alpine
+FROM golang:1.11.5-alpine
 
 # ENV http_proxy=$http_proxy
 # ENV http_proxy=http://$HTTP_PROXY

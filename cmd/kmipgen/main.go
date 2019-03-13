@@ -1,8 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
+	"encoding/json"
+	"flag"
 	"fmt"
+	"github.com/ansel1/merry"
 	"github.com/gemalto/kmip-go/internal/kmiputil"
 	"go/format"
 	"log"
@@ -13,188 +17,280 @@ import (
 	"text/template"
 )
 
+// Specifications is the struct which the specifications JSON is unmarshaled into.
+type Specifications struct {
+	// Enums is a collection of enumeration specifications, describing the name of the
+	// enumeration value set, each of the values in the set, and the tag(s) using
+	// this enumeration set.
+	Enums []EnumDef `json:"enums"`
+	// Masks is a collection of mask specifications, describing the name
+	// of the mask set, the values, and the tag(s) using it.
+	Masks []EnumDef `json:"masks"`
+	// Tags is a map of names to tag values.  The name should be
+	// the full name, with spaces, from the spec.
+	Tags    map[string]uint32 `json:"tags"`
+	Package string            `json:"-"`
+}
+
+// EnumDef describes a single enum or mask value.
 type EnumDef struct {
-	Comment string
-	Name    string
-	Values  map[string]uint32
-	Tags    []string
-	BitMask bool
+	// Name of the value.  Names should be the full name
+	//	from the spec, including spaces.
+	Name string `json:"name" validate:"required"`
+	// Comment describing the value set.  Generator will add this to
+	// the golang source code comment on type generated for this value set.
+	Comment string `json:"comment"`
+	// Values is a map of names to enum values.  Names should be the full name
+	// from the spec, including spaces.
+	Values map[string]uint32 `json:"values"`
+	// Tags is a list of tag names using this value set.  Names should be the full name
+	//	// from the spec, including spaces.
+	Tags []string `json:"tags"`
 }
 
 func main() {
 
-	p, err := filepath.Abs("ttlv/enums_generated.go")
+	flag.Usage = func() {
+		_, _ = fmt.Fprintln(flag.CommandLine.Output(), "Usage of kmipgen:")
+		_, _ = fmt.Fprintln(flag.CommandLine.Output(), "")
+		_, _ = fmt.Fprintln(flag.CommandLine.Output(), "Generates go code which registers tags, enumeration values, and mask values with kmip-go.")
+		_, _ = fmt.Fprintln(flag.CommandLine.Output(), "Specifications are defined in a JSON file.")
+		_, _ = fmt.Fprintln(flag.CommandLine.Output(), "")
+		flag.PrintDefaults()
+	}
+
+	var specs Specifications
+
+	var inputFilename string
+	var outputFilename string
+	var usage bool
+
+	flag.StringVar(&inputFilename, "i", "", "Input `filename` of specifications.  Required.")
+	flag.StringVar(&outputFilename, "o", "", "Output `filename`.  Defaults to standard out.")
+	flag.StringVar(&specs.Package, "p", "ttlv", "Go `package` name in generated code.")
+	flag.BoolVar(&usage, "h", false, "Show this usage message.")
+	flag.Parse()
+
+	if usage {
+		flag.Usage()
+		os.Exit(0)
+	}
+
+	if inputFilename == "" {
+		fmt.Println("input file name cannot be empty")
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	inputFile, err := os.Open(inputFilename)
 	if err != nil {
-		panic(err)
+		fmt.Println("error opening input file: ", err.Error())
+		os.Exit(1)
 	}
+	defer inputFile.Close()
 
-	fmt.Println("writing to", p)
-
-	f, err := os.Create(p)
+	err = json.NewDecoder(bufio.NewReader(inputFile)).Decode(&specs)
 	if err != nil {
-		panic(err)
+		fmt.Println("error reading input file: ", err.Error())
 	}
 
-	defer f.Close()
+	var outputWriter *os.File
+	outputWriter = os.Stdout
 
-	s := genTag(Tags)
-	f.WriteString(s)
+	if outputFilename != "" {
+		p, err := filepath.Abs(outputFilename)
+		if err != nil {
+			panic(err)
+		}
 
-	for _, def := range enumDefs {
-		s := gen(def)
-		f.WriteString(s)
-		//write(def)
+		fmt.Println("writing to", p)
+
+		f, err := os.Create(p)
+		if err != nil {
+			panic(err)
+		}
+
+		outputWriter = f
+
+		defer func() {
+			err := f.Sync()
+			if err != nil {
+				fmt.Println("error syncing file: ", err.Error())
+			}
+			err = f.Close()
+			if err != nil {
+				fmt.Println("error closing file: ", err.Error())
+			}
+		}()
 	}
 
-	fmt.Println("wrote to " + f.Name())
+	src, err := genCode(&specs)
+	if err != nil {
+		fmt.Println("error generating code: ", err.Error())
+	}
+
+	_, err = outputWriter.WriteString(src)
+	if err != nil {
+		fmt.Println("error writing to output file", err.Error())
+		os.Exit(1)
+	}
 }
 
-type enumVal struct {
+type tagVal struct {
 	FullName string
 	Name     string
 	Value    uint32
 }
 
-func gen(d EnumDef) string {
+type enumVal struct {
+	Name     string
+	Comment  string
+	Var      string
+	TypeName string
+	Vals     []tagVal
+	Tags     []string
+	BitMask  bool
+}
+
+type inputs struct {
+	Tags        []tagVal
+	Package     string
+	Imports     []string
+	TTLVPackage string
+	Enums       []enumVal
+	Masks       []enumVal
+}
+
+func prepareInput(s *Specifications) *inputs {
+	in := inputs{
+		Package: s.Package,
+	}
+
+	// prepare imports
+	if s.Package != "ttlv" {
+		in.Imports = append(in.Imports, "github.com/gemalto/kmip-go/ttlv")
+		in.TTLVPackage = "ttlv."
+	}
+
+	// prepare tag inputs
+	// normalize all the value names
+	for key, value := range s.Tags {
+		in.Tags = append(in.Tags, tagVal{key, kmiputil.NormalizeName(key), value})
+	}
+
+	// sort tags by value
+	sort.Slice(in.Tags, func(i, j int) bool {
+		return in.Tags[i].Value < in.Tags[j].Value
+	})
+
+	toEnumVal := func(v EnumDef) enumVal {
+		ev := enumVal{
+			Name:     v.Name,
+			Comment:  v.Comment,
+			TypeName: kmiputil.NormalizeName(v.Name),
+		}
+		ev.Var = strings.ToLower(string([]rune(ev.TypeName)[:1]))
+
+		// normalize all the value names
+		for key, value := range v.Values {
+			n := kmiputil.NormalizeName(key)
+			ev.Vals = append(ev.Vals, tagVal{key, n, value})
+		}
+
+		// sort the vals by value order
+		sort.Slice(ev.Vals, func(i, j int) bool {
+			return ev.Vals[i].Value < ev.Vals[j].Value
+		})
+
+		// normalize the tag names
+		for _, t := range v.Tags {
+			ev.Tags = append(ev.Tags, "Tag"+kmiputil.NormalizeName(t))
+		}
+		return ev
+	}
+
+	// prepare enum and mask values
+	for _, v := range s.Enums {
+		ev := toEnumVal(v)
+		in.Enums = append(in.Enums, ev)
+	}
+
+	for _, v := range s.Masks {
+		ev := toEnumVal(v)
+		ev.BitMask = true
+		in.Masks = append(in.Masks, ev)
+	}
+
+	if len(s.Enums) > 0 || len(s.Masks) > 0 {
+		in.Imports = append(in.Imports, "fmt")
+	}
+
+	if len(s.Masks) > 0 {
+		in.Imports = append(in.Imports, "sort", "strings")
+	}
+
+	return &in
+}
+
+func genCode(s *Specifications) (string, error) {
+
 	buf := bytes.NewBuffer(nil)
 
-	//tmpl, err := template.New("boilerplate").Parse(enumTmpl)
-	//if err != nil {
-	//	panic(err)
-	//}
+	in := prepareInput(s)
 
-	tmpl := template.Must(template.New("base").Parse(baseTmpl))
+	tmpl := template.New("root")
+	tmpl.Funcs(template.FuncMap{
+		"ttlvPackage": func() string { return in.TTLVPackage },
+	})
+	template.Must(tmpl.Parse(global))
+	template.Must(tmpl.New("tags").Parse(tags))
+	template.Must(tmpl.New("base").Parse(baseTmpl))
 	template.Must(tmpl.New("enumeration").Parse(enumerationTmpl))
 	template.Must(tmpl.New("mask").Parse(maskTmpl))
 
-	input := struct {
-		EnumDef
-		Var      string
-		TypeName string
-		Vals     []enumVal
-	}{
-		EnumDef:  d,
-		TypeName: kmiputil.NormalizeName(d.Name),
-	}
-	input.Var = strings.ToLower(string([]rune(input.TypeName)[:1]))
-
-	// normalize all the value names
-	for key, value := range d.Values {
-		n := kmiputil.NormalizeName(key)
-		input.Vals = append(input.Vals, enumVal{key, n, value})
-	}
-
-	// sort the vals by value order
-	sort.Slice(input.Vals, func(i, j int) bool {
-		return input.Vals[i].Value < input.Vals[j].Value
-	})
-
-	// normalize the tag names
-	for i := range input.Tags {
-		input.Tags[i] = "Tag" + kmiputil.NormalizeName(input.Tags[i])
-	}
-
-	var err error
-	if input.BitMask {
-		err = tmpl.ExecuteTemplate(buf, "mask", input)
-	} else {
-		err = tmpl.ExecuteTemplate(buf, "enumeration", input)
-	}
+	err := tmpl.Execute(buf, in)
 
 	if err != nil {
-		panic(err)
+		return "", merry.Prepend(err, "executing template")
 	}
 
-	//fmt.Fprintf(buf, stringerMeth, d.name)
-
 	// format returns the gofmt-ed contents of the Generator's buffer.
-
 	src, err := format.Source(buf.Bytes())
 	if err != nil {
 		// Should never happen, but can arise when developing this code.
 		// The user can compile the output to see the error.
 		log.Printf("warning: internal error: invalid Go generated: %s", err)
 		log.Printf("warning: compile the package to analyze the error")
-		return buf.String()
+		return buf.String(), nil
 	}
-	return string(src)
+
+	return string(src), nil
 }
 
-func genTag(d map[string]uint32) string {
-	buf := bytes.NewBuffer(nil)
+const global = `// Code generated by kmipgen; DO NOT EDIT.
+package {{.Package}}
 
-	tmpl, err := template.New("boilerplate").Parse(tagTmpl)
-	if err != nil {
-		panic(err)
-	}
-
-	inputs := struct {
-		Vals []enumVal
-		Cmd  string
-	}{
-		Cmd: strings.Join(os.Args, " "),
-	}
-
-	// normalize all the value names
-	for key, value := range d {
-		inputs.Vals = append(inputs.Vals, enumVal{key, kmiputil.NormalizeName(key), value})
-	}
-
-	sort.Slice(inputs.Vals, func(i, j int) bool {
-		return inputs.Vals[i].Value < inputs.Vals[j].Value
-	})
-
-	err = tmpl.Execute(buf, inputs)
-
-	if err != nil {
-		panic(err)
-	}
-
-	//fmt.Fprintf(buf, stringerMeth, d.name)
-
-	// format returns the gofmt-ed contents of the Generator's buffer.
-
-	src, err := format.Source(buf.Bytes())
-	if err != nil {
-		// Should never happen, but can arise when developing this code.
-		// The user can compile the output to see the error.
-		log.Printf("warning: internal error: invalid Go generated: %s", err)
-		log.Printf("warning: compile the package to analyze the error")
-		return buf.String()
-	}
-	return string(src)
-}
-
-const tagTmpl = `// Code generated by "{{.Cmd}}"; DO NOT EDIT.
-
-package ttlv
-
+{{with .Imports}}
 import (
-	"fmt"
-	"github.com/gemalto/kmip-go/internal/kmiputil"
-	"sort"
-	"strings"
-)
+{{range .}} "{{.}}"
+{{end}})
+{{end}}
 
-// Tag
-// 9.1.3.1
-type Tag uint32
+{{with .Tags}}{{template "tags" .}}{{end}}
 
-const ({{range .Vals}}
-	Tag{{.Name}} Tag = {{.Value | printf "%#06x"}}{{end}}
-)
+{{with .Enums}}{{range .}}{{template "enumeration" .}}{{end}}{{end}}
 
-var _TagNameToValueMap = map[string]Tag { {{range .Vals}}
-	"{{.Name}}": Tag{{.Name}},{{end}}
-}
+{{with .Masks}}{{range .}}{{template "mask" .}}{{end}}{{end}}
+`
 
-var _TagValueToNameMap = map[Tag]string { {{range .Vals}}
-	Tag{{.Name}}: "{{.Name}}",{{end}}
-}
+const tags = `
+const (
+{{range .}}	Tag{{.Name}} {{ttlvPackage}}Tag = {{.Value | printf "%#06x"}}
+{{end}})
 
-var _TagValueToFullNameMap = map[Tag]string { {{range .Vals}}
-	Tag{{.Name}}: "{{.FullName}}",{{end}}
-}
+func init() { 
+{{range .}} {{ttlvPackage}}RegisterTag({{ttlvPackage}}Tag({{.Value | printf "%#06x"}}), "{{.FullName}}")
+{{end}}}
 `
 
 const baseTmpl = `
@@ -222,7 +318,7 @@ func ({{.Var}} {{.TypeName}}) MarshalText() (text []byte, err error) {
 {{ if .Tags }}
 {{ $bitMask := .BitMask }}
 func init() { {{range .Tags}}
-	Register{{if $bitMask}}BitMask{{else}}Enum{{end}}({{.}}, EnumTypeDef{
+	{{ttlvPackage}}Register{{if $bitMask}}BitMask{{else}}Enum{{end}}({{.}}, {{ttlvPackage}}EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _{{$typeName}}NameToValueMap[s] 
 			return uint32(v), ok
@@ -231,19 +327,20 @@ func init() { {{range .Tags}}
 			return {{$typeName}}(v).String()		
 		},
 	}){{end}}
-}{{end}}`
+}{{end}}
+`
 
 const enumerationTmpl = `
 // {{.Name}} Enumeration
 {{template "base" . }}
 
-func ({{.Var}} {{.TypeName}}) MarshalTTLV(enc *Encoder, tag Tag) error {
+func ({{.Var}} {{.TypeName}}) MarshalTTLV(enc *{{ttlvPackage}}Encoder, tag {{ttlvPackage}}Tag) error {
 	enc.EncodeEnumeration(tag, uint32({{.Var}}))
 	return nil
 }
 
 func Register{{.TypeName}}({{.Var}} {{.TypeName}}, name string) {
-	name = kmiputil.NormalizeName(name)
+	name = {{ttlvPackage}}NormalizeName(name)
 	_{{.TypeName}}NameToValueMap[name] = {{.Var}}
 	_{{.TypeName}}ValueToNameMap[{{.Var}}] = name
 }
@@ -262,7 +359,7 @@ const maskTmpl = `
 {{template "base" . }}
 
 func Register{{.TypeName}}({{.Var}} {{.TypeName}}, name string) {
-	name = kmiputil.NormalizeName(name)
+	name = {{ttlvPackage}}NormalizeName(name)
 	_{{.TypeName}}NameToValueMap[name] = {{.Var}}
 	_{{.TypeName}}ValueToNameMap[{{.Var}}] = name
 	_{{.TypeName}}SortedValues = append(_{{.TypeName}}SortedValues, int({{.Var}}))
@@ -308,1290 +405,3 @@ func ({{.Var}} {{.TypeName}}) String() string {
 	}
 	return sb.String()
 }`
-
-var Tags = map[string]uint32{
-	"None":                                     0x000000,
-	"Activation Date":                          0x420001,
-	"Application Data":                         0x420002,
-	"Application Namespace":                    0x420003,
-	"Application Specific Information":         0x420004,
-	"Archive Date":                             0x420005,
-	"Asynchronous Correlation Value":           0x420006,
-	"Asynchronous Indicator":                   0x420007,
-	"Attribute":                                0x420008,
-	"Attribute Index":                          0x420009,
-	"Attribute Name":                           0x42000A,
-	"Attribute Value":                          0x42000B,
-	"Authentication":                           0x42000C,
-	"Batch Count":                              0x42000D,
-	"Batch Error Continuation Option":          0x42000E,
-	"Batch Item":                               0x42000F,
-	"Batch Order Option":                       0x420010,
-	"Block Cipher Mode":                        0x420011,
-	"Cancellation Result":                      0x420012,
-	"Certificate":                              0x420013,
-	"Certificate Identifier":                   0x420014,
-	"Certificate Issuer":                       0x420015,
-	"Certificate Issuer Alternative Name":      0x420016,
-	"Certificate Issuer Distinguished Name":    0x420017,
-	"Certificate Request":                      0x420018,
-	"Certificate Request Type":                 0x420019,
-	"Certificate Subject":                      0x42001A,
-	"Certificate Subject Alternative Name":     0x42001B,
-	"Certificate Subject Distinguished Name":   0x42001C,
-	"Certificate Type":                         0x42001D,
-	"Certificate Value":                        0x42001E,
-	"Common Template-Attribute":                0x42001F,
-	"Compromise  Date":                         0x420020,
-	"Compromise Occurrence Date":               0x420021,
-	"Contact Information":                      0x420022,
-	"Credential":                               0x420023,
-	"Credential Type":                          0x420024,
-	"Credential Value":                         0x420025,
-	"Criticality Indicator":                    0x420026,
-	"CRT Coefficient":                          0x420027,
-	"Cryptographic Algorithm":                  0x420028,
-	"Cryptographic Domain Parameters":          0x420029,
-	"Cryptographic Length":                     0x42002A,
-	"Cryptographic Parameters":                 0x42002B,
-	"Cryptographic Usage Mask":                 0x42002C,
-	"Custom Attribute":                         0x42002D,
-	"D":                                        0x42002E,
-	"Deactivation Date":                        0x42002F,
-	"Derivation Data":                          0x420030,
-	"Derivation Method":                        0x420031,
-	"Derivation Parameters":                    0x420032,
-	"Destroy Date":                             0x420033,
-	"Digest":                                   0x420034,
-	"Digest Value":                             0x420035,
-	"Encryption Key Information":               0x420036,
-	"G":                                        0x420037,
-	"Hashing Algorithm":                        0x420038,
-	"Initial Date":                             0x420039,
-	"Initialization Vector":                    0x42003A,
-	"Issuer":                                   0x42003B,
-	"Iteration Count":                          0x42003C,
-	"IV/Counter/Nonce":                         0x42003D,
-	"J":                                        0x42003E,
-	"Key":                                      0x42003F,
-	"Key Block":                                0x420040,
-	"Key Compression Type":                     0x420041,
-	"Key Format Type":                          0x420042,
-	"Key Material":                             0x420043,
-	"Key Part Identifier":                      0x420044,
-	"Key Value":                                0x420045,
-	"Key Wrapping Data":                        0x420046,
-	"Key Wrapping Specification":               0x420047,
-	"Last Change Date":                         0x420048,
-	"Lease Time":                               0x420049,
-	"Link":                                     0x42004A,
-	"Link Type":                                0x42004B,
-	"Linked Object Identifier":                 0x42004C,
-	"MAC/Signature":                            0x42004D,
-	"MAC/Signature Key Information":            0x42004E,
-	"Maximum Items":                            0x42004F,
-	"Maximum Response Size":                    0x420050,
-	"Message Extension":                        0x420051,
-	"Modulus":                                  0x420052,
-	"Name":                                     0x420053,
-	"Name Type":                                0x420054,
-	"Name Value":                               0x420055,
-	"Object Group":                             0x420056,
-	"Object Type":                              0x420057,
-	"Offset":                                   0x420058,
-	"Opaque Data Type":                         0x420059,
-	"Opaque Data Value":                        0x42005A,
-	"Opaque Object":                            0x42005B,
-	"Operation":                                0x42005C,
-	"Operation Policy Name":                    0x42005D,
-	"P":                                        0x42005E,
-	"Padding Method":                           0x42005F,
-	"Prime Exponent P":                         0x420060,
-	"Prime Exponent Q":                         0x420061,
-	"Prime Field Size":                         0x420062,
-	"Private Exponent":                         0x420063,
-	"Private Key":                              0x420064,
-	"Private Key Template-Attribute":           0x420065,
-	"Private Key Unique Identifier":            0x420066,
-	"Process Start Date":                       0x420067,
-	"Protect Stop Date":                        0x420068,
-	"Protocol Version":                         0x420069,
-	"Protocol Version Major":                   0x42006A,
-	"Protocol Version Minor":                   0x42006B,
-	"Public Exponent":                          0x42006C,
-	"Public Key":                               0x42006D,
-	"Public Key Template-Attribute":            0x42006E,
-	"Public Key Unique Identifier":             0x42006F,
-	"Put Function":                             0x420070,
-	"Q":                                        0x420071,
-	"Q String":                                 0x420072,
-	"Qlength":                                  0x420073,
-	"Query Function":                           0x420074,
-	"Recommended Curve":                        0x420075,
-	"Replaced Unique Identifier":               0x420076,
-	"Request Header":                           0x420077,
-	"Request Message":                          0x420078,
-	"Request Payload":                          0x420079,
-	"Response Header":                          0x42007A,
-	"Response Message":                         0x42007B,
-	"Response Payload":                         0x42007C,
-	"Result Message":                           0x42007D,
-	"Result Reason":                            0x42007E,
-	"Result Status":                            0x42007F,
-	"Revocation Message":                       0x420080,
-	"Revocation Reason":                        0x420081,
-	"Revocation Reason Code":                   0x420082,
-	"Key Role Type":                            0x420083,
-	"Salt":                                     0x420084,
-	"Secret Data":                              0x420085,
-	"Secret Data Type":                         0x420086,
-	"Serial Number":                            0x420087,
-	"Server Information":                       0x420088,
-	"Split Key":                                0x420089,
-	"Split Key Method":                         0x42008A,
-	"Split Key Parts":                          0x42008B,
-	"Split Key Threshold":                      0x42008C,
-	"State":                                    0x42008D,
-	"Storage Status Mask":                      0x42008E,
-	"Symmetric Key":                            0x42008F,
-	"Template":                                 0x420090,
-	"Template-Attribute":                       0x420091,
-	"Time Stamp":                               0x420092,
-	"Unique Batch Item ID":                     0x420093,
-	"Unique Identifier":                        0x420094,
-	"Usage Limits":                             0x420095,
-	"Usage Limits Count":                       0x420096,
-	"Usage Limits Total":                       0x420097,
-	"Usage Limits Unit":                        0x420098,
-	"Username":                                 0x420099,
-	"Validity Date":                            0x42009A,
-	"Validity Indicator":                       0x42009B,
-	"Vendor Extension":                         0x42009C,
-	"Vendor Identification":                    0x42009D,
-	"Wrapping Method":                          0x42009E,
-	"X":                                        0x42009F,
-	"Y":                                        0x4200A0,
-	"Password":                                 0x4200A1,
-	"Device Identifier":                        0x4200A2,
-	"Encoding Option":                          0x4200A3,
-	"Extension Information":                    0x4200A4,
-	"Extension Name":                           0x4200A5,
-	"Extension Tag":                            0x4200A6,
-	"Extension Type":                           0x4200A7,
-	"Fresh":                                    0x4200A8,
-	"Machine Identifier":                       0x4200A9,
-	"Media Identifier":                         0x4200AA,
-	"Network Identifier":                       0x4200AB,
-	"Object Group Member":                      0x4200AC,
-	"Certificate Length":                       0x4200AD,
-	"Digital Signature Algorithm":              0x4200AE,
-	"Certificate Serial Number":                0x4200AF,
-	"Device Serial Number":                     0x4200B0,
-	"Issuer Alternative Name":                  0x4200B1,
-	"Issuer Distinguished Name":                0x4200B2,
-	"Subject Alternative Name":                 0x4200B3,
-	"Subject Distinguished Name":               0x4200B4,
-	"X.509 Certificate Identifier":             0x4200B5,
-	"X.509 Certificate Issuer":                 0x4200B6,
-	"X.509 Certificate Subject":                0x4200B7,
-	"Key Value Location":                       0x4200B8,
-	"Key Value Location Value":                 0x4200B9,
-	"Key Value Location Type":                  0x4200BA,
-	"Key Value Present":                        0x4200BB,
-	"Original Creation Date":                   0x4200BC,
-	"PGP Key":                                  0x4200BD,
-	"PGP Key Version":                          0x4200BE,
-	"Alternative Name":                         0x4200BF,
-	"Alternative Name Value":                   0x4200C0,
-	"Alternative Name Type":                    0x4200C1,
-	"Data":                                     0x4200C2,
-	"Signature Data":                           0x4200C3,
-	"Data Length":                              0x4200C4,
-	"Random IV":                                0x4200C5,
-	"MAC Data":                                 0x4200C6,
-	"Attestation Type":                         0x4200C7,
-	"Nonce":                                    0x4200C8,
-	"Nonce ID":                                 0x4200C9,
-	"Nonce Value":                              0x4200CA,
-	"Attestation Measurement":                  0x4200CB,
-	"Attestation Assertion":                    0x4200CC,
-	"IV Length":                                0x4200CD,
-	"Tag Length":                               0x4200CE,
-	"Fixed Field Length":                       0x4200CF,
-	"Counter Length":                           0x4200D0,
-	"Initial Counter Value":                    0x4200D1,
-	"Invocation Field Length":                  0x4200D2,
-	"Attestation Capable Indicator":            0x4200D3,
-	"Offset Items":                             0x4200D4,
-	"Located Items":                            0x4200D5,
-	"Correlation Value":                        0x4200D6,
-	"Init Indicator":                           0x4200D7,
-	"Final Indicator":                          0x4200D8,
-	"RNG Parameters":                           0x4200D9,
-	"RNG Algorithm":                            0x4200DA,
-	"DRBG Algorithm":                           0x4200DB,
-	"FIPS186 Variation":                        0x4200DC,
-	"Prediction Resistance":                    0x4200DD,
-	"Random Number Generator":                  0x4200DE,
-	"Validation Information":                   0x4200DF,
-	"Validation Authority Type":                0x4200E0,
-	"Validation Authority Country":             0x4200E1,
-	"Validation Authority URI":                 0x4200E2,
-	"Validation Version Major":                 0x4200E3,
-	"Validation Version Minor":                 0x4200E4,
-	"Validation Type":                          0x4200E5,
-	"Validation Level":                         0x4200E6,
-	"Validation Certificate Identifier":        0x4200E7,
-	"Validation Certificate URI":               0x4200E8,
-	"Validation Vendor URI":                    0x4200E9,
-	"Validation Profile":                       0x4200EA,
-	"Profile Information":                      0x4200EB,
-	"Profile Name":                             0x4200EC,
-	"Server URI":                               0x4200ED,
-	"Server Port":                              0x4200EE,
-	"Streaming Capability":                     0x4200EF,
-	"Asynchronous Capability":                  0x4200F0,
-	"Attestation Capability":                   0x4200F1,
-	"Unwrap Mode":                              0x4200F2,
-	"Destroy Action":                           0x4200F3,
-	"Shredding Algorithm":                      0x4200F4,
-	"RNG Mode":                                 0x4200F5,
-	"Client Registration Method":               0x4200F6,
-	"Capability Information":                   0x4200F7,
-	"Key Wrap Type":                            0x4200F8,
-	"Batch Undo Capability":                    0x4200F9,
-	"Batch Continue Capability":                0x4200FA,
-	"PKCS#12 Friendly Name":                    0x4200FB,
-	"Description":                              0x4200FC,
-	"Comment":                                  0x4200FD,
-	"Authenticated Encryption Additional Data": 0x4200FE,
-	"Authenticated Encryption Tag":             0x4200FF,
-	"Salt Length":                              0x420100,
-	"Mask Generator":                           0x420101,
-	"Mask Generator Hashing Algorithm":         0x420102,
-	"P Source":                                 0x420103,
-	"Trailer Field":                            0x420104,
-	"Client Correlation Value":                 0x420105,
-	"Server Correlation Value":                 0x420106,
-	"Digested Data":                            0x420107,
-	"Certificate Subject CN":                   0x420108,
-	"Certificate Subject O":                    0x420109,
-	"Certificate Subject OU":                   0x42010A,
-	"Certificate Subject Email":                0x42010B,
-	"Certificate Subject C":                    0x42010C,
-	"Certificate Subject ST":                   0x42010D,
-	"Certificate Subject L":                    0x42010E,
-	"Certificate Subject UID":                  0x42010F,
-	"Certificate Subject Serial Number":        0x420110,
-	"Certificate Subject Title":                0x420111,
-	"Certificate Subject DC":                   0x420112,
-	"Certificate Subject DN Qualifier":         0x420113,
-	"Certificate Issuer CN":                    0x420114,
-	"Certificate Issuer O":                     0x420115,
-	"Certificate Issuer OU":                    0x420116,
-	"Certificate Issuer Email":                 0x420117,
-	"Certificate Issuer C":                     0x420118,
-	"Certificate Issuer ST":                    0x420119,
-	"Certificate Issuer L":                     0x42011A,
-	"Certificate Issuer UID":                   0x42011B,
-	"Certificate Issuer Serial Number":         0x42011C,
-	"Certificate Issuer Title":                 0x42011D,
-	"Certificate Issuer DC":                    0x42011E,
-	"Certificate Issuer DN Qualifier":          0x42011F,
-	"Sensitive":                                0x420120,
-	"Always Sensitive":                         0x420121,
-	"Extractable":                              0x420122,
-	"Never Extractable":                        0x420123,
-	"Replace Existing":                         0x420124,
-}
-
-var enumDefs = []EnumDef{
-	{
-		Comment: "9.1.3.2.1 Table 289",
-		Name:    "Credential Type",
-		Tags:    []string{"Credential Type"},
-		Values: map[string]uint32{
-			"Username and Password": 0x00000001,
-			"Device":                0x00000002,
-			"Attestation":           0x00000003,
-		},
-	},
-	{
-		Comment: "9.1.3.2.2 Table 290",
-		Name:    "Key Compression Type",
-		Tags:    []string{"Key Compression Type"},
-		Values: map[string]uint32{
-			"EC Public Key Type Uncompressed":           0x00000001,
-			"EC Public Key Type X9.62 Compressed Prime": 0x00000002,
-			"EC Public Key Type X9.62 Compressed Char2": 0x00000003,
-			"EC Public Key Type X9.62 Hybrid":           0x00000004,
-		},
-	},
-	{
-		Comment: "9.1.3.2.3 Table 291",
-		Name:    "Key Format Type",
-		Tags:    []string{"Key Format Type"},
-		Values: map[string]uint32{
-			"Raw":                           0x00000001,
-			"Opaque":                        0x00000002,
-			"PKCS#1":                        0x00000003,
-			"PKCS#8":                        0x00000004,
-			"X.509":                         0x00000005,
-			"ECPrivateKey":                  0x00000006,
-			"Transparent Symmetric Key":     0x00000007,
-			"Transparent DSA Private Key":   0x00000008,
-			"Transparent DSA Public Key":    0x00000009,
-			"Transparent RSA Private Key":   0x0000000A,
-			"Transparent RSA Public Key":    0x0000000B,
-			"Transparent DH Private Key":    0x0000000C,
-			"Transparent DH Public Key":     0x0000000D,
-			"Transparent ECDSA Private Key": 0x0000000E,
-			"Transparent ECDSA Public Key":  0x0000000F,
-			"Transparent ECDH Private Key":  0x00000010,
-			"Transparent ECDH Public Key":   0x00000011,
-			"Transparent ECMQV Private Key": 0x00000012,
-			"Transparent ECMQV Public Key":  0x00000013,
-			"Transparent EC Private Key":    0x00000014,
-			"Transparent EC Public Key":     0x00000015,
-			"PKCS#12":                       0x00000016,
-		},
-	},
-	{
-		Comment: "9.1.3.2.4 Table 292",
-		Name:    "Wrapping Method",
-		Tags:    []string{"Wrapping Method"},
-		Values: map[string]uint32{
-			"Encrypt":               0x00000001,
-			"MAC/sign":              0x00000002,
-			"Encrypt then MAC/sign": 0x00000003,
-			"MAC/sign then encrypt": 0x00000004,
-			"TR-31":                 0x00000005,
-		},
-	},
-	{
-		Comment: "9.1.3.2.5 Table 293",
-		Name:    "Recommended Curve",
-		Tags:    []string{"Recommended Curve"},
-		Values: map[string]uint32{
-			"P-192":            0x00000001,
-			"K-163":            0x00000002,
-			"B-163":            0x00000003,
-			"P-224":            0x00000004,
-			"K-233":            0x00000005,
-			"B-233":            0x00000006,
-			"P-256":            0x00000007,
-			"K-283":            0x00000008,
-			"B-283":            0x00000009,
-			"P-384":            0x0000000A,
-			"K-409":            0x0000000B,
-			"B-409":            0x0000000C,
-			"P-521":            0x0000000D,
-			"K-571":            0x0000000E,
-			"B-571":            0x0000000F,
-			"SECP112R1":        0x00000010,
-			"SECP112R2":        0x00000011,
-			"SECP128R1":        0x00000012,
-			"SECP128R2":        0x00000013,
-			"SECP160K1":        0x00000014,
-			"SECP160R1":        0x00000015,
-			"SECP160R2":        0x00000016,
-			"SECP192K1":        0x00000017,
-			"SECP224K1":        0x00000018,
-			"SECP256K1":        0x00000019,
-			"SECT113R1":        0x0000001A,
-			"SECT113R2":        0x0000001B,
-			"SECT131R1":        0x0000001C,
-			"SECT131R2":        0x0000001D,
-			"SECT163R1":        0x0000001E,
-			"SECT193R1":        0x0000001F,
-			"SECT193R2":        0x00000020,
-			"SECT239K1":        0x00000021,
-			"ANSIX9P192V2":     0x00000022,
-			"ANSIX9P192V3":     0x00000023,
-			"ANSIX9P239V1":     0x00000024,
-			"ANSIX9P239V2":     0x00000025,
-			"ANSIX9P239V3":     0x00000026,
-			"ANSIX9C2PNB163V1": 0x00000027,
-			"ANSIX9C2PNB163V2": 0x00000028,
-			"ANSIX9C2PNB163V3": 0x00000029,
-			"ANSIX9C2PNB176V1": 0x0000002A,
-			"ANSIX9C2TNB191V1": 0x0000002B,
-			"ANSIX9C2TNB191V2": 0x0000002C,
-			"ANSIX9C2TNB191V3": 0x0000002D,
-			"ANSIX9C2PNB208W1": 0x0000002E,
-			"ANSIX9C2TNB239V1": 0x0000002F,
-			"ANSIX9C2TNB239V2": 0x00000030,
-			"ANSIX9C2TNB239V3": 0x00000031,
-			"ANSIX9C2PNB272W1": 0x00000032,
-			"ANSIX9C2PNB304W1": 0x00000033,
-			"ANSIX9C2TNB359V1": 0x00000034,
-			"ANSIX9C2PNB368W1": 0x00000035,
-			"ANSIX9C2TNB431R1": 0x00000036,
-			"BRAINPOOLP160R1":  0x00000037,
-			"BRAINPOOLP160T1":  0x00000038,
-			"BRAINPOOLP192R1":  0x00000039,
-			"BRAINPOOLP192T1":  0x0000003A,
-			"BRAINPOOLP224R1":  0x0000003B,
-			"BRAINPOOLP224T1":  0x0000003C,
-			"BRAINPOOLP256R1":  0x0000003D,
-			"BRAINPOOLP256T1":  0x0000003E,
-			"BRAINPOOLP320R1":  0x0000003F,
-			"BRAINPOOLP320T1":  0x00000040,
-			"BRAINPOOLP384R1":  0x00000041,
-			"BRAINPOOLP384T1":  0x00000042,
-			"BRAINPOOLP512R1":  0x00000043,
-			"BRAINPOOLP512T1":  0x00000044,
-		},
-	},
-	{
-		Comment: "9.1.3.2.6 Table 294",
-		Name:    "Certificate Type",
-		Tags:    []string{"Certificate Type"},
-		Values: map[string]uint32{
-			"X.509": 0x00000001,
-			"PGP":   0x00000002,
-		},
-	},
-	{
-		Comment: "9.1.3.2.7 Table 295",
-		Name:    "Digital Signature Algorithm",
-		Tags:    []string{"Digital Signature Algorithm"},
-		Values: map[string]uint32{
-			"MD2 with RSA Encryption (PKCS#1 v1.5)":     0x00000001,
-			"MD5 with RSA Encryption (PKCS#1 v1.5)":     0x00000002,
-			"SHA-1 with RSA Encryption (PKCS#1 v1.5)":   0x00000003,
-			"SHA-224 with RSA Encryption (PKCS#1 v1.5)": 0x00000004,
-			"SHA-256 with RSA Encryption (PKCS#1 v1.5)": 0x00000005,
-			"SHA-384 with RSA Encryption (PKCS#1 v1.5)": 0x00000006,
-			"SHA-512 with RSA Encryption (PKCS#1 v1.5)": 0x00000007,
-			"RSASSA-PSS (PKCS#1 v2.1)":                  0x00000008,
-			"DSA with SHA-1":                            0x00000009,
-			"DSA with SHA224":                           0x0000000A,
-			"DSA with SHA256":                           0x0000000B,
-			"ECDSA with SHA-1":                          0x0000000C,
-			"ECDSA with SHA224":                         0x0000000D,
-			"ECDSA with SHA256":                         0x0000000E,
-			"ECDSA with SHA384":                         0x0000000F,
-			"ECDSA with SHA512":                         0x00000010,
-			"SHA3-256 with RSA Encryption":              0x00000011,
-			"SHA3-384 with RSA Encryption":              0x00000012,
-			"SHA3-512 with RSA Encryption":              0x00000013,
-		},
-	},
-	{
-		Comment: "9.1.3.2.8 Table 296",
-		Name:    "Split Key Method",
-		Tags:    []string{"Split Key Method"},
-		Values: map[string]uint32{
-			"XOR":                            0x00000001,
-			"Polynomial Sharing GF (2^16)":   0x00000002,
-			"Polynomial Sharing Prime Field": 0x00000003,
-			"Polynomial Sharing GF (2^8)":    0x00000004,
-		},
-	},
-	{
-		Comment: "9.1.3.2.9 Table 9",
-		Name:    "Secret Data Type",
-		Tags:    []string{"Secret Data Type"},
-		Values: map[string]uint32{
-			"Password": 0x00000001,
-			"Seed":     0x00000002,
-		},
-	},
-	{
-		Comment: "9.1.3.2.10 Table 298",
-		Name:    "Opaque Data Type",
-		Tags:    []string{"Opaque Data Type"},
-		Values:  map[string]uint32{},
-	},
-	{
-		Comment: "9.1.3.2.11 Table 299",
-		Name:    "Name Type",
-		Tags:    []string{"Name Type"},
-		Values: map[string]uint32{
-			"Uninterpreted Text String": 0x00000001,
-			"URI":                       0x00000002,
-		},
-	},
-	{
-		Comment: "9.1.3.2.12 Table 300",
-		Name:    "Object Type",
-		Tags:    []string{"Object Type"},
-		Values: map[string]uint32{
-			"Certificate":   0x00000001,
-			"Symmetric Key": 0x00000002,
-			"Public Key":    0x00000003,
-			"Private Key":   0x00000004,
-			"Split Key":     0x00000005,
-			"Template":      0x00000006,
-			"Secret Data":   0x00000007,
-			"Opaque Object": 0x00000008,
-			"PGP Key":       0x00000009,
-		},
-	},
-	{
-		Comment: "9.1.3.2.13 Table 301",
-		Name:    "Cryptographic Algorithm",
-		Tags:    []string{"Cryptographic Algorithm"},
-		Values: map[string]uint32{
-			"DES":              0x00000001,
-			"3DES":             0x00000002,
-			"AES":              0x00000003,
-			"RSA":              0x00000004,
-			"DSA":              0x00000005,
-			"ECDSA":            0x00000006,
-			"HMAC-SHA1":        0x00000007,
-			"HMAC-SHA224":      0x00000008,
-			"HMAC-SHA256":      0x00000009,
-			"HMAC-SHA384":      0x0000000A,
-			"HMAC-SHA512":      0x0000000B,
-			"HMAC-MD5":         0x0000000C,
-			"DH":               0x0000000D,
-			"ECDH":             0x0000000E,
-			"ECMQV":            0x0000000F,
-			"Blowfish":         0x00000010,
-			"Camellia":         0x00000011,
-			"CAST5":            0x00000012,
-			"IDEA":             0x00000013,
-			"MARS":             0x00000014,
-			"RC2":              0x00000015,
-			"RC4":              0x00000016,
-			"RC5":              0x00000017,
-			"SKIPJACK":         0x00000018,
-			"Twofish":          0x00000019,
-			"EC":               0x0000001A,
-			"One Time Pad":     0x0000001B,
-			"ChaCha20":         0x0000001C,
-			"Poly1305":         0x0000001D,
-			"ChaCha20Poly1305": 0x0000001E,
-			"SHA3-224":         0x0000001F,
-			"SHA3-256":         0x00000020,
-			"SHA3-384":         0x00000021,
-			"SHA3-512":         0x00000022,
-			"HMAC-SHA3-224":    0x00000023,
-			"HMAC-SHA3-256":    0x00000024,
-			"HMAC-SHA3-384":    0x00000025,
-			"HMAC-SHA3-512":    0x00000026,
-			"SHAKE-128":        0x00000027,
-			"SHAKE-256":        0x00000028,
-		},
-	},
-	{
-		Comment: "9.1.3.2.14 Table 302",
-		Name:    "Block Cipher Mode",
-		Tags:    []string{"Block Cipher Mode"},
-		Values: map[string]uint32{
-			"CBC":               0x00000001,
-			"ECB":               0x00000002,
-			"PCBC":              0x00000003,
-			"CFB":               0x00000004,
-			"OFB":               0x00000005,
-			"CTR":               0x00000006,
-			"CMAC":              0x00000007,
-			"CCM":               0x00000008,
-			"GCM":               0x00000009,
-			"CBC-MAC":           0x0000000A,
-			"XTS":               0x0000000B,
-			"AESKeyWrapPadding": 0x0000000C,
-			"NISTKeyWrap":       0x0000000D,
-			"X9.102 AESKW":      0x0000000E,
-			"X9.102 TDKW":       0x0000000F,
-			"X9.102 AKW1":       0x00000010,
-			"X9.102 AKW2":       0x00000011,
-			"AEAD":              0x00000012,
-		},
-	},
-	{
-		Comment: "9.1.3.2.15 Table 303",
-		Name:    "Padding Method",
-		Tags:    []string{"Padding Method"},
-		Values: map[string]uint32{
-			"None":       0x00000001,
-			"OAEP":       0x00000002,
-			"PKCS5":      0x00000003,
-			"SSL3":       0x00000004,
-			"Zeros":      0x00000005,
-			"ANSI X9.23": 0x00000006,
-			"ISO 10126":  0x00000007,
-			"PKCS1 v1.5": 0x00000008,
-			"X9.31":      0x00000009,
-			"PSS":        0x0000000A,
-		},
-	},
-	{
-		Comment: "9.1.3.2.16 Table 304",
-		Name:    "Hashing Algorithm",
-		Tags:    []string{"Hashing Algorithm", "Mask Generator Hashing Algorithm"},
-		Values: map[string]uint32{
-			"MD2":         0x00000001,
-			"MD4":         0x00000002,
-			"MD5":         0x00000003,
-			"SHA-1":       0x00000004,
-			"SHA-224":     0x00000005,
-			"SHA-256":     0x00000006,
-			"SHA-384":     0x00000007,
-			"SHA-512":     0x00000008,
-			"RIPEMD-160":  0x00000009,
-			"Tiger":       0x0000000A,
-			"Whirlpool":   0x0000000B,
-			"SHA-512/224": 0x0000000C,
-			"SHA-512/256": 0x0000000D,
-			"SHA-3-224":   0x0000000E,
-			"SHA-3-256":   0x0000000F,
-			"SHA-3-384":   0x00000010,
-			"SHA-3-512":   0x00000011,
-		},
-	},
-	{
-		Comment: "9.1.3.2.17 Table 305",
-		Name:    "Key Role Type",
-		Tags:    []string{"Key Role Type"},
-		Values: map[string]uint32{
-			"BDK":      0x00000001,
-			"CVK":      0x00000002,
-			"DEK":      0x00000003,
-			"MKAC":     0x00000004,
-			"MKSMC":    0x00000005,
-			"MKSMI":    0x00000006,
-			"MKDAC":    0x00000007,
-			"MKDN":     0x00000008,
-			"MKCP":     0x00000009,
-			"MKOTH":    0x0000000A,
-			"KEK":      0x0000000B,
-			"MAC16609": 0x0000000C,
-			"MAC97971": 0x0000000D,
-			"MAC97972": 0x0000000E,
-			"MAC97973": 0x0000000F,
-			"MAC97974": 0x00000010,
-			"MAC97975": 0x00000011,
-			"ZPK":      0x00000012,
-			"PVKIBM":   0x00000013,
-			"PVKPVV":   0x00000014,
-			"PVKOTH":   0x00000015,
-			"DUKPT":    0x00000016,
-			"IV":       0x00000017,
-			"TRKBK":    0x00000018,
-		},
-	},
-	{
-		Comment: "9.1.3.2.18 Table 306",
-		Name:    "State",
-		Tags:    []string{"State"},
-		Values: map[string]uint32{
-			"Pre-Active":            0x00000001,
-			"Active":                0x00000002,
-			"Deactivated":           0x00000003,
-			"Compromised":           0x00000004,
-			"Destroyed":             0x00000005,
-			"Destroyed Compromised": 0x00000006,
-		},
-	},
-	{
-		Comment: "9.1.3.2.19 Table 307",
-		Name:    "Revocation Reason Code",
-		Tags:    []string{"Revocation Reason Code"},
-		Values: map[string]uint32{
-			"Unspecified":            0x00000001,
-			"Key Compromise":         0x00000002,
-			"CA Compromise":          0x00000003,
-			"Affiliation Changed":    0x00000004,
-			"Superseded":             0x00000005,
-			"Cessation of Operation": 0x00000006,
-			"Privilege Withdrawn":    0x00000007,
-		},
-	},
-	{
-		Comment: "9.1.3.2.20 Table 308",
-		Name:    "Link Type",
-		Tags:    []string{"Link Type"},
-		Values: map[string]uint32{
-			"Certificate Link":            0x00000101,
-			"Public Key Link":             0x00000102,
-			"Private Key Link":            0x00000103,
-			"Derivation Base Object Link": 0x00000104,
-			"Derived Key Link":            0x00000105,
-			"Replacement Object Link":     0x00000106,
-			"Replaced Object Link":        0x00000107,
-			"Parent Link":                 0x00000108,
-			"Child Link":                  0x00000109,
-			"Previous Link":               0x0000010A,
-			"Next Link":                   0x0000010B,
-			"PKCS#12 Certificate Link":    0x0000010C,
-			"PKCS#12 Password Link":       0x0000010D,
-		},
-	},
-	{
-		Comment: "9.1.3.2.21 Table 309",
-		Name:    "Derivation Method",
-		Tags:    []string{"Derivation Method"},
-		Values: map[string]uint32{
-			"PBKDF2":              0x00000001,
-			"HASH":                0x00000002,
-			"HMAC":                0x00000003,
-			"ENCRYPT":             0x00000004,
-			"NIST800 - 108 - C":   0x00000005,
-			"NIST800 - 108 - F":   0x00000006,
-			"NIST800 - 108 - DPI": 0x00000007,
-			"Asymmetric Key":      0x00000008,
-		},
-	},
-	{
-		Comment: "9.1.3.2.22 Table 310",
-		Name:    "Certificate Request Type",
-		Tags:    []string{"Certificate Request Type"},
-		Values: map[string]uint32{
-			"CRMF":    0x00000001,
-			"PKCS#10": 0x00000002,
-			"PEM":     0x00000003,
-			"PGP":     0x00000004, // (deprecated)
-		},
-	},
-	{
-		Comment: "9.1.3.2.23 Table 311",
-		Name:    "Validity Indicator",
-		Tags:    []string{"Validity Indicator"},
-		Values: map[string]uint32{
-			"Valid":   0x00000001,
-			"Invalid": 0x00000002,
-			"Unknown": 0x00000003,
-		},
-	},
-	{
-		Comment: "9.1.3.2.24 Table 312",
-		Name:    "Query Function",
-		Tags:    []string{"Query Function"},
-		Values: map[string]uint32{
-			"Query Operations":                  0x00000001,
-			"Query Objects":                     0x00000002,
-			"Query Server Information":          0x00000003,
-			"Query Application Namespaces":      0x00000004,
-			"Query Extension List":              0x00000005,
-			"Query Extension Map":               0x00000006,
-			"Query Attestation Types":           0x00000007,
-			"Query RNGs":                        0x00000008,
-			"Query Validations":                 0x00000009,
-			"Query Profiles":                    0x0000000A,
-			"Query Capabilities":                0x0000000B,
-			"Query Client Registration Methods": 0x0000000C,
-		},
-	},
-	{
-		Comment: "9.1.3.2.25 Table 313",
-		Name:    "Cancellation Result",
-		Tags:    []string{"Cancellation Result"},
-		Values: map[string]uint32{
-			"Canceled":         0x00000001,
-			"Unable to Cancel": 0x00000002,
-			"Completed":        0x00000003,
-			"Failed":           0x00000004,
-			"Unavailable":      0x00000005,
-		},
-	},
-	{
-		Comment: "9.1.3.2.26 Table 314",
-		Name:    "Put Function",
-		Tags:    []string{"Put Function"},
-		Values: map[string]uint32{
-			"New":     0x00000001,
-			"Replace": 0x00000002,
-		},
-	},
-	{
-		Comment: "9.1.3.2.27 Table 315",
-		Name:    "Operation",
-		Tags:    []string{"Operation"},
-		Values: map[string]uint32{
-			"Create":               0x00000001,
-			"Create Key Pair":      0x00000002,
-			"Register":             0x00000003,
-			"Re-key":               0x00000004,
-			"Derive Key":           0x00000005,
-			"Certify":              0x00000006,
-			"Re-certify":           0x00000007,
-			"Locate":               0x00000008,
-			"Check":                0x00000009,
-			"Get":                  0x0000000A,
-			"Get Attributes":       0x0000000B,
-			"Get Attribute List":   0x0000000C,
-			"Add Attribute":        0x0000000D,
-			"Modify Attribute":     0x0000000E,
-			"Delete Attribute":     0x0000000F,
-			"Obtain Lease":         0x00000010,
-			"Get Usage Allocation": 0x00000011,
-			"Activate":             0x00000012,
-			"Revoke":               0x00000013,
-			"Destroy":              0x00000014,
-			"Archive":              0x00000015,
-			"Recover":              0x00000016,
-			"Validate":             0x00000017,
-			"Query":                0x00000018,
-			"Cancel":               0x00000019,
-			"Poll":                 0x0000001A,
-			"Notify":               0x0000001B,
-			"Put":                  0x0000001C,
-			"Re-key Key Pair":      0x0000001D,
-			"Discover Versions":    0x0000001E,
-			"Encrypt":              0x0000001F,
-			"Decrypt":              0x00000020,
-			"Sign":                 0x00000021,
-			"Signature Verify":     0x00000022,
-			"MAC":                  0x00000023,
-			"MAC Verify":           0x00000024,
-			"RNG Retrieve":         0x00000025,
-			"RNG Seed":             0x00000026,
-			"Hash":                 0x00000027,
-			"Create Split Key":     0x00000028,
-			"Join Split Key":       0x00000029,
-			"Import":               0x0000002A,
-			"Export":               0x0000002B,
-		},
-	},
-	{
-		Name:    "Result Status",
-		Tags:    []string{"Result Status"},
-		Comment: "9.1.3.2.28 Table 316",
-		Values: map[string]uint32{
-			"Success":           0x00000000,
-			"Operation Failed":  0x00000001,
-			"Operation Pending": 0x00000002,
-			"Operation Undone":  0x00000003,
-		},
-	},
-	{
-		Name:    "Result Reason",
-		Tags:    []string{"Result Reason"},
-		Comment: "9.1.3.2.29 Table 317",
-		Values: map[string]uint32{
-			"Item Not Found":                      0x00000001,
-			"Response Too Large":                  0x00000002,
-			"Authentication Not Successful":       0x00000003,
-			"Invalid Message":                     0x00000004,
-			"Operation Not Supported":             0x00000005,
-			"Missing Data":                        0x00000006,
-			"Invalid Field":                       0x00000007,
-			"Feature Not Supported":               0x00000008,
-			"Operation Canceled By Requester":     0x00000009,
-			"Cryptographic Failure":               0x0000000A,
-			"Illegal Operation":                   0x0000000B,
-			"Permission Denied":                   0x0000000C,
-			"Object archived":                     0x0000000D,
-			"Index Out of Bounds":                 0x0000000E,
-			"Application Namespace Not Supported": 0x0000000F,
-			"Key Format Type Not Supported":       0x00000010,
-			"Key Compression Type Not Supported":  0x00000011,
-			"Encoding Option Error":               0x00000012,
-			"Key Value Not Present":               0x00000013,
-			"Attestation Required":                0x00000014,
-			"Attestation Failed":                  0x00000015,
-			"Sensitive":                           0x00000016,
-			"Not Extractable":                     0x00000017,
-			"Object Already Exists":               0x00000018,
-			"General Failure":                     0x00000100,
-		},
-	},
-	{
-		Name:    "Batch Error Continuation Option",
-		Tags:    []string{"Batch Error Continuation Option"},
-		Comment: "9.1.3.2.30 Table 318",
-		Values: map[string]uint32{
-			"Continue": 0x00000001,
-			"Stop":     0x00000002,
-			"Undo":     0x00000003,
-		},
-	},
-	{
-		Comment: "9.1.3.2.31 Table 319",
-		Name:    "Usage Limits Unit",
-		Tags:    []string{"Usage Limits Unit"},
-		Values: map[string]uint32{
-			"Byte":   0x00000001,
-			"Object": 0x00000002,
-		},
-	},
-	{
-		Comment: "9.1.3.2.32 Table 320",
-		Name:    "Encoding Option",
-		Tags:    []string{"Encoding Option"},
-		Values: map[string]uint32{
-			"No Encoding":   0x00000001,
-			"TTLV Encoding": 0x00000002,
-		},
-	},
-	{
-		Comment: "9.1.3.2.33 Table 321",
-		Name:    "Object Group Member",
-		Tags:    []string{"Object Group Member"},
-		Values: map[string]uint32{
-			"Group Member Fresh":   0x00000001,
-			"Group Member Default": 0x00000002,
-		},
-	},
-	{
-		Comment: "9.1.3.2.34 Table 322",
-		Name:    "Alternative Name Type",
-		Tags:    []string{"Alternative Name Type"},
-		Values: map[string]uint32{
-			"Uninterpreted Text String": 0x00000001,
-			"URI":                       0x00000002,
-			"Object Serial Number":      0x00000003,
-			"Email Address":             0x00000004,
-			"DNS Name":                  0x00000005,
-			"X.500 Distinguished Name":  0x00000006,
-			"IP Address":                0x00000007,
-		},
-	},
-	{
-		Comment: "9.1.3.2.35 Table 323",
-		Name:    "Key Value Location Type",
-		Tags:    []string{"Key Value Location Type"},
-		Values: map[string]uint32{
-			"Uninterpreted Text String": 0x00000001,
-			"URI":                       0x00000002,
-		},
-	},
-	{
-		Name:    "Attestation Type",
-		Tags:    []string{"Attestation Type"},
-		Comment: "9.1.3.2.36 Table 324",
-		Values: map[string]uint32{
-			"TPM Quote":            0x00000001,
-			"TCG Integrity Report": 0x00000002,
-			"SAML Assertion":       0x00000003,
-		},
-	},
-	{
-		Comment: "9.1.3.2.37 Table ",
-		Name:    "RNG Algorithm",
-		Tags:    []string{"RNG Algorithm"},
-		Values: map[string]uint32{
-			"Unspecified": 0x00000001,
-			"FIPS 186-2":  0x00000002,
-			"DRBG":        0x00000003,
-			"NRBG":        0x00000004,
-			"ANSI X9.31":  0x00000005,
-			"ANSI X9.62":  0x00000006,
-		},
-	},
-	{
-		Comment: "9.1.3.2.38",
-		Name:    "DRBG Algorithm",
-		Tags:    []string{"DRBG Algorithm"},
-		Values: map[string]uint32{
-			"Unspecified": 0x00000001,
-			"Dual - EC":   0x00000002,
-			"Hash":        0x00000003,
-			"HMAC":        0x00000004,
-			"CTR":         0x00000005,
-		},
-	},
-	{
-		Comment: "9.1.3.2.39",
-		Name:    "FIPS186 Variation",
-		Tags:    []string{"FIPS186 Variation"},
-		Values: map[string]uint32{
-			"Unspecified":        0x00000001,
-			"GP x-Original":      0x00000002,
-			"GP x-Change Notice": 0x00000003,
-			"x-Original":         0x00000004,
-			"x-Change Notice":    0x00000005,
-			"k-Original":         0x00000006,
-			"k-Change Notice":    0x00000007,
-		},
-	},
-	{
-		Comment: "9.1.3.2.40",
-		Name:    "Validation Authority Type",
-		Tags:    []string{"Validation Authority Type"},
-		Values: map[string]uint32{
-			"Unspecified":     0x00000001,
-			"NIST CMVP":       0x00000002,
-			"Common Criteria": 0x00000003,
-		},
-	},
-	{
-		Comment: "9.1.3.2.41",
-		Name:    "Validation Type",
-		Tags:    []string{"Validation Type"},
-		Values: map[string]uint32{
-			"Unspecified": 0x00000001,
-			"Hardware":    0x00000002,
-			"Software":    0x00000003,
-			"Firmware":    0x00000004,
-			"Hybrid":      0x00000005,
-		},
-	},
-	{
-		Comment: "9.1.3.2.42",
-		Name:    "Profile Name",
-		Tags:    []string{"Profile Name"},
-		Values: map[string]uint32{
-			"Baseline Server Basic KMIP v1.2":                           0x00000001,
-			"Baseline Server TLS v1.2 KMIP v1.2":                        0x00000002,
-			"Baseline Client Basic KMIP v1.2":                           0x00000003,
-			"Baseline Client TLS v1.2 KMIP v1.2":                        0x00000004,
-			"Complete Server Basic KMIP v1.2":                           0x00000005,
-			"Complete Server TLS v1.2 KMIP v1.2":                        0x00000006,
-			"Tape Library Client KMIP v1.0":                             0x00000007,
-			"Tape Library Client KMIP v1.1":                             0x00000008,
-			"Tape Library Client KMIP v1.2":                             0x00000009,
-			"Tape Library Server KMIP v1.0":                             0x0000000A,
-			"Tape Library Server KMIP v1.1":                             0x0000000B,
-			"Tape Library Server KMIP v1.2":                             0x0000000C,
-			"Symmetric Key Lifecycle Client KMIP v1.0":                  0x0000000D,
-			"Symmetric Key Lifecycle Client KMIP v1.1":                  0x0000000E,
-			"Symmetric Key Lifecycle Client KMIP v1.2":                  0x0000000F,
-			"Symmetric Key Lifecycle Server KMIP v1.0":                  0x00000010,
-			"Symmetric Key Lifecycle Server KMIP v1.1":                  0x00000011,
-			"Symmetric Key Lifecycle Server KMIP v1.2":                  0x00000012,
-			"Asymmetric Key Lifecycle Client KMIP v1.0":                 0x00000013,
-			"Asymmetric Key Lifecycle Client KMIP v1.1":                 0x00000014,
-			"Asymmetric Key Lifecycle Client KMIP v1.2":                 0x00000015,
-			"Asymmetric Key Lifecycle Server KMIP v1.0":                 0x00000016,
-			"Asymmetric Key Lifecycle Server KMIP v1.1":                 0x00000017,
-			"Asymmetric Key Lifecycle Server KMIP v1.2":                 0x00000018,
-			"Basic Cryptographic Client KMIP v1.2":                      0x00000019,
-			"Basic Cryptographic Server KMIP v1.2":                      0x0000001A,
-			"Advanced Cryptographic Client KMIP v1.2":                   0x0000001B,
-			"Advanced Cryptographic Server KMIP v1.2":                   0x0000001C,
-			"RNG Cryptographic Client KMIP v1.2":                        0x0000001D,
-			"RNG Cryptographic Server KMIP v1.2":                        0x0000001E,
-			"Basic Symmetric Key Foundry Client KMIP v1.0":              0x0000001F,
-			"Intermediate Symmetric Key Foundry Client KMIP v1.0":       0x00000020,
-			"Advanced Symmetric Key Foundry Client KMIP v1.0":           0x00000021,
-			"Basic Symmetric Key Foundry Client KMIP v1.1":              0x00000022,
-			"Intermediate Symmetric Key Foundry Client KMIP v1.1":       0x00000023,
-			"Advanced Symmetric Key Foundry Client KMIP v1.1":           0x00000024,
-			"Basic Symmetric Key Foundry Client KMIP v1.2":              0x00000025,
-			"Intermediate Symmetric Key Foundry Client KMIP v1.2":       0x00000026,
-			"Advanced Symmetric Key Foundry Client KMIP v1.2":           0x00000027,
-			"Symmetric Key Foundry Server KMIP v1.0":                    0x00000028,
-			"Symmetric Key Foundry Server KMIP v1.1":                    0x00000029,
-			"Symmetric Key Foundry Server KMIP v1.2":                    0x0000002A,
-			"Opaque Managed Object Store Client KMIP v1.0":              0x0000002B,
-			"Opaque Managed Object Store Client KMIP v1.1":              0x0000002C,
-			"Opaque Managed Object Store Client KMIP v1.2":              0x0000002D,
-			"Opaque Managed Object Store Server KMIP v1.0":              0x0000002E,
-			"Opaque Managed Object Store Server KMIP v1.1":              0x0000002F,
-			"Opaque Managed Object Store Server KMIP v1.2":              0x00000030,
-			"Suite B minLOS_128 Client KMIP v1.0":                       0x00000031,
-			"Suite B minLOS_128 Client KMIP v1.1":                       0x00000032,
-			"Suite B minLOS_128 Client KMIP v1.2":                       0x00000033,
-			"Suite B minLOS_128 Server KMIP v1.0":                       0x00000034,
-			"Suite B minLOS_128 Server KMIP v1.1":                       0x00000035,
-			"Suite B minLOS_128 Server KMIP v1.2":                       0x00000036,
-			"Suite B minLOS_192 Client KMIP v1.0":                       0x00000037,
-			"Suite B minLOS_192 Client KMIP v1.1":                       0x00000038,
-			"Suite B minLOS_192 Client KMIP v1.2":                       0x00000039,
-			"Suite B minLOS_192 Server KMIP v1.0":                       0x0000003A,
-			"Suite B minLOS_192 Server KMIP v1.1":                       0x0000003B,
-			"Suite B minLOS_192 Server KMIP v1.2":                       0x0000003C,
-			"Storage Array with Self Encrypting Drive Client KMIP v1.0": 0x0000003D,
-			"Storage Array with Self Encrypting Drive Client KMIP v1.1": 0x0000003E,
-			"Storage Array with Self Encrypting Drive Client KMIP v1.2": 0x0000003F,
-			"Storage Array with Self Encrypting Drive Server KMIP v1.0": 0x00000040,
-			"Storage Array with Self Encrypting Drive Server KMIP v1.1": 0x00000041,
-			"Storage Array with Self Encrypting Drive Server KMIP v1.2": 0x00000042,
-			"HTTPS Client KMIP v1.0":                                    0x00000043,
-			"HTTPS Client KMIP v1.1":                                    0x00000044,
-			"HTTPS Client KMIP v1.2":                                    0x00000045,
-			"HTTPS Server KMIP v1.0":                                    0x00000046,
-			"HTTPS Server KMIP v1.1":                                    0x00000047,
-			"HTTPS Server KMIP v1.2":                                    0x00000048,
-			"JSON Client KMIP v1.0":                                     0x00000049,
-			"JSON Client KMIP v1.1":                                     0x0000004A,
-			"JSON Client KMIP v1.2":                                     0x0000004B,
-			"JSON Server KMIP v1.0":                                     0x0000004C,
-			"JSON Server KMIP v1.1":                                     0x0000004D,
-			"JSON Server KMIP v1.2":                                     0x0000004E,
-			"XML Client KMIP v1.0":                                      0x0000004F,
-			"XML Client KMIP v1.1":                                      0x00000050,
-			"XML Client KMIP v1.2":                                      0x00000051,
-			"XML Server KMIP v1.0":                                      0x00000052,
-			"XML Server KMIP v1.1":                                      0x00000053,
-			"XML Server KMIP v1.2":                                      0x00000054,
-			"Baseline Server Basic KMIP v1.3":                           0x00000055,
-			"Baseline Server TLS v1.2 KMIP v1.3":                        0x00000056,
-			"Baseline Client Basic KMIP v1.3":                           0x00000057,
-			"Baseline Client TLS v1.2 KMIP v1.3":                        0x00000058,
-			"Complete Server Basic KMIP v1.3":                           0x00000059,
-			"Complete Server TLS v1.2 KMIP v1.3":                        0x0000005A,
-			"Tape Library Client KMIP v1.3":                             0x0000005B,
-			"Tape Library Server KMIP v1.3":                             0x0000005C,
-			"Symmetric Key Lifecycle Client KMIP v1.3":                  0x0000005D,
-			"Symmetric Key Lifecycle Server KMIP v1.3":                  0x0000005E,
-			"Asymmetric Key Lifecycle Client KMIP v1.3":                 0x0000005F,
-			"Asymmetric Key Lifecycle Server KMIP v1.3":                 0x00000060,
-			"Basic Cryptographic Client KMIP v1.3":                      0x00000061,
-			"Basic Cryptographic Server KMIP v1.3":                      0x00000062,
-			"Advanced Cryptographic Client KMIP v1.3":                   0x00000063,
-			"Advanced Cryptographic Server KMIP v1.3":                   0x00000064,
-			"RNG Cryptographic Client KMIP v1.3":                        0x00000065,
-			"RNG Cryptographic Server KMIP v1.3":                        0x00000066,
-			"Basic Symmetric Key Foundry Client KMIP v1.3":              0x00000067,
-			"Intermediate Symmetric Key Foundry Client KMIP v1.3":       0x00000068,
-			"Advanced Symmetric Key Foundry Client KMIP v1.3":           0x00000069,
-			"Symmetric Key Foundry Server KMIP v1.3":                    0x0000006A,
-			"Opaque Managed Object Store Client KMIP v1.3":              0x0000006B,
-			"Opaque Managed Object Store Server KMIP v1.3":              0x0000006C,
-			"Suite B minLOS_128 Client KMIP v1.3":                       0x0000006D,
-			"Suite B minLOS_128 Server KMIP v1.3":                       0x0000006E,
-			"Suite B minLOS_192 Client KMIP v1.3":                       0x0000006F,
-			"Suite B minLOS_192 Server KMIP v1.3":                       0x00000070,
-			"Storage Array with Self Encrypting Drive Client KMIP v1.3": 0x00000071,
-			"Storage Array with Self Encrypting Drive Server KMIP v1.3": 0x00000072,
-			"HTTPS Client KMIP v1.3":                                    0x00000073,
-			"HTTPS Server KMIP v1.3":                                    0x00000074,
-			"JSON Client KMIP v1.3":                                     0x00000075,
-			"JSON Server KMIP v1.3":                                     0x00000076,
-			"XML Client KMIP v1.3":                                      0x00000077,
-			"XML Server KMIP v1.3":                                      0x00000078,
-			"Baseline Server Basic KMIP v1.4":                           0x00000079,
-			"Baseline Server TLS v1.2 KMIP v1.4":                        0x0000007A,
-			"Baseline Client Basic KMIP v1.4":                           0x0000007B,
-			"Baseline Client TLS v1.2 KMIP v1.4":                        0x0000007C,
-			"Complete Server Basic KMIP v1.4":                           0x0000007D,
-			"Complete Server TLS v1.2 KMIP v1.4":                        0x0000007E,
-			"Tape Library Client KMIP v1.4":                             0x0000007F,
-			"Tape Library Server KMIP v1.4":                             0x00000080,
-			"Symmetric Key Lifecycle Client KMIP v1.4":                  0x00000081,
-			"Symmetric Key Lifecycle Server KMIP v1.4":                  0x00000082,
-			"Asymmetric Key Lifecycle Client KMIP v1.4":                 0x00000083,
-			"Asymmetric Key Lifecycle Server KMIP v1.4":                 0x00000084,
-			"Basic Cryptographic Client KMIP v1.4":                      0x00000085,
-			"Basic Cryptographic Server KMIP v1.4":                      0x00000086,
-			"Advanced Cryptographic Client KMIP v1.4":                   0x00000087,
-			"Advanced Cryptographic Server KMIP v1.4":                   0x00000088,
-			"RNG Cryptographic Client KMIP v1.4":                        0x00000089,
-			"RNG Cryptographic Server KMIP v1.4":                        0x0000008A,
-			"Basic Symmetric Key Foundry Client KMIP v1.4":              0x0000008B,
-			"Intermediate Symmetric Key Foundry Client KMIP v1.4":       0x0000008C,
-			"Advanced Symmetric Key Foundry Client KMIP v1.4":           0x0000008D,
-			"Symmetric Key Foundry Server KMIP v1.4":                    0x0000008E,
-			"Opaque Managed Object Store Client KMIP v1.4":              0x0000008F,
-			"Opaque Managed Object Store Server KMIP v1.4":              0x00000090,
-			"Suite B minLOS_128 Client KMIP v1.4":                       0x00000091,
-			"Suite B minLOS_128 Server KMIP v1.4":                       0x00000092,
-			"Suite B minLOS_192 Client KMIP v1.4":                       0x00000093,
-			"Suite B minLOS_192 Server KMIP v1.4":                       0x00000094,
-			"Storage Array with Self Encrypting Drive Client KMIP v1.4": 0x00000095,
-			"Storage Array with Self Encrypting Drive Server KMIP v1.4": 0x00000096,
-			"HTTPS Client KMIP v1.4":                                    0x00000097,
-			"HTTPS Server KMIP v1.4":                                    0x00000098,
-			"JSON Client KMIP v1.4":                                     0x00000099,
-			"JSON Server KMIP v1.4":                                     0x0000009A,
-			"XML Client KMIP v1.4":                                      0x0000009B,
-			"XML Server KMIP v1.4":                                      0x0000009C,
-		},
-	},
-	{
-		Comment: "9.1.3.2.43",
-		Name:    "Unwrap Mode",
-		Tags:    []string{"Unwrap Mode"},
-		Values: map[string]uint32{
-			"Unspecified":   0x00000001,
-			"Processed":     0x00000002,
-			"Not Processed": 0x00000003,
-		},
-	},
-	{
-		Comment: "9.1.3.2.44",
-		Name:    "Destroy Action",
-		Tags:    []string{"Destroy Action"},
-		Values: map[string]uint32{
-			"Unspecified":           0x00000001,
-			"Key Material Deleted":  0x00000002,
-			"Key Material Shredded": 0x00000003,
-			"Meta Data Deleted":     0x00000004,
-			"Meta Data Shredded":    0x00000005,
-			"Deleted":               0x00000006,
-			"Shredded":              0x00000007,
-		},
-	},
-	{
-		Comment: "9.1.3.2.45",
-		Name:    "Shredding Algorithm",
-		Tags:    []string{"Shredding Algorithm"},
-		Values: map[string]uint32{
-			"Unspecified":   0x00000001,
-			"Cryptographic": 0x00000002,
-			"Unsupported":   0x00000003,
-		},
-	},
-	{
-		Comment: "9.1.3.2.46",
-		Name:    "RNG Mode",
-		Tags:    []string{"RNG Mode"},
-		Values: map[string]uint32{
-			"Unspecified":              0x00000001,
-			"Shared Instantiation":     0x00000002,
-			"Non-Shared Instantiation": 0x00000003,
-		},
-	},
-	{
-		Comment: "9.1.3.2.47",
-		Name:    "Client Registration Method",
-		Tags:    []string{"Client Registration Method"},
-		Values: map[string]uint32{
-			"Unspecified":          0x00000001,
-			"Server Pre-Generated": 0x00000002,
-			"Server On-Demand":     0x00000003,
-			"Client Generated":     0x00000004,
-			"Client Registered":    0x00000005,
-		},
-	},
-	{
-		Comment: "9.1.3.2.48",
-		Name:    "Key Wrap Type",
-		Tags:    []string{"Key Wrap Type"},
-		Values: map[string]uint32{
-			"Not Wrapped":   0x00000001,
-			"As Registered": 0x00000002,
-		},
-	},
-	{
-		Name:    "Mask Generator",
-		Tags:    []string{"Mask Generator"},
-		Comment: "9.1.3.2.49",
-		Values: map[string]uint32{
-			"MGF1": 0x00000001,
-		},
-	},
-	{
-		Name:    "Cryptographic Usage Mask",
-		Tags:    []string{"Cryptographic Usage Mask"},
-		Comment: "9.1.3.3.1",
-		BitMask: true,
-		Values: map[string]uint32{
-			"Sign":                                 0x00000001,
-			"Verify":                               0x00000002,
-			"Encrypt":                              0x00000004,
-			"Decrypt":                              0x00000008,
-			"Wrap Key":                             0x00000010,
-			"Unwrap Key":                           0x00000020,
-			"Export":                               0x00000040,
-			"MAC Generate":                         0x00000080,
-			"MAC Verify":                           0x00000100,
-			"Derive Key":                           0x00000200,
-			"Content Commitment (Non Repudiation)": 0x00000400,
-			"Key Agreement":                        0x00000800,
-			"Certificate Sign":                     0x00001000,
-			"CRL Sign":                             0x00002000,
-			"Generate Cryptogram":                  0x00004000,
-			"Validate Cryptogram":                  0x00008000,
-			"Translate Encrypt":                    0x00010000,
-			"Translate Decrypt":                    0x00020000,
-			"Translate Wrap":                       0x00040000,
-			"Translate Unwrap":                     0x00080000,
-		},
-	},
-	{
-		Name:    "Storage Status Mask",
-		Tags:    []string{"Storage Status Mask"},
-		Comment: "9.1.3.3.2",
-		BitMask: true,
-		Values: map[string]uint32{
-			"On-line storage":  0x00000001,
-			"Archival storage": 0x00000002,
-		},
-	},
-}

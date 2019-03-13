@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/gemalto/kmip-go/internal/kmiputil"
 	"strconv"
 	"strings"
 	"sync"
@@ -14,11 +13,6 @@ import (
 )
 
 var ErrInvalidHexString = errors.New("invalid hex string")
-
-// implementation of 5.4.1.1 and 5.5.1.1
-func NormalizeName(s string) string {
-	return kmiputil.NormalizeName(s)
-}
 
 type EnumTypeDef struct {
 	Parse  func(s string) (uint32, bool)
@@ -48,37 +42,6 @@ func IsBitMask(tag Tag) bool {
 		return v.(enumDef).isMask
 	}
 	return false
-}
-
-func RegisterTag(tag Tag, name string) {
-	_TagValueToFullNameMap[tag] = name
-	name = kmiputil.NormalizeName(name)
-	_TagNameToValueMap[name] = tag
-	_TagValueToNameMap[tag] = name
-}
-
-// returns TagNone if not found.
-// returns error if s is a malformed hex string, or a hex string of incorrect length
-func ParseTag(s string) (Tag, error) {
-	if strings.HasPrefix(s, "0x") {
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return TagNone, merry.Prepend(err, "invalid hex string, should be 0x[a-fA-F0-9][a-fA-F0-9]")
-		}
-		switch len(b) {
-		case 3:
-			b = append([]byte{0}, b...)
-		case 4:
-		default:
-			return TagNone, merry.Errorf("invalid byte length for tag, should be 3 bytes: %s", s)
-		}
-
-		return Tag(binary.BigEndian.Uint32(b)), nil
-	}
-	if v, ok := _TagNameToValueMap[s]; ok {
-		return v, nil
-	}
-	return TagNone, merry.Errorf("invalid tag \"%s\"", s)
 }
 
 func ParseInteger(tag Tag, s string) (int32, error) {

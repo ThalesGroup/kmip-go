@@ -3,7 +3,7 @@ SHELL = bash
 PACKAGES = $$(go list ./... | grep -v /vendor/)
 BUILD_FLAGS =
 
-all: fmt build vet test
+all: generate fmt build vet test
 
 build:
 	go build $(BUILD_FLAGS) $(PACKAGES)
@@ -24,9 +24,7 @@ fmt:
 	go fmt $(PACKAGES)
 
 generate:
-	go install ./cmd/kmipgen
-	go generate
-	go fmt $(PACKAGES)
+	go generate $(PACKAGES)
 
 test:
 	go test $(BUILD_FLAGS) $(PACKAGES)

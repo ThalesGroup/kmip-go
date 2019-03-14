@@ -3,8 +3,8 @@ package ttlv
 import (
 	"encoding/binary"
 	"encoding/hex"
+	"errors"
 	"fmt"
-	"github.com/gemalto/kmip-go/internal/kmiputil"
 	"strconv"
 	"strings"
 	"sync"
@@ -12,7 +12,7 @@ import (
 	"github.com/ansel1/merry"
 )
 
-var ErrInvalidHexString = kmiputil.ErrInvalidHexString
+var ErrInvalidHexString = errors.New("invalid hex string")
 
 type EnumTypeDef struct {
 	Parse  func(s string) (uint32, bool)

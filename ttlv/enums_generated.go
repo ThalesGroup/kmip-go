@@ -635,6 +635,9 @@ func init() {
 		String: func(v uint32) string {
 			return CredentialType(v).String()
 		},
+		Typed: func(v uint32) interface{} {
+			return CredentialType(v)
+		},
 	})
 }
 
@@ -694,6 +697,9 @@ func init() {
 		},
 		String: func(v uint32) string {
 			return KeyCompressionType(v).String()
+		},
+		Typed: func(v uint32) interface{} {
+			return KeyCompressionType(v)
 		},
 	})
 }
@@ -809,6 +815,9 @@ func init() {
 		String: func(v uint32) string {
 			return KeyFormatType(v).String()
 		},
+		Typed: func(v uint32) interface{} {
+			return KeyFormatType(v)
+		},
 	})
 }
 
@@ -871,6 +880,9 @@ func init() {
 		},
 		String: func(v uint32) string {
 			return WrappingMethod(v).String()
+		},
+		Typed: func(v uint32) interface{} {
+			return WrappingMethod(v)
 		},
 	})
 }
@@ -1124,6 +1136,9 @@ func init() {
 		String: func(v uint32) string {
 			return RecommendedCurve(v).String()
 		},
+		Typed: func(v uint32) interface{} {
+			return RecommendedCurve(v)
+		},
 	})
 }
 
@@ -1177,6 +1192,9 @@ func init() {
 		},
 		String: func(v uint32) string {
 			return CertificateType(v).String()
+		},
+		Typed: func(v uint32) interface{} {
+			return CertificateType(v)
 		},
 	})
 }
@@ -1283,6 +1301,9 @@ func init() {
 		String: func(v uint32) string {
 			return DigitalSignatureAlgorithm(v).String()
 		},
+		Typed: func(v uint32) interface{} {
+			return DigitalSignatureAlgorithm(v)
+		},
 	})
 }
 
@@ -1343,6 +1364,9 @@ func init() {
 		String: func(v uint32) string {
 			return SplitKeyMethod(v).String()
 		},
+		Typed: func(v uint32) interface{} {
+			return SplitKeyMethod(v)
+		},
 	})
 }
 
@@ -1397,6 +1421,9 @@ func init() {
 		String: func(v uint32) string {
 			return SecretDataType(v).String()
 		},
+		Typed: func(v uint32) interface{} {
+			return SecretDataType(v)
+		},
 	})
 }
 
@@ -1441,6 +1468,9 @@ func init() {
 		},
 		String: func(v uint32) string {
 			return OpaqueDataType(v).String()
+		},
+		Typed: func(v uint32) interface{} {
+			return OpaqueDataType(v)
 		},
 	})
 }
@@ -1495,6 +1525,9 @@ func init() {
 		},
 		String: func(v uint32) string {
 			return NameType(v).String()
+		},
+		Typed: func(v uint32) interface{} {
+			return NameType(v)
 		},
 	})
 }
@@ -1570,6 +1603,9 @@ func init() {
 		},
 		String: func(v uint32) string {
 			return ObjectType(v).String()
+		},
+		Typed: func(v uint32) interface{} {
+			return ObjectType(v)
 		},
 	})
 }
@@ -1739,6 +1775,9 @@ func init() {
 		String: func(v uint32) string {
 			return CryptographicAlgorithm(v).String()
 		},
+		Typed: func(v uint32) interface{} {
+			return CryptographicAlgorithm(v)
+		},
 	})
 }
 
@@ -1841,6 +1880,9 @@ func init() {
 		String: func(v uint32) string {
 			return BlockCipherMode(v).String()
 		},
+		Typed: func(v uint32) interface{} {
+			return BlockCipherMode(v)
+		},
 	})
 }
 
@@ -1918,6 +1960,9 @@ func init() {
 		},
 		String: func(v uint32) string {
 			return PaddingMethod(v).String()
+		},
+		Typed: func(v uint32) interface{} {
+			return PaddingMethod(v)
 		},
 	})
 }
@@ -2018,6 +2063,9 @@ func init() {
 		String: func(v uint32) string {
 			return HashingAlgorithm(v).String()
 		},
+		Typed: func(v uint32) interface{} {
+			return HashingAlgorithm(v)
+		},
 	})
 	RegisterEnum(TagMaskGeneratorHashingAlgorithm, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
@@ -2026,6 +2074,9 @@ func init() {
 		},
 		String: func(v uint32) string {
 			return HashingAlgorithm(v).String()
+		},
+		Typed: func(v uint32) interface{} {
+			return HashingAlgorithm(v)
 		},
 	})
 }
@@ -2147,6 +2198,9 @@ func init() {
 		String: func(v uint32) string {
 			return KeyRoleType(v).String()
 		},
+		Typed: func(v uint32) interface{} {
+			return KeyRoleType(v)
+		},
 	})
 }
 
@@ -2212,6 +2266,9 @@ func init() {
 		},
 		String: func(v uint32) string {
 			return State(v).String()
+		},
+		Typed: func(v uint32) interface{} {
+			return State(v)
 		},
 	})
 }
@@ -2281,6 +2338,9 @@ func init() {
 		},
 		String: func(v uint32) string {
 			return RevocationReasonCode(v).String()
+		},
+		Typed: func(v uint32) interface{} {
+			return RevocationReasonCode(v)
 		},
 	})
 }
@@ -2369,6 +2429,9 @@ func init() {
 		String: func(v uint32) string {
 			return LinkType(v).String()
 		},
+		Typed: func(v uint32) interface{} {
+			return LinkType(v)
+		},
 	})
 }
 
@@ -2441,6 +2504,9 @@ func init() {
 		String: func(v uint32) string {
 			return DerivationMethod(v).String()
 		},
+		Typed: func(v uint32) interface{} {
+			return DerivationMethod(v)
+		},
 	})
 }
 
@@ -2501,6 +2567,9 @@ func init() {
 		String: func(v uint32) string {
 			return CertificateRequestType(v).String()
 		},
+		Typed: func(v uint32) interface{} {
+			return CertificateRequestType(v)
+		},
 	})
 }
 
@@ -2557,6 +2626,9 @@ func init() {
 		},
 		String: func(v uint32) string {
 			return ValidityIndicator(v).String()
+		},
+		Typed: func(v uint32) interface{} {
+			return ValidityIndicator(v)
 		},
 	})
 }
@@ -2642,6 +2714,9 @@ func init() {
 		String: func(v uint32) string {
 			return QueryFunction(v).String()
 		},
+		Typed: func(v uint32) interface{} {
+			return QueryFunction(v)
+		},
 	})
 }
 
@@ -2705,6 +2780,9 @@ func init() {
 		String: func(v uint32) string {
 			return CancellationResult(v).String()
 		},
+		Typed: func(v uint32) interface{} {
+			return CancellationResult(v)
+		},
 	})
 }
 
@@ -2758,6 +2836,9 @@ func init() {
 		},
 		String: func(v uint32) string {
 			return PutFunction(v).String()
+		},
+		Typed: func(v uint32) interface{} {
+			return PutFunction(v)
 		},
 	})
 }
@@ -2936,6 +3017,9 @@ func init() {
 		String: func(v uint32) string {
 			return Operation(v).String()
 		},
+		Typed: func(v uint32) interface{} {
+			return Operation(v)
+		},
 	})
 }
 
@@ -2995,6 +3079,9 @@ func init() {
 		},
 		String: func(v uint32) string {
 			return ResultStatus(v).String()
+		},
+		Typed: func(v uint32) interface{} {
+			return ResultStatus(v)
 		},
 	})
 }
@@ -3119,6 +3206,9 @@ func init() {
 		String: func(v uint32) string {
 			return ResultReason(v).String()
 		},
+		Typed: func(v uint32) interface{} {
+			return ResultReason(v)
+		},
 	})
 }
 
@@ -3176,6 +3266,9 @@ func init() {
 		String: func(v uint32) string {
 			return BatchErrorContinuationOption(v).String()
 		},
+		Typed: func(v uint32) interface{} {
+			return BatchErrorContinuationOption(v)
+		},
 	})
 }
 
@@ -3229,6 +3322,9 @@ func init() {
 		},
 		String: func(v uint32) string {
 			return UsageLimitsUnit(v).String()
+		},
+		Typed: func(v uint32) interface{} {
+			return UsageLimitsUnit(v)
 		},
 	})
 }
@@ -3284,6 +3380,9 @@ func init() {
 		String: func(v uint32) string {
 			return EncodingOption(v).String()
 		},
+		Typed: func(v uint32) interface{} {
+			return EncodingOption(v)
+		},
 	})
 }
 
@@ -3337,6 +3436,9 @@ func init() {
 		},
 		String: func(v uint32) string {
 			return ObjectGroupMember(v).String()
+		},
+		Typed: func(v uint32) interface{} {
+			return ObjectGroupMember(v)
 		},
 	})
 }
@@ -3407,6 +3509,9 @@ func init() {
 		String: func(v uint32) string {
 			return AlternativeNameType(v).String()
 		},
+		Typed: func(v uint32) interface{} {
+			return AlternativeNameType(v)
+		},
 	})
 }
 
@@ -3460,6 +3565,9 @@ func init() {
 		},
 		String: func(v uint32) string {
 			return KeyValueLocationType(v).String()
+		},
+		Typed: func(v uint32) interface{} {
+			return KeyValueLocationType(v)
 		},
 	})
 }
@@ -3517,6 +3625,9 @@ func init() {
 		},
 		String: func(v uint32) string {
 			return AttestationType(v).String()
+		},
+		Typed: func(v uint32) interface{} {
+			return AttestationType(v)
 		},
 	})
 }
@@ -3584,6 +3695,9 @@ func init() {
 		String: func(v uint32) string {
 			return RNGAlgorithm(v).String()
 		},
+		Typed: func(v uint32) interface{} {
+			return RNGAlgorithm(v)
+		},
 	})
 }
 
@@ -3646,6 +3760,9 @@ func init() {
 		},
 		String: func(v uint32) string {
 			return DRBGAlgorithm(v).String()
+		},
+		Typed: func(v uint32) interface{} {
+			return DRBGAlgorithm(v)
 		},
 	})
 }
@@ -3716,6 +3833,9 @@ func init() {
 		String: func(v uint32) string {
 			return FIPS186Variation(v).String()
 		},
+		Typed: func(v uint32) interface{} {
+			return FIPS186Variation(v)
+		},
 	})
 }
 
@@ -3772,6 +3892,9 @@ func init() {
 		},
 		String: func(v uint32) string {
 			return ValidationAuthorityType(v).String()
+		},
+		Typed: func(v uint32) interface{} {
+			return ValidationAuthorityType(v)
 		},
 	})
 }
@@ -3835,6 +3958,9 @@ func init() {
 		},
 		String: func(v uint32) string {
 			return ValidationType(v).String()
+		},
+		Typed: func(v uint32) interface{} {
+			return ValidationType(v)
 		},
 	})
 }
@@ -4352,6 +4478,9 @@ func init() {
 		String: func(v uint32) string {
 			return ProfileName(v).String()
 		},
+		Typed: func(v uint32) interface{} {
+			return ProfileName(v)
+		},
 	})
 }
 
@@ -4408,6 +4537,9 @@ func init() {
 		},
 		String: func(v uint32) string {
 			return UnwrapMode(v).String()
+		},
+		Typed: func(v uint32) interface{} {
+			return UnwrapMode(v)
 		},
 	})
 }
@@ -4478,6 +4610,9 @@ func init() {
 		String: func(v uint32) string {
 			return DestroyAction(v).String()
 		},
+		Typed: func(v uint32) interface{} {
+			return DestroyAction(v)
+		},
 	})
 }
 
@@ -4535,6 +4670,9 @@ func init() {
 		String: func(v uint32) string {
 			return ShreddingAlgorithm(v).String()
 		},
+		Typed: func(v uint32) interface{} {
+			return ShreddingAlgorithm(v)
+		},
 	})
 }
 
@@ -4591,6 +4729,9 @@ func init() {
 		},
 		String: func(v uint32) string {
 			return RNGMode(v).String()
+		},
+		Typed: func(v uint32) interface{} {
+			return RNGMode(v)
 		},
 	})
 }
@@ -4655,6 +4796,9 @@ func init() {
 		String: func(v uint32) string {
 			return ClientRegistrationMethod(v).String()
 		},
+		Typed: func(v uint32) interface{} {
+			return ClientRegistrationMethod(v)
+		},
 	})
 }
 
@@ -4709,6 +4853,9 @@ func init() {
 		String: func(v uint32) string {
 			return KeyWrapType(v).String()
 		},
+		Typed: func(v uint32) interface{} {
+			return KeyWrapType(v)
+		},
 	})
 }
 
@@ -4759,6 +4906,9 @@ func init() {
 		},
 		String: func(v uint32) string {
 			return MaskGenerator(v).String()
+		},
+		Typed: func(v uint32) interface{} {
+			return MaskGenerator(v)
 		},
 	})
 }
@@ -4868,6 +5018,9 @@ func init() {
 		String: func(v uint32) string {
 			return CryptographicUsageMask(v).String()
 		},
+		Typed: func(v uint32) interface{} {
+			return CryptographicUsageMask(v)
+		},
 	})
 }
 
@@ -4951,6 +5104,9 @@ func init() {
 		},
 		String: func(v uint32) string {
 			return StorageStatusMask(v).String()
+		},
+		Typed: func(v uint32) interface{} {
+			return StorageStatusMask(v)
 		},
 	})
 }

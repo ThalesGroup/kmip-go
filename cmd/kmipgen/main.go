@@ -386,6 +386,9 @@ func init() { {{range .Tags}}
 		String: func(v uint32) string {
 			return {{$typeName}}(v).String()		
 		},
+		Typed: func(v uint32) interface{} {
+			return {{$typeName}}(v)
+		},
 	}){{end}}
 }{{end}}
 `

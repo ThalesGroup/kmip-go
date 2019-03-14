@@ -4,8 +4,27 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/ansel1/merry"
+	"github.com/gemalto/kmip-go/internal/kmiputil"
 	"strings"
 )
+
+func RegisterType(typ Type, name string) {
+	name = kmiputil.NormalizeName(name)
+	_TypeNameToValueMap[name] = typ
+	_TypeValueToNameMap[typ] = name
+}
+
+func ParseType(s string) (Type, error) {
+	if strings.HasPrefix(s, "0x") && len(s) == 4 {
+		b, err := hex.DecodeString(s[2:])
+		return Type(b[0]), err
+	}
+	if v, ok := _TypeNameToValueMap[s]; ok {
+		return v, nil
+	} else {
+		return v, merry.Errorf("invalid type \"%s\"", s)
+	}
+}
 
 // 2 and 9.1.1.2
 
@@ -55,18 +74,6 @@ func (t Type) String() string {
 		return s
 	}
 	return fmt.Sprintf("%#02x", byte(t))
-}
-
-func ParseType(s string) (Type, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 4 {
-		b, err := hex.DecodeString(s[2:])
-		return Type(b[0]), err
-	}
-	if v, ok := _TypeNameToValueMap[s]; ok {
-		return v, nil
-	} else {
-		return v, merry.Errorf("invalid type \"%s\"", s)
-	}
 }
 
 func (t Type) MarshalText() (text []byte, err error) {

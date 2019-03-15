@@ -255,7 +255,7 @@ func prepareInput(s *Specifications) (*inputs, error) {
 
 		// normalize the tag names
 		for _, t := range v.Tags {
-			ev.Tags = append(ev.Tags, "Tag"+kmiputil.NormalizeName(t))
+			ev.Tags = append(ev.Tags, kmiputil.NormalizeName(t))
 		}
 		return ev, nil
 	}
@@ -377,8 +377,15 @@ func ({{.Var}} {{.TypeName}}) MarshalText() (text []byte, err error) {
 
 {{ if .Tags }}
 {{ $bitMask := .BitMask }}
-func init() { {{range .Tags}}
-	{{ttlvPackage}}Register{{if $bitMask}}BitMask{{else}}Enum{{end}}({{.}}, {{ttlvPackage}}EnumTypeDef{
+func init() { 
+	var tag {{ttlvPackage}}Tag
+	var err error
+	{{range .Tags}}
+	tag, err = {{ttlvPackage}}ParseTag("{{.}}")
+	if err != nil {
+		panic(err)
+	}
+	{{ttlvPackage}}Register{{if $bitMask}}BitMask{{else}}Enum{{end}}(tag, {{ttlvPackage}}EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _{{$typeName}}NameToValueMap[s] 
 			return uint32(v), ok

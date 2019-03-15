@@ -627,7 +627,14 @@ func (c CredentialType) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagCredentialType, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("CredentialType")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _CredentialTypeNameToValueMap[s]
 			return uint32(v), ok
@@ -690,7 +697,14 @@ func (k KeyCompressionType) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagKeyCompressionType, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("KeyCompressionType")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _KeyCompressionTypeNameToValueMap[s]
 			return uint32(v), ok
@@ -807,7 +821,14 @@ func (k KeyFormatType) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagKeyFormatType, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("KeyFormatType")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _KeyFormatTypeNameToValueMap[s]
 			return uint32(v), ok
@@ -873,7 +894,14 @@ func (w WrappingMethod) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagWrappingMethod, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("WrappingMethod")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _WrappingMethodNameToValueMap[s]
 			return uint32(v), ok
@@ -1128,7 +1156,14 @@ func (r RecommendedCurve) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagRecommendedCurve, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("RecommendedCurve")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _RecommendedCurveNameToValueMap[s]
 			return uint32(v), ok
@@ -1185,7 +1220,14 @@ func (c CertificateType) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagCertificateType, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("CertificateType")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _CertificateTypeNameToValueMap[s]
 			return uint32(v), ok
@@ -1293,7 +1335,14 @@ func (d DigitalSignatureAlgorithm) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagDigitalSignatureAlgorithm, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("DigitalSignatureAlgorithm")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _DigitalSignatureAlgorithmNameToValueMap[s]
 			return uint32(v), ok
@@ -1356,7 +1405,14 @@ func (s SplitKeyMethod) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagSplitKeyMethod, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("SplitKeyMethod")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _SplitKeyMethodNameToValueMap[s]
 			return uint32(v), ok
@@ -1413,7 +1469,14 @@ func (s SecretDataType) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagSecretDataType, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("SecretDataType")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _SecretDataTypeNameToValueMap[s]
 			return uint32(v), ok
@@ -1461,7 +1524,14 @@ func (o OpaqueDataType) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagOpaqueDataType, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("OpaqueDataType")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _OpaqueDataTypeNameToValueMap[s]
 			return uint32(v), ok
@@ -1518,7 +1588,14 @@ func (n NameType) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagNameType, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("NameType")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _NameTypeNameToValueMap[s]
 			return uint32(v), ok
@@ -1596,7 +1673,14 @@ func (o ObjectType) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagObjectType, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("ObjectType")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _ObjectTypeNameToValueMap[s]
 			return uint32(v), ok
@@ -1767,7 +1851,14 @@ func (c CryptographicAlgorithm) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagCryptographicAlgorithm, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("CryptographicAlgorithm")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _CryptographicAlgorithmNameToValueMap[s]
 			return uint32(v), ok
@@ -1872,7 +1963,14 @@ func (b BlockCipherMode) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagBlockCipherMode, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("BlockCipherMode")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _BlockCipherModeNameToValueMap[s]
 			return uint32(v), ok
@@ -1953,7 +2051,14 @@ func (p PaddingMethod) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagPaddingMethod, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("PaddingMethod")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _PaddingMethodNameToValueMap[s]
 			return uint32(v), ok
@@ -2055,7 +2160,14 @@ func (h HashingAlgorithm) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagHashingAlgorithm, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("HashingAlgorithm")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _HashingAlgorithmNameToValueMap[s]
 			return uint32(v), ok
@@ -2067,7 +2179,11 @@ func init() {
 			return HashingAlgorithm(v)
 		},
 	})
-	RegisterEnum(TagMaskGeneratorHashingAlgorithm, EnumTypeDef{
+	tag, err = ParseTag("MaskGeneratorHashingAlgorithm")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _HashingAlgorithmNameToValueMap[s]
 			return uint32(v), ok
@@ -2190,7 +2306,14 @@ func (k KeyRoleType) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagKeyRoleType, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("KeyRoleType")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _KeyRoleTypeNameToValueMap[s]
 			return uint32(v), ok
@@ -2259,7 +2382,14 @@ func (s State) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagState, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("State")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _StateNameToValueMap[s]
 			return uint32(v), ok
@@ -2331,7 +2461,14 @@ func (r RevocationReasonCode) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagRevocationReasonCode, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("RevocationReasonCode")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _RevocationReasonCodeNameToValueMap[s]
 			return uint32(v), ok
@@ -2421,7 +2558,14 @@ func (l LinkType) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagLinkType, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("LinkType")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _LinkTypeNameToValueMap[s]
 			return uint32(v), ok
@@ -2496,7 +2640,14 @@ func (d DerivationMethod) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagDerivationMethod, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("DerivationMethod")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _DerivationMethodNameToValueMap[s]
 			return uint32(v), ok
@@ -2559,7 +2710,14 @@ func (c CertificateRequestType) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagCertificateRequestType, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("CertificateRequestType")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _CertificateRequestTypeNameToValueMap[s]
 			return uint32(v), ok
@@ -2619,7 +2777,14 @@ func (v ValidityIndicator) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagValidityIndicator, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("ValidityIndicator")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _ValidityIndicatorNameToValueMap[s]
 			return uint32(v), ok
@@ -2706,7 +2871,14 @@ func (q QueryFunction) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagQueryFunction, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("QueryFunction")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _QueryFunctionNameToValueMap[s]
 			return uint32(v), ok
@@ -2772,7 +2944,14 @@ func (c CancellationResult) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagCancellationResult, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("CancellationResult")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _CancellationResultNameToValueMap[s]
 			return uint32(v), ok
@@ -2829,7 +3008,14 @@ func (p PutFunction) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagPutFunction, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("PutFunction")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _PutFunctionNameToValueMap[s]
 			return uint32(v), ok
@@ -3009,7 +3195,14 @@ func (o Operation) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagOperation, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("Operation")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _OperationNameToValueMap[s]
 			return uint32(v), ok
@@ -3072,7 +3265,14 @@ func (r ResultStatus) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagResultStatus, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("ResultStatus")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _ResultStatusNameToValueMap[s]
 			return uint32(v), ok
@@ -3198,7 +3398,14 @@ func (r ResultReason) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagResultReason, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("ResultReason")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _ResultReasonNameToValueMap[s]
 			return uint32(v), ok
@@ -3258,7 +3465,14 @@ func (b BatchErrorContinuationOption) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagBatchErrorContinuationOption, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("BatchErrorContinuationOption")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _BatchErrorContinuationOptionNameToValueMap[s]
 			return uint32(v), ok
@@ -3315,7 +3529,14 @@ func (u UsageLimitsUnit) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagUsageLimitsUnit, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("UsageLimitsUnit")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _UsageLimitsUnitNameToValueMap[s]
 			return uint32(v), ok
@@ -3372,7 +3593,14 @@ func (e EncodingOption) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagEncodingOption, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("EncodingOption")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _EncodingOptionNameToValueMap[s]
 			return uint32(v), ok
@@ -3429,7 +3657,14 @@ func (o ObjectGroupMember) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagObjectGroupMember, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("ObjectGroupMember")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _ObjectGroupMemberNameToValueMap[s]
 			return uint32(v), ok
@@ -3501,7 +3736,14 @@ func (a AlternativeNameType) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagAlternativeNameType, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("AlternativeNameType")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _AlternativeNameTypeNameToValueMap[s]
 			return uint32(v), ok
@@ -3558,7 +3800,14 @@ func (k KeyValueLocationType) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagKeyValueLocationType, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("KeyValueLocationType")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _KeyValueLocationTypeNameToValueMap[s]
 			return uint32(v), ok
@@ -3618,7 +3867,14 @@ func (a AttestationType) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagAttestationType, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("AttestationType")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _AttestationTypeNameToValueMap[s]
 			return uint32(v), ok
@@ -3687,7 +3943,14 @@ func (r RNGAlgorithm) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagRNGAlgorithm, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("RNGAlgorithm")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _RNGAlgorithmNameToValueMap[s]
 			return uint32(v), ok
@@ -3753,7 +4016,14 @@ func (d DRBGAlgorithm) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagDRBGAlgorithm, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("DRBGAlgorithm")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _DRBGAlgorithmNameToValueMap[s]
 			return uint32(v), ok
@@ -3825,7 +4095,14 @@ func (f FIPS186Variation) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagFIPS186Variation, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("FIPS186Variation")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _FIPS186VariationNameToValueMap[s]
 			return uint32(v), ok
@@ -3885,7 +4162,14 @@ func (v ValidationAuthorityType) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagValidationAuthorityType, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("ValidationAuthorityType")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _ValidationAuthorityTypeNameToValueMap[s]
 			return uint32(v), ok
@@ -3951,7 +4235,14 @@ func (v ValidationType) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagValidationType, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("ValidationType")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _ValidationTypeNameToValueMap[s]
 			return uint32(v), ok
@@ -4470,7 +4761,14 @@ func (p ProfileName) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagProfileName, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("ProfileName")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _ProfileNameNameToValueMap[s]
 			return uint32(v), ok
@@ -4530,7 +4828,14 @@ func (u UnwrapMode) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagUnwrapMode, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("UnwrapMode")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _UnwrapModeNameToValueMap[s]
 			return uint32(v), ok
@@ -4602,7 +4907,14 @@ func (d DestroyAction) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagDestroyAction, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("DestroyAction")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _DestroyActionNameToValueMap[s]
 			return uint32(v), ok
@@ -4662,7 +4974,14 @@ func (s ShreddingAlgorithm) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagShreddingAlgorithm, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("ShreddingAlgorithm")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _ShreddingAlgorithmNameToValueMap[s]
 			return uint32(v), ok
@@ -4722,7 +5041,14 @@ func (r RNGMode) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagRNGMode, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("RNGMode")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _RNGModeNameToValueMap[s]
 			return uint32(v), ok
@@ -4788,7 +5114,14 @@ func (c ClientRegistrationMethod) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagClientRegistrationMethod, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("ClientRegistrationMethod")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _ClientRegistrationMethodNameToValueMap[s]
 			return uint32(v), ok
@@ -4845,7 +5178,14 @@ func (k KeyWrapType) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagKeyWrapType, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("KeyWrapType")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _KeyWrapTypeNameToValueMap[s]
 			return uint32(v), ok
@@ -4899,7 +5239,14 @@ func (m MaskGenerator) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterEnum(TagMaskGenerator, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("MaskGenerator")
+	if err != nil {
+		panic(err)
+	}
+	RegisterEnum(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _MaskGeneratorNameToValueMap[s]
 			return uint32(v), ok
@@ -5010,7 +5357,14 @@ func (c CryptographicUsageMask) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterBitMask(TagCryptographicUsageMask, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("CryptographicUsageMask")
+	if err != nil {
+		panic(err)
+	}
+	RegisterBitMask(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _CryptographicUsageMaskNameToValueMap[s]
 			return uint32(v), ok
@@ -5097,7 +5451,14 @@ func (s StorageStatusMask) MarshalText() (text []byte, err error) {
 }
 
 func init() {
-	RegisterBitMask(TagStorageStatusMask, EnumTypeDef{
+	var tag Tag
+	var err error
+
+	tag, err = ParseTag("StorageStatusMask")
+	if err != nil {
+		panic(err)
+	}
+	RegisterBitMask(tag, EnumTypeDef{
 		Parse: func(s string) (uint32, bool) {
 			v, ok := _StorageStatusMaskNameToValueMap[s]
 			return uint32(v), ok

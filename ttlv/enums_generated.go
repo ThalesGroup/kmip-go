@@ -1223,69 +1223,69 @@ func (c CertificateType) String() string {
 type DigitalSignatureAlgorithm uint32
 
 const (
-	DigitalSignatureAlgorithmMD2WithRSAEncryptionPKCS_1V1_5     DigitalSignatureAlgorithm = 0x00000001
-	DigitalSignatureAlgorithmMD5WithRSAEncryptionPKCS_1V1_5     DigitalSignatureAlgorithm = 0x00000002
-	DigitalSignatureAlgorithmSHA_1WithRSAEncryptionPKCS_1V1_5   DigitalSignatureAlgorithm = 0x00000003
-	DigitalSignatureAlgorithmSHA_224WithRSAEncryptionPKCS_1V1_5 DigitalSignatureAlgorithm = 0x00000004
-	DigitalSignatureAlgorithmSHA_256WithRSAEncryptionPKCS_1V1_5 DigitalSignatureAlgorithm = 0x00000005
-	DigitalSignatureAlgorithmSHA_384WithRSAEncryptionPKCS_1V1_5 DigitalSignatureAlgorithm = 0x00000006
-	DigitalSignatureAlgorithmSHA_512WithRSAEncryptionPKCS_1V1_5 DigitalSignatureAlgorithm = 0x00000007
-	DigitalSignatureAlgorithmRSASSA_PSSPKCS_1V2_1               DigitalSignatureAlgorithm = 0x00000008
-	DigitalSignatureAlgorithmDSAWithSHA_1                       DigitalSignatureAlgorithm = 0x00000009
-	DigitalSignatureAlgorithmDSAWithSHA224                      DigitalSignatureAlgorithm = 0x0000000a
-	DigitalSignatureAlgorithmDSAWithSHA256                      DigitalSignatureAlgorithm = 0x0000000b
-	DigitalSignatureAlgorithmECDSAWithSHA_1                     DigitalSignatureAlgorithm = 0x0000000c
-	DigitalSignatureAlgorithmECDSAWithSHA224                    DigitalSignatureAlgorithm = 0x0000000d
-	DigitalSignatureAlgorithmECDSAWithSHA256                    DigitalSignatureAlgorithm = 0x0000000e
-	DigitalSignatureAlgorithmECDSAWithSHA384                    DigitalSignatureAlgorithm = 0x0000000f
-	DigitalSignatureAlgorithmECDSAWithSHA512                    DigitalSignatureAlgorithm = 0x00000010
-	DigitalSignatureAlgorithmSHA3_256WithRSAEncryption          DigitalSignatureAlgorithm = 0x00000011
-	DigitalSignatureAlgorithmSHA3_384WithRSAEncryption          DigitalSignatureAlgorithm = 0x00000012
-	DigitalSignatureAlgorithmSHA3_512WithRSAEncryption          DigitalSignatureAlgorithm = 0x00000013
+	DigitalSignatureAlgorithmMD2WithRSAEncryption      DigitalSignatureAlgorithm = 0x00000001
+	DigitalSignatureAlgorithmMD5WithRSAEncryption      DigitalSignatureAlgorithm = 0x00000002
+	DigitalSignatureAlgorithmSHA_1WithRSAEncryption    DigitalSignatureAlgorithm = 0x00000003
+	DigitalSignatureAlgorithmSHA_224WithRSAEncryption  DigitalSignatureAlgorithm = 0x00000004
+	DigitalSignatureAlgorithmSHA_256WithRSAEncryption  DigitalSignatureAlgorithm = 0x00000005
+	DigitalSignatureAlgorithmSHA_384WithRSAEncryption  DigitalSignatureAlgorithm = 0x00000006
+	DigitalSignatureAlgorithmSHA_512WithRSAEncryption  DigitalSignatureAlgorithm = 0x00000007
+	DigitalSignatureAlgorithmRSASSA_PSS                DigitalSignatureAlgorithm = 0x00000008
+	DigitalSignatureAlgorithmDSAWithSHA_1              DigitalSignatureAlgorithm = 0x00000009
+	DigitalSignatureAlgorithmDSAWithSHA224             DigitalSignatureAlgorithm = 0x0000000a
+	DigitalSignatureAlgorithmDSAWithSHA256             DigitalSignatureAlgorithm = 0x0000000b
+	DigitalSignatureAlgorithmECDSAWithSHA_1            DigitalSignatureAlgorithm = 0x0000000c
+	DigitalSignatureAlgorithmECDSAWithSHA224           DigitalSignatureAlgorithm = 0x0000000d
+	DigitalSignatureAlgorithmECDSAWithSHA256           DigitalSignatureAlgorithm = 0x0000000e
+	DigitalSignatureAlgorithmECDSAWithSHA384           DigitalSignatureAlgorithm = 0x0000000f
+	DigitalSignatureAlgorithmECDSAWithSHA512           DigitalSignatureAlgorithm = 0x00000010
+	DigitalSignatureAlgorithmSHA3_256WithRSAEncryption DigitalSignatureAlgorithm = 0x00000011
+	DigitalSignatureAlgorithmSHA3_384WithRSAEncryption DigitalSignatureAlgorithm = 0x00000012
+	DigitalSignatureAlgorithmSHA3_512WithRSAEncryption DigitalSignatureAlgorithm = 0x00000013
 )
 
 var _DigitalSignatureAlgorithmNameToValueMap = map[string]DigitalSignatureAlgorithm{
-	"MD2WithRSAEncryptionPKCS_1V1_5":     DigitalSignatureAlgorithmMD2WithRSAEncryptionPKCS_1V1_5,
-	"MD5WithRSAEncryptionPKCS_1V1_5":     DigitalSignatureAlgorithmMD5WithRSAEncryptionPKCS_1V1_5,
-	"SHA_1WithRSAEncryptionPKCS_1V1_5":   DigitalSignatureAlgorithmSHA_1WithRSAEncryptionPKCS_1V1_5,
-	"SHA_224WithRSAEncryptionPKCS_1V1_5": DigitalSignatureAlgorithmSHA_224WithRSAEncryptionPKCS_1V1_5,
-	"SHA_256WithRSAEncryptionPKCS_1V1_5": DigitalSignatureAlgorithmSHA_256WithRSAEncryptionPKCS_1V1_5,
-	"SHA_384WithRSAEncryptionPKCS_1V1_5": DigitalSignatureAlgorithmSHA_384WithRSAEncryptionPKCS_1V1_5,
-	"SHA_512WithRSAEncryptionPKCS_1V1_5": DigitalSignatureAlgorithmSHA_512WithRSAEncryptionPKCS_1V1_5,
-	"RSASSA_PSSPKCS_1V2_1":               DigitalSignatureAlgorithmRSASSA_PSSPKCS_1V2_1,
-	"DSAWithSHA_1":                       DigitalSignatureAlgorithmDSAWithSHA_1,
-	"DSAWithSHA224":                      DigitalSignatureAlgorithmDSAWithSHA224,
-	"DSAWithSHA256":                      DigitalSignatureAlgorithmDSAWithSHA256,
-	"ECDSAWithSHA_1":                     DigitalSignatureAlgorithmECDSAWithSHA_1,
-	"ECDSAWithSHA224":                    DigitalSignatureAlgorithmECDSAWithSHA224,
-	"ECDSAWithSHA256":                    DigitalSignatureAlgorithmECDSAWithSHA256,
-	"ECDSAWithSHA384":                    DigitalSignatureAlgorithmECDSAWithSHA384,
-	"ECDSAWithSHA512":                    DigitalSignatureAlgorithmECDSAWithSHA512,
-	"SHA3_256WithRSAEncryption":          DigitalSignatureAlgorithmSHA3_256WithRSAEncryption,
-	"SHA3_384WithRSAEncryption":          DigitalSignatureAlgorithmSHA3_384WithRSAEncryption,
-	"SHA3_512WithRSAEncryption":          DigitalSignatureAlgorithmSHA3_512WithRSAEncryption,
+	"MD2WithRSAEncryption":      DigitalSignatureAlgorithmMD2WithRSAEncryption,
+	"MD5WithRSAEncryption":      DigitalSignatureAlgorithmMD5WithRSAEncryption,
+	"SHA_1WithRSAEncryption":    DigitalSignatureAlgorithmSHA_1WithRSAEncryption,
+	"SHA_224WithRSAEncryption":  DigitalSignatureAlgorithmSHA_224WithRSAEncryption,
+	"SHA_256WithRSAEncryption":  DigitalSignatureAlgorithmSHA_256WithRSAEncryption,
+	"SHA_384WithRSAEncryption":  DigitalSignatureAlgorithmSHA_384WithRSAEncryption,
+	"SHA_512WithRSAEncryption":  DigitalSignatureAlgorithmSHA_512WithRSAEncryption,
+	"RSASSA_PSS":                DigitalSignatureAlgorithmRSASSA_PSS,
+	"DSAWithSHA_1":              DigitalSignatureAlgorithmDSAWithSHA_1,
+	"DSAWithSHA224":             DigitalSignatureAlgorithmDSAWithSHA224,
+	"DSAWithSHA256":             DigitalSignatureAlgorithmDSAWithSHA256,
+	"ECDSAWithSHA_1":            DigitalSignatureAlgorithmECDSAWithSHA_1,
+	"ECDSAWithSHA224":           DigitalSignatureAlgorithmECDSAWithSHA224,
+	"ECDSAWithSHA256":           DigitalSignatureAlgorithmECDSAWithSHA256,
+	"ECDSAWithSHA384":           DigitalSignatureAlgorithmECDSAWithSHA384,
+	"ECDSAWithSHA512":           DigitalSignatureAlgorithmECDSAWithSHA512,
+	"SHA3_256WithRSAEncryption": DigitalSignatureAlgorithmSHA3_256WithRSAEncryption,
+	"SHA3_384WithRSAEncryption": DigitalSignatureAlgorithmSHA3_384WithRSAEncryption,
+	"SHA3_512WithRSAEncryption": DigitalSignatureAlgorithmSHA3_512WithRSAEncryption,
 }
 
 var _DigitalSignatureAlgorithmValueToNameMap = map[DigitalSignatureAlgorithm]string{
-	DigitalSignatureAlgorithmMD2WithRSAEncryptionPKCS_1V1_5:     "MD2WithRSAEncryptionPKCS_1V1_5",
-	DigitalSignatureAlgorithmMD5WithRSAEncryptionPKCS_1V1_5:     "MD5WithRSAEncryptionPKCS_1V1_5",
-	DigitalSignatureAlgorithmSHA_1WithRSAEncryptionPKCS_1V1_5:   "SHA_1WithRSAEncryptionPKCS_1V1_5",
-	DigitalSignatureAlgorithmSHA_224WithRSAEncryptionPKCS_1V1_5: "SHA_224WithRSAEncryptionPKCS_1V1_5",
-	DigitalSignatureAlgorithmSHA_256WithRSAEncryptionPKCS_1V1_5: "SHA_256WithRSAEncryptionPKCS_1V1_5",
-	DigitalSignatureAlgorithmSHA_384WithRSAEncryptionPKCS_1V1_5: "SHA_384WithRSAEncryptionPKCS_1V1_5",
-	DigitalSignatureAlgorithmSHA_512WithRSAEncryptionPKCS_1V1_5: "SHA_512WithRSAEncryptionPKCS_1V1_5",
-	DigitalSignatureAlgorithmRSASSA_PSSPKCS_1V2_1:               "RSASSA_PSSPKCS_1V2_1",
-	DigitalSignatureAlgorithmDSAWithSHA_1:                       "DSAWithSHA_1",
-	DigitalSignatureAlgorithmDSAWithSHA224:                      "DSAWithSHA224",
-	DigitalSignatureAlgorithmDSAWithSHA256:                      "DSAWithSHA256",
-	DigitalSignatureAlgorithmECDSAWithSHA_1:                     "ECDSAWithSHA_1",
-	DigitalSignatureAlgorithmECDSAWithSHA224:                    "ECDSAWithSHA224",
-	DigitalSignatureAlgorithmECDSAWithSHA256:                    "ECDSAWithSHA256",
-	DigitalSignatureAlgorithmECDSAWithSHA384:                    "ECDSAWithSHA384",
-	DigitalSignatureAlgorithmECDSAWithSHA512:                    "ECDSAWithSHA512",
-	DigitalSignatureAlgorithmSHA3_256WithRSAEncryption:          "SHA3_256WithRSAEncryption",
-	DigitalSignatureAlgorithmSHA3_384WithRSAEncryption:          "SHA3_384WithRSAEncryption",
-	DigitalSignatureAlgorithmSHA3_512WithRSAEncryption:          "SHA3_512WithRSAEncryption",
+	DigitalSignatureAlgorithmMD2WithRSAEncryption:      "MD2WithRSAEncryption",
+	DigitalSignatureAlgorithmMD5WithRSAEncryption:      "MD5WithRSAEncryption",
+	DigitalSignatureAlgorithmSHA_1WithRSAEncryption:    "SHA_1WithRSAEncryption",
+	DigitalSignatureAlgorithmSHA_224WithRSAEncryption:  "SHA_224WithRSAEncryption",
+	DigitalSignatureAlgorithmSHA_256WithRSAEncryption:  "SHA_256WithRSAEncryption",
+	DigitalSignatureAlgorithmSHA_384WithRSAEncryption:  "SHA_384WithRSAEncryption",
+	DigitalSignatureAlgorithmSHA_512WithRSAEncryption:  "SHA_512WithRSAEncryption",
+	DigitalSignatureAlgorithmRSASSA_PSS:                "RSASSA_PSS",
+	DigitalSignatureAlgorithmDSAWithSHA_1:              "DSAWithSHA_1",
+	DigitalSignatureAlgorithmDSAWithSHA224:             "DSAWithSHA224",
+	DigitalSignatureAlgorithmDSAWithSHA256:             "DSAWithSHA256",
+	DigitalSignatureAlgorithmECDSAWithSHA_1:            "ECDSAWithSHA_1",
+	DigitalSignatureAlgorithmECDSAWithSHA224:           "ECDSAWithSHA224",
+	DigitalSignatureAlgorithmECDSAWithSHA256:           "ECDSAWithSHA256",
+	DigitalSignatureAlgorithmECDSAWithSHA384:           "ECDSAWithSHA384",
+	DigitalSignatureAlgorithmECDSAWithSHA512:           "ECDSAWithSHA512",
+	DigitalSignatureAlgorithmSHA3_256WithRSAEncryption: "SHA3_256WithRSAEncryption",
+	DigitalSignatureAlgorithmSHA3_384WithRSAEncryption: "SHA3_384WithRSAEncryption",
+	DigitalSignatureAlgorithmSHA3_512WithRSAEncryption: "SHA3_512WithRSAEncryption",
 }
 
 func (d DigitalSignatureAlgorithm) MarshalText() (text []byte, err error) {
@@ -4937,72 +4937,72 @@ func (m MaskGenerator) String() string {
 type CryptographicUsageMask uint32
 
 const (
-	CryptographicUsageMaskSign                            CryptographicUsageMask = 0x00000001
-	CryptographicUsageMaskVerify                          CryptographicUsageMask = 0x00000002
-	CryptographicUsageMaskEncrypt                         CryptographicUsageMask = 0x00000004
-	CryptographicUsageMaskDecrypt                         CryptographicUsageMask = 0x00000008
-	CryptographicUsageMaskWrapKey                         CryptographicUsageMask = 0x00000010
-	CryptographicUsageMaskUnwrapKey                       CryptographicUsageMask = 0x00000020
-	CryptographicUsageMaskExport                          CryptographicUsageMask = 0x00000040
-	CryptographicUsageMaskMACGenerate                     CryptographicUsageMask = 0x00000080
-	CryptographicUsageMaskMACVerify                       CryptographicUsageMask = 0x00000100
-	CryptographicUsageMaskDeriveKey                       CryptographicUsageMask = 0x00000200
-	CryptographicUsageMaskContentCommitmentNonRepudiation CryptographicUsageMask = 0x00000400
-	CryptographicUsageMaskKeyAgreement                    CryptographicUsageMask = 0x00000800
-	CryptographicUsageMaskCertificateSign                 CryptographicUsageMask = 0x00001000
-	CryptographicUsageMaskCRLSign                         CryptographicUsageMask = 0x00002000
-	CryptographicUsageMaskGenerateCryptogram              CryptographicUsageMask = 0x00004000
-	CryptographicUsageMaskValidateCryptogram              CryptographicUsageMask = 0x00008000
-	CryptographicUsageMaskTranslateEncrypt                CryptographicUsageMask = 0x00010000
-	CryptographicUsageMaskTranslateDecrypt                CryptographicUsageMask = 0x00020000
-	CryptographicUsageMaskTranslateWrap                   CryptographicUsageMask = 0x00040000
-	CryptographicUsageMaskTranslateUnwrap                 CryptographicUsageMask = 0x00080000
+	CryptographicUsageMaskSign               CryptographicUsageMask = 0x00000001
+	CryptographicUsageMaskVerify             CryptographicUsageMask = 0x00000002
+	CryptographicUsageMaskEncrypt            CryptographicUsageMask = 0x00000004
+	CryptographicUsageMaskDecrypt            CryptographicUsageMask = 0x00000008
+	CryptographicUsageMaskWrapKey            CryptographicUsageMask = 0x00000010
+	CryptographicUsageMaskUnwrapKey          CryptographicUsageMask = 0x00000020
+	CryptographicUsageMaskExport             CryptographicUsageMask = 0x00000040
+	CryptographicUsageMaskMACGenerate        CryptographicUsageMask = 0x00000080
+	CryptographicUsageMaskMACVerify          CryptographicUsageMask = 0x00000100
+	CryptographicUsageMaskDeriveKey          CryptographicUsageMask = 0x00000200
+	CryptographicUsageMaskContentCommitment  CryptographicUsageMask = 0x00000400
+	CryptographicUsageMaskKeyAgreement       CryptographicUsageMask = 0x00000800
+	CryptographicUsageMaskCertificateSign    CryptographicUsageMask = 0x00001000
+	CryptographicUsageMaskCRLSign            CryptographicUsageMask = 0x00002000
+	CryptographicUsageMaskGenerateCryptogram CryptographicUsageMask = 0x00004000
+	CryptographicUsageMaskValidateCryptogram CryptographicUsageMask = 0x00008000
+	CryptographicUsageMaskTranslateEncrypt   CryptographicUsageMask = 0x00010000
+	CryptographicUsageMaskTranslateDecrypt   CryptographicUsageMask = 0x00020000
+	CryptographicUsageMaskTranslateWrap      CryptographicUsageMask = 0x00040000
+	CryptographicUsageMaskTranslateUnwrap    CryptographicUsageMask = 0x00080000
 )
 
 var _CryptographicUsageMaskNameToValueMap = map[string]CryptographicUsageMask{
-	"Sign":                            CryptographicUsageMaskSign,
-	"Verify":                          CryptographicUsageMaskVerify,
-	"Encrypt":                         CryptographicUsageMaskEncrypt,
-	"Decrypt":                         CryptographicUsageMaskDecrypt,
-	"WrapKey":                         CryptographicUsageMaskWrapKey,
-	"UnwrapKey":                       CryptographicUsageMaskUnwrapKey,
-	"Export":                          CryptographicUsageMaskExport,
-	"MACGenerate":                     CryptographicUsageMaskMACGenerate,
-	"MACVerify":                       CryptographicUsageMaskMACVerify,
-	"DeriveKey":                       CryptographicUsageMaskDeriveKey,
-	"ContentCommitmentNonRepudiation": CryptographicUsageMaskContentCommitmentNonRepudiation,
-	"KeyAgreement":                    CryptographicUsageMaskKeyAgreement,
-	"CertificateSign":                 CryptographicUsageMaskCertificateSign,
-	"CRLSign":                         CryptographicUsageMaskCRLSign,
-	"GenerateCryptogram":              CryptographicUsageMaskGenerateCryptogram,
-	"ValidateCryptogram":              CryptographicUsageMaskValidateCryptogram,
-	"TranslateEncrypt":                CryptographicUsageMaskTranslateEncrypt,
-	"TranslateDecrypt":                CryptographicUsageMaskTranslateDecrypt,
-	"TranslateWrap":                   CryptographicUsageMaskTranslateWrap,
-	"TranslateUnwrap":                 CryptographicUsageMaskTranslateUnwrap,
+	"Sign":               CryptographicUsageMaskSign,
+	"Verify":             CryptographicUsageMaskVerify,
+	"Encrypt":            CryptographicUsageMaskEncrypt,
+	"Decrypt":            CryptographicUsageMaskDecrypt,
+	"WrapKey":            CryptographicUsageMaskWrapKey,
+	"UnwrapKey":          CryptographicUsageMaskUnwrapKey,
+	"Export":             CryptographicUsageMaskExport,
+	"MACGenerate":        CryptographicUsageMaskMACGenerate,
+	"MACVerify":          CryptographicUsageMaskMACVerify,
+	"DeriveKey":          CryptographicUsageMaskDeriveKey,
+	"ContentCommitment":  CryptographicUsageMaskContentCommitment,
+	"KeyAgreement":       CryptographicUsageMaskKeyAgreement,
+	"CertificateSign":    CryptographicUsageMaskCertificateSign,
+	"CRLSign":            CryptographicUsageMaskCRLSign,
+	"GenerateCryptogram": CryptographicUsageMaskGenerateCryptogram,
+	"ValidateCryptogram": CryptographicUsageMaskValidateCryptogram,
+	"TranslateEncrypt":   CryptographicUsageMaskTranslateEncrypt,
+	"TranslateDecrypt":   CryptographicUsageMaskTranslateDecrypt,
+	"TranslateWrap":      CryptographicUsageMaskTranslateWrap,
+	"TranslateUnwrap":    CryptographicUsageMaskTranslateUnwrap,
 }
 
 var _CryptographicUsageMaskValueToNameMap = map[CryptographicUsageMask]string{
-	CryptographicUsageMaskSign:                            "Sign",
-	CryptographicUsageMaskVerify:                          "Verify",
-	CryptographicUsageMaskEncrypt:                         "Encrypt",
-	CryptographicUsageMaskDecrypt:                         "Decrypt",
-	CryptographicUsageMaskWrapKey:                         "WrapKey",
-	CryptographicUsageMaskUnwrapKey:                       "UnwrapKey",
-	CryptographicUsageMaskExport:                          "Export",
-	CryptographicUsageMaskMACGenerate:                     "MACGenerate",
-	CryptographicUsageMaskMACVerify:                       "MACVerify",
-	CryptographicUsageMaskDeriveKey:                       "DeriveKey",
-	CryptographicUsageMaskContentCommitmentNonRepudiation: "ContentCommitmentNonRepudiation",
-	CryptographicUsageMaskKeyAgreement:                    "KeyAgreement",
-	CryptographicUsageMaskCertificateSign:                 "CertificateSign",
-	CryptographicUsageMaskCRLSign:                         "CRLSign",
-	CryptographicUsageMaskGenerateCryptogram:              "GenerateCryptogram",
-	CryptographicUsageMaskValidateCryptogram:              "ValidateCryptogram",
-	CryptographicUsageMaskTranslateEncrypt:                "TranslateEncrypt",
-	CryptographicUsageMaskTranslateDecrypt:                "TranslateDecrypt",
-	CryptographicUsageMaskTranslateWrap:                   "TranslateWrap",
-	CryptographicUsageMaskTranslateUnwrap:                 "TranslateUnwrap",
+	CryptographicUsageMaskSign:               "Sign",
+	CryptographicUsageMaskVerify:             "Verify",
+	CryptographicUsageMaskEncrypt:            "Encrypt",
+	CryptographicUsageMaskDecrypt:            "Decrypt",
+	CryptographicUsageMaskWrapKey:            "WrapKey",
+	CryptographicUsageMaskUnwrapKey:          "UnwrapKey",
+	CryptographicUsageMaskExport:             "Export",
+	CryptographicUsageMaskMACGenerate:        "MACGenerate",
+	CryptographicUsageMaskMACVerify:          "MACVerify",
+	CryptographicUsageMaskDeriveKey:          "DeriveKey",
+	CryptographicUsageMaskContentCommitment:  "ContentCommitment",
+	CryptographicUsageMaskKeyAgreement:       "KeyAgreement",
+	CryptographicUsageMaskCertificateSign:    "CertificateSign",
+	CryptographicUsageMaskCRLSign:            "CRLSign",
+	CryptographicUsageMaskGenerateCryptogram: "GenerateCryptogram",
+	CryptographicUsageMaskValidateCryptogram: "ValidateCryptogram",
+	CryptographicUsageMaskTranslateEncrypt:   "TranslateEncrypt",
+	CryptographicUsageMaskTranslateDecrypt:   "TranslateDecrypt",
+	CryptographicUsageMaskTranslateWrap:      "TranslateWrap",
+	CryptographicUsageMaskTranslateUnwrap:    "TranslateUnwrap",
 }
 
 func (c CryptographicUsageMask) MarshalText() (text []byte, err error) {

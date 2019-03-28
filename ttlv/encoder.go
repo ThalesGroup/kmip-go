@@ -405,7 +405,11 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, flags fieldFlags) error {
 		e.encBuf.encodeEnum(tag, uint32(v.Uint()))
 		return nil
 	case timeType:
-		e.encBuf.encodeDateTime(tag, v.Interface().(time.Time))
+		if flags&fDateTimeExtended != 0 {
+			e.encBuf.encodeDateTimeExtended(tag, v.Interface().(time.Time))
+		} else {
+			e.encBuf.encodeDateTime(tag, v.Interface().(time.Time))
+		}
 		return nil
 	case bigIntType:
 		bi := v.Interface().(big.Int)
@@ -707,9 +711,11 @@ func getFieldInfo(typ reflect.Type, sf reflect.StructField) (fi fieldInfo, err e
 		} else {
 			switch value {
 			case "enum":
-				fi.flags = fi.flags | fEnum
+				fi.flags |= fEnum
 			case "omitempty":
-				fi.flags = fi.flags | fOmitEmpty
+				fi.flags |= fOmitEmpty
+			case "dateTimeExtended":
+				fi.flags |= fDateTimeExtended
 			}
 		}
 	}
@@ -761,7 +767,6 @@ func getFieldInfo(typ reflect.Type, sf reflect.StructField) (fi fieldInfo, err e
 	fi.name = sf.Name
 	fi.structType = typ
 	fi.index = sf.Index
-	fi.slice = sf.Type.Kind() == reflect.Slice
 	return
 }
 
@@ -807,6 +812,7 @@ type fieldFlags int
 const (
 	fOmitEmpty fieldFlags = 1 << iota
 	fEnum
+	fDateTimeExtended
 )
 
 type fieldInfo struct {
@@ -815,8 +821,5 @@ type fieldInfo struct {
 	tag        Tag
 	index      []int
 	flags      fieldFlags
-	enum       bool
-	omitEmpty  bool
-	slice      bool
 	ti         typeInfo
 }

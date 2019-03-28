@@ -421,10 +421,6 @@ func TestEncoder_EncodeValue(t *testing.T) {
 		BlockCipherMode nonptrMarshaler
 	}
 
-	type FieldTypes struct {
-		A time.Time `kmip:"CertificateIssuerCN"`
-	}
-
 	type testCase struct {
 		name         string
 		tag          Tag
@@ -637,6 +633,26 @@ func TestEncoder_EncodeValue(t *testing.T) {
 				Tag: TagCancellationResult,
 				Values: []interface{}{
 					TaggedValue{Tag: TagAttributeName, Value: "red"},
+				},
+			},
+		},
+		{
+			name: "dateTimeTypes",
+			v: struct {
+				A time.Time        `kmip:"CertificateIssuerCN"`
+				B time.Time        `kmip:"CertificateIssuerDC,dateTimeExtended"`
+				C DateTimeExtended `kmip:"AttributeName"`
+			}{
+				parseTime("2008-03-14T11:56:40.123456Z"),
+				parseTime("2008-03-14T11:56:40.123456Z"),
+				DateTimeExtended{parseTime("2008-03-14T11:56:40.123456Z")},
+			},
+			expected: Structure{
+				Tag: TagCancellationResult,
+				Values: []interface{}{
+					TaggedValue{Tag: TagCertificateIssuerCN, Value: parseTime("2008-03-14T11:56:40Z")},
+					TaggedValue{Tag: TagCertificateIssuerDC, Value: DateTimeExtended{parseTime("2008-03-14T11:56:40.123456Z")}},
+					TaggedValue{Tag: TagAttributeName, Value: DateTimeExtended{parseTime("2008-03-14T11:56:40.123456Z")}},
 				},
 			},
 		},

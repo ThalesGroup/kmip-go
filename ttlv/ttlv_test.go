@@ -35,7 +35,7 @@ func TestPrint(t *testing.T) {
 	t.Log(TTLV(b).String())
 }
 
-func TestDecoding(t *testing.T) {
+func TestTTLV(t *testing.T) {
 	bi := &big.Int{}
 	bi, ok := bi.SetString("1234567890000000000000000000", 10)
 	require.True(t, ok)

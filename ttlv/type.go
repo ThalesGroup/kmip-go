@@ -31,42 +31,45 @@ func ParseType(s string) (Type, error) {
 type Type byte
 
 const (
-	TypeStructure   Type = 0x01
-	TypeInteger     Type = 0x02
-	TypeLongInteger Type = 0x03
-	TypeBigInteger  Type = 0x04
-	TypeEnumeration Type = 0x05
-	TypeBoolean     Type = 0x06
-	TypeTextString  Type = 0x07
-	TypeByteString  Type = 0x08
-	TypeDateTime    Type = 0x09
-	TypeInterval    Type = 0x0A
+	TypeStructure        Type = 0x01
+	TypeInteger          Type = 0x02
+	TypeLongInteger      Type = 0x03
+	TypeBigInteger       Type = 0x04
+	TypeEnumeration      Type = 0x05
+	TypeBoolean          Type = 0x06
+	TypeTextString       Type = 0x07
+	TypeByteString       Type = 0x08
+	TypeDateTime         Type = 0x09
+	TypeInterval         Type = 0x0A
+	TypeDateTimeExtended Type = 0x0B
 )
 
 var _TypeNameToValueMap = map[string]Type{
-	"BigInteger":  TypeBigInteger,
-	"Boolean":     TypeBoolean,
-	"ByteString":  TypeByteString,
-	"DateTime":    TypeDateTime,
-	"Enumeration": TypeEnumeration,
-	"Integer":     TypeInteger,
-	"Interval":    TypeInterval,
-	"LongInteger": TypeLongInteger,
-	"Structure":   TypeStructure,
-	"TextString":  TypeTextString,
+	"BigInteger":       TypeBigInteger,
+	"Boolean":          TypeBoolean,
+	"ByteString":       TypeByteString,
+	"DateTime":         TypeDateTime,
+	"Enumeration":      TypeEnumeration,
+	"Integer":          TypeInteger,
+	"Interval":         TypeInterval,
+	"LongInteger":      TypeLongInteger,
+	"Structure":        TypeStructure,
+	"TextString":       TypeTextString,
+	"DateTimeExtended": TypeDateTimeExtended,
 }
 
 var _TypeValueToNameMap = map[Type]string{
-	TypeBigInteger:  "BigInteger",
-	TypeBoolean:     "Boolean",
-	TypeByteString:  "ByteString",
-	TypeDateTime:    "DateTime",
-	TypeEnumeration: "Enumeration",
-	TypeInteger:     "Integer",
-	TypeInterval:    "Interval",
-	TypeLongInteger: "LongInteger",
-	TypeStructure:   "Structure",
-	TypeTextString:  "TextString",
+	TypeBigInteger:       "BigInteger",
+	TypeBoolean:          "Boolean",
+	TypeByteString:       "ByteString",
+	TypeDateTime:         "DateTime",
+	TypeEnumeration:      "Enumeration",
+	TypeInteger:          "Integer",
+	TypeInterval:         "Interval",
+	TypeLongInteger:      "LongInteger",
+	TypeStructure:        "Structure",
+	TypeTextString:       "TextString",
+	TypeDateTimeExtended: "DateTimeExtended",
 }
 
 func (t Type) String() string {

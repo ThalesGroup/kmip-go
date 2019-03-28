@@ -15,6 +15,31 @@ import (
 	"time"
 )
 
+type DateTimeExtended struct {
+	time.Time
+}
+
+func (t *DateTimeExtended) UnmarshalTTLV(d *Decoder, ttlv TTLV) error {
+	if len(ttlv) == 0 {
+		return nil
+	}
+
+	if t == nil {
+		*t = DateTimeExtended{}
+	}
+
+	err := d.DecodeValue(&t.Time, ttlv)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t DateTimeExtended) MarshalTTLV(e *Encoder, tag Tag) error {
+	e.EncodeDateTimeExtended(tag, t.Time)
+	return nil
+}
+
 const kmipStructTag = "kmip"
 
 var ErrIntOverflow = fmt.Errorf("value exceeds max int value %d", math.MaxInt32)
@@ -94,9 +119,7 @@ func (e *Encoder) Encode(v interface{}) error {
 }
 
 func (e *Encoder) EncodeValue(tag Tag, v interface{}) error {
-	e.encodeDepth++
 	err := e.encode(tag, reflect.ValueOf(v), 0)
-	e.encodeDepth--
 	if err != nil {
 		return err
 	}
@@ -104,9 +127,11 @@ func (e *Encoder) EncodeValue(tag Tag, v interface{}) error {
 }
 
 func (e *Encoder) EncodeStructure(tag Tag, f func(e *Encoder) error) error {
-	i := e.encBuf.startStruct(tag)
+	e.encodeDepth++
+	i := e.encBuf.begin(tag, TypeStructure)
 	err := f(e)
-	e.encBuf.endStruct(i)
+	e.encBuf.end(i)
+	e.encodeDepth--
 	return err
 }
 
@@ -128,6 +153,10 @@ func (e *Encoder) EncodeInterval(tag Tag, v time.Duration) {
 
 func (e *Encoder) EncodeDateTime(tag Tag, v time.Time) {
 	e.encBuf.encodeDateTime(tag, v)
+}
+
+func (e *Encoder) EncodeDateTimeExtended(tag Tag, v time.Time) {
+	e.encBuf.encodeDateTimeExtended(tag, v)
 }
 
 func (e *Encoder) EncodeBigInt(tag Tag, v *big.Int) {
@@ -203,10 +232,6 @@ var byteType = reflect.TypeOf(byte(0))
 var marshalerType = reflect.TypeOf((*Marshaler)(nil)).Elem()
 var unmarshalerType = reflect.TypeOf((*Unmarshaler)(nil)).Elem()
 var timeType = reflect.TypeOf((*time.Time)(nil)).Elem()
-var intType = reflect.TypeOf((*int)(nil)).Elem()
-var uintType = reflect.TypeOf((*uint)(nil)).Elem()
-var uint32Type = reflect.TypeOf((*uint32)(nil)).Elem()
-var uint64Type = reflect.TypeOf((*uint64)(nil)).Elem()
 var bigIntPtrType = reflect.TypeOf((*big.Int)(nil))
 var bigIntType = bigIntPtrType.Elem()
 var durationType = reflect.TypeOf(time.Nanosecond)
@@ -507,31 +532,39 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, flags fieldFlags) error {
 // encBuf encodes basic KMIP types into TTLV
 type encBuf struct {
 	bytes.Buffer
-	// enough to hold an entire TTLV for most base types
-	scratch [16]byte
 }
 
-func (h *encBuf) startStruct(tag Tag) int {
-	h.encodeHeader(tag, TypeStructure, 0)
-	i := h.Len()
-	_, err := h.Write(h.scratch[:8])
-	if err != nil {
-		panic(err)
+func (h *encBuf) begin(tag Tag, typ Type) int {
+	_ = h.WriteByte(byte(tag >> 16))
+	_ = h.WriteByte(byte(tag >> 8))
+	_ = h.WriteByte(byte(tag))
+	_ = h.WriteByte(byte(typ))
+	_, _ = h.Write(zeros[:4])
+	return h.Len()
+}
+
+func (h *encBuf) end(i int) {
+	n := h.Len() - i
+	if m := n % 8; m > 0 {
+		_, _ = h.Write(zeros[:8-m])
 	}
-	return i
+	binary.BigEndian.PutUint32(h.Bytes()[i-4:], uint32(n))
 }
 
-func (h *encBuf) endStruct(i int) {
-	binary.BigEndian.PutUint32(h.scratch[:4], uint32(h.Len()-lenHeader-i))
-	copy(h.Bytes()[i+4:], h.scratch[:4])
+func (h *encBuf) writeLongIntVal(tag Tag, typ Type, i int64) {
+	s := h.begin(tag, typ)
+	ll := h.Len()
+	_, _ = h.Write(zeros[:8])
+	binary.BigEndian.PutUint64(h.Bytes()[ll:], uint64(i))
+	h.end(s)
 }
 
-func (h *encBuf) encodeHeader(tag Tag, p Type, l uint32) {
-	h.scratch[0] = byte(tag >> 16)
-	h.scratch[1] = byte(tag >> 8)
-	h.scratch[2] = byte(tag)
-	h.scratch[3] = byte(p)
-	binary.BigEndian.PutUint32(h.scratch[4:8], l)
+func (h *encBuf) writeIntVal(tag Tag, typ Type, val uint32) {
+	s := h.begin(tag, typ)
+	ll := h.Len()
+	_, _ = h.Write(zeros[:4])
+	binary.BigEndian.PutUint32(h.Bytes()[ll:], val)
+	h.end(s)
 }
 
 var ones = [8]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
@@ -541,10 +574,8 @@ func (h *encBuf) encodeBigInt(tag Tag, i *big.Int) {
 	if i == nil {
 		return
 	}
-	start := h.Len()
-	// write out 8 bytes of random, allocating the space where
-	// the header will be written later
-	_, _ = h.Write(h.scratch[:8])
+
+	ii := h.begin(tag, TypeBigInteger)
 
 	switch i.Sign() {
 	case 0:
@@ -580,97 +611,63 @@ func (h *encBuf) encodeBigInt(tag Tag, i *big.Int) {
 		}
 		_, _ = h.Write(b)
 	}
-	// now calculate the length and encode the header
-	h.encodeHeader(tag, TypeBigInteger, uint32(h.Len()-lenHeader-start))
-	// write the header in the 8 bytes we allocated above
-	copy(h.Bytes()[start:], h.scratch[:8])
+	h.end(ii)
 }
 
 func (h *encBuf) encodeInt(tag Tag, i int32) {
-	h.encodeHeader(tag, TypeInteger, lenInt)
-	h.encodeIntVal(i)
-	_, _ = h.Write(h.scratch[:16])
-}
-
-func (h *encBuf) encodeIntVal(i int32) {
-	binary.BigEndian.PutUint32(h.scratch[8:12], uint32(i))
-	// pad extra bytes
-	for i := 12; i < 16; i++ {
-		h.scratch[i] = 0
-	}
+	h.writeIntVal(tag, TypeInteger, uint32(i))
 }
 
 func (h *encBuf) encodeBool(tag Tag, b bool) {
-	h.encodeHeader(tag, TypeBoolean, lenBool)
 	if b {
-		h.encodeLongIntVal(1)
+		h.writeLongIntVal(tag, TypeBoolean, 1)
 	} else {
-		h.encodeLongIntVal(0)
+		h.writeLongIntVal(tag, TypeBoolean, 0)
 	}
-	_, _ = h.Write(h.scratch[:16])
 }
 
 func (h *encBuf) encodeLongInt(tag Tag, i int64) {
-	h.encodeHeader(tag, TypeLongInteger, lenLongInt)
-	h.encodeLongIntVal(i)
-	_, _ = h.Write(h.scratch[:16])
-}
-
-func (h *encBuf) encodeLongIntVal(i int64) {
-	binary.BigEndian.PutUint64(h.scratch[8:], uint64(i))
+	h.writeLongIntVal(tag, TypeLongInteger, i)
 }
 
 func (h *encBuf) encodeDateTime(tag Tag, t time.Time) {
-	h.encodeHeader(tag, TypeDateTime, lenDateTime)
-	h.encodeLongIntVal(t.Unix())
-	_, _ = h.Write(h.scratch[:16])
+	h.writeLongIntVal(tag, TypeDateTime, t.Unix())
+}
+
+func (h *encBuf) encodeDateTimeExtended(tag Tag, t time.Time) {
+	// take unix seconds, times a million, to get microseconds, then
+	// add nanoseconds remainder/1000
+	//
+	// this gives us a larger ranger of possible values than just t.UnixNano() / 1000.
+	// see UnixNano() docs for its limits.
+	//
+	// this is limited to max(int64) *microseconds* from epoch, rather than
+	// max(int64) nanoseconds like UnixNano().
+	m := (t.Unix() * 1000000) + int64(t.Nanosecond()/1000)
+	h.writeLongIntVal(tag, TypeDateTimeExtended, m)
 }
 
 func (h *encBuf) encodeInterval(tag Tag, d time.Duration) {
-	h.encodeHeader(tag, TypeInterval, lenInterval)
-	h.encodeIntVal(int32(d / time.Second))
-	_, _ = h.Write(h.scratch[:16])
+	h.writeIntVal(tag, TypeInterval, uint32(d/time.Second))
 }
 
 func (h *encBuf) encodeEnum(tag Tag, i uint32) {
-	h.encodeHeader(tag, TypeEnumeration, lenEnumeration)
-	binary.BigEndian.PutUint32(h.scratch[8:12], i)
-	// pad extra bytes
-	for i := 12; i < 16; i++ {
-		h.scratch[i] = 0
-	}
-	_, _ = h.Write(h.scratch[:16])
+	h.writeIntVal(tag, TypeEnumeration, i)
 }
 
 func (h *encBuf) encodeTextString(tag Tag, s string) {
-	start := h.Len()
-	// write out 8 bytes of random, allocating the space where
-	// the header will be written later
-	_, _ = h.Write(h.scratch[:8])
-
-	n, _ := h.WriteString(s)
-	if m := n % 8; m > 0 {
-		_, _ = h.Write(zeros[:8-m])
-	}
-	h.encodeHeader(tag, TypeTextString, uint32(n))
-	copy(h.Bytes()[start:], h.scratch[:8])
+	i := h.begin(tag, TypeTextString)
+	_, _ = h.WriteString(s)
+	h.end(i)
 }
 
 func (h *encBuf) encodeByteString(tag Tag, b []byte) {
 	if b == nil {
 		return
 	}
-	start := h.Len()
-	// write out 8 bytes of random, allocating the space where
-	// the header will be written later
-	_, _ = h.Write(h.scratch[:8])
-
-	n, _ := h.Write(b)
-	if m := n % 8; m > 0 {
-		_, _ = h.Write(zeros[:8-m])
-	}
-	h.encodeHeader(tag, TypeByteString, uint32(n))
-	copy(h.Bytes()[start:], h.scratch[:8])
+	i := h.begin(tag, TypeByteString)
+	_, _ = h.Write(b)
+	h.end(i)
 }
 
 func getTypeInfo(typ reflect.Type) (ti typeInfo, err error) {

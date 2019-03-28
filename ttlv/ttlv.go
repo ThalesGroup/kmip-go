@@ -128,7 +128,7 @@ func (t TTLV) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 		out.Value = t.ValueTextString()
 	case TypeByteString:
 		out.Value = hex.EncodeToString(t.ValueByteString())
-	case TypeDateTime:
+	case TypeDateTime, TypeDateTimeExtended:
 		out.Value = t.ValueDateTime().Format(time.RFC3339Nano)
 	case TypeInterval:
 		out.Value = strconv.FormatUint(uint64(t.ValueInterval()/time.Second), 10)
@@ -191,12 +191,16 @@ func unmarshalXMLTval(buf *encBuf, tval *xmltval, attrTag Tag) error {
 			return merry.Prependf(err, "%s: invalid Interval value: must be number", tag.String())
 		}
 		buf.encodeInterval(tag, time.Duration(u)*time.Second)
-	case TypeDateTime:
+	case TypeDateTime, TypeDateTimeExtended:
 		d, err := time.Parse(time.RFC3339Nano, tval.Value)
 		if err != nil {
 			return merry.Prependf(err, "%s: invalid DateTime value: must be ISO8601 format", tag.String())
 		}
-		buf.encodeDateTime(tag, d)
+		if tp == TypeDateTime {
+			buf.encodeDateTime(tag, d)
+		} else {
+			buf.encodeDateTimeExtended(tag, d)
+		}
 	case TypeInteger:
 		enumTag := tag
 		if tag == TagAttributeValue && attrTag != TagNone {
@@ -240,7 +244,7 @@ func unmarshalXMLTval(buf *encBuf, tval *xmltval, attrTag Tag) error {
 		}
 		buf.encodeEnum(tag, e)
 	case TypeStructure:
-		i := buf.startStruct(tag)
+		i := buf.begin(tag, TypeStructure)
 		var attrTag Tag
 		for _, c := range tval.Children {
 			offset := buf.Len()
@@ -256,7 +260,7 @@ func unmarshalXMLTval(buf *encBuf, tval *xmltval, attrTag Tag) error {
 				attrTag, _ = ParseTag(kmiputil.NormalizeName(ttlv.ValueTextString()))
 			}
 		}
-		buf.endStruct(i)
+		buf.end(i)
 	}
 	return nil
 }
@@ -391,11 +395,12 @@ func (t *TTLV) unmarshalJSON(b []byte, attrTag Tag) error {
 		case float64:
 			enc.encodeInterval(tag, time.Duration(tv)*time.Second)
 		}
-	case TypeDateTime:
+	case TypeDateTime, TypeDateTimeExtended:
 		switch tv := v.(type) {
 		default:
 			return merry.Errorf("%s: invalid DateTime value: must be string", tag.String())
 		case string:
+			var tm time.Time
 			if tv[:2] == "0x" {
 				b, err := hex.DecodeString(tv[2:])
 				if err != nil {
@@ -406,14 +411,22 @@ func (t *TTLV) unmarshalJSON(b []byte, attrTag Tag) error {
 				}
 
 				u := binary.BigEndian.Uint64(b)
-				tm := time.Unix(int64(u), 0)
-				enc.encodeDateTime(tag, tm)
+				if tp == TypeDateTime {
+					tm = time.Unix(int64(u), 0)
+				} else {
+					tm = tm.Add(time.Duration(u) * time.Microsecond)
+				}
 			} else {
-				tm, err := time.Parse(time.RFC3339Nano, tv)
+				var err error
+				tm, err = time.Parse(time.RFC3339Nano, tv)
 				if err != nil {
 					return merry.Prependf(err, "%s: invalid DateTime value: must be ISO8601 format, parsing error", tag.String())
 				}
+			}
+			if tp == TypeDateTime {
 				enc.encodeDateTime(tag, tm)
+			} else {
+				enc.encodeDateTimeExtended(tag, tm)
 			}
 		}
 	case TypeInteger:
@@ -499,7 +512,7 @@ func (t *TTLV) unmarshalJSON(b []byte, attrTag Tag) error {
 			return err
 		}
 		var scratch TTLV
-		s := enc.startStruct(tag)
+		s := enc.begin(tag, TypeStructure)
 		var attrTag Tag
 		for _, c := range children {
 			err := (*TTLV)(&scratch).unmarshalJSON(c, attrTag)
@@ -511,7 +524,7 @@ func (t *TTLV) unmarshalJSON(b []byte, attrTag Tag) error {
 			}
 			_, _ = enc.Write(scratch)
 		}
-		enc.endStruct(s)
+		enc.end(s)
 	}
 	*t = TTLV(enc.Bytes())
 	return nil
@@ -621,7 +634,7 @@ func (t TTLV) MarshalJSON() ([]byte, error) {
 			}
 		}
 		sb.WriteString("]")
-	case TypeDateTime:
+	case TypeDateTime, TypeDateTimeExtended:
 		val, err := t.ValueDateTime().MarshalJSON()
 		if err != nil {
 			return nil, err
@@ -679,7 +692,7 @@ func (t TTLV) Len() int {
 
 func (t TTLV) FullLen() int {
 	switch t.Type() {
-	case TypeInterval, TypeDateTime, TypeBoolean, TypeEnumeration, TypeLongInteger, TypeInteger:
+	case TypeInterval, TypeDateTime, TypeDateTimeExtended, TypeBoolean, TypeEnumeration, TypeLongInteger, TypeInteger:
 		return lenHeader + 8
 	case TypeByteString, TypeTextString:
 		l := t.Len() + lenHeader
@@ -693,6 +706,11 @@ func (t TTLV) FullLen() int {
 	panic(fmt.Sprintf("invalid type: %x", byte(t.Type())))
 }
 
+// ValueRaw returns the raw bytes of the value segment of the TTLV.
+// It relies on the length segment of the TTLV to know how many bytes
+// to read.  If the length segment's value is greater than the length of
+// the TTLV slice, all the remaining bytes in the slice will be returned,
+// but it will not panic.
 func (t TTLV) ValueRaw() []byte {
 	// don't panic if the value is truncated
 	l := t.Len()
@@ -711,6 +729,8 @@ func (t TTLV) Value() interface{} {
 		return t.ValueInterval()
 	case TypeDateTime:
 		return t.ValueDateTime()
+	case TypeDateTimeExtended:
+		return DateTimeExtended{t.ValueDateTime()}
 	case TypeByteString:
 		return t.ValueByteString()
 	case TypeTextString:
@@ -765,6 +785,9 @@ func (t TTLV) ValueByteString() []byte {
 
 func (t TTLV) ValueDateTime() time.Time {
 	i := t.ValueLongInteger()
+	if t.Type() == TypeDateTimeExtended {
+		return time.Unix(0, i*1000).UTC()
+	}
 	return time.Unix(i, 0).UTC()
 }
 
@@ -821,7 +844,7 @@ func (t TTLV) ValidHeader() error {
 		if t.Len() != lenInt {
 			return ErrInvalidLen
 		}
-	case TypeLongInteger, TypeBoolean, TypeDateTime:
+	case TypeLongInteger, TypeBoolean, TypeDateTime, TypeDateTimeExtended:
 		if t.Len() != lenLongInt {
 			return ErrInvalidLen
 		}

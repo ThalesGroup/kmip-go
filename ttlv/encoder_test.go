@@ -73,12 +73,16 @@ var knownGoodSamples = []struct {
 		exp: `42 00 01 | 03 | 00 00 00 08 | 00 00 00 00 00 00 00 08`,
 	},
 	{
-		v:   parseTime("Friday, March 14, 2008, 11:56:40 UTC"),
+		v:   parseTime("2008-03-14T11:56:40Z"),
 		exp: `42 00 01 | 09 | 00 00 00 08 | 00 00 00 00 47 DA 67 F8`,
 	},
 	{
 		exp: "42 00 01 | 0A | 00 00 00 04 | 00 0D 2F 00 00 00 00 00",
 		v:   10 * 24 * time.Hour,
+	},
+	{
+		v:   DateTimeExtended{parseTime("2017-11-20T5:20:40.345567Z")},
+		exp: "42 00 01 | 0B | 00 00 00 08 | 00 05 5E 63 3F 4D 1F DF",
 	},
 	{
 		exp: "42 00 01 | 04 | 00 00 00 10 | 00 00 00 00 03 FD 35 EB 6B C2 DF 46 18 08 00 00",
@@ -417,6 +421,10 @@ func TestEncoder_EncodeValue(t *testing.T) {
 		BlockCipherMode nonptrMarshaler
 	}
 
+	type FieldTypes struct {
+		A time.Time `kmip:"CertificateIssuerCN"`
+	}
+
 	type testCase struct {
 		name         string
 		tag          Tag
@@ -479,8 +487,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 		},
 		// date time
 		{
-			v:        parseTime("Friday, March 14, 2008, 11:56:40 UTC"),
-			expected: TaggedValue{Tag: TagCancellationResult, Value: parseTime("Friday, March 14, 2008, 11:56:40 UTC")},
+			v:        parseTime("2008-03-14T11:56:40Z"),
+			expected: TaggedValue{Tag: TagCancellationResult, Value: parseTime("2008-03-14T11:56:40Z")},
 		},
 		// big int ptr
 		{
@@ -755,11 +763,11 @@ func TestEncoder_EncodeValue(t *testing.T) {
 				AttributeValue time.Time `kmip:",omitempty"`
 				ArchiveDate    time.Time `kmip:",omitempty"`
 			}{
-				AttributeValue: parseTime("Friday, March 14, 2008, 11:56:40 UTC"),
+				AttributeValue: parseTime("2008-03-14T11:56:40Z"),
 			},
 			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
 				TaggedValue{Tag: TagAttribute, Value: time.Time{}},
-				TaggedValue{Tag: TagAttributeValue, Value: parseTime("Friday, March 14, 2008, 11:56:40 UTC")},
+				TaggedValue{Tag: TagAttributeValue, Value: parseTime("2008-03-14T11:56:40Z")},
 			}},
 		},
 		{
@@ -770,12 +778,12 @@ func TestEncoder_EncodeValue(t *testing.T) {
 				ArchiveDate    *time.Time `kmip:",omitempty"`
 			}{
 				Attribute:      &time.Time{},
-				AttributeValue: func() *time.Time { t := parseTime("Friday, March 14, 2008, 11:56:40 UTC"); return &t }(),
+				AttributeValue: func() *time.Time { t := parseTime("2008-03-14T11:56:40Z"); return &t }(),
 				ArchiveDate:    &time.Time{},
 			},
 			expected: Structure{Tag: TagCancellationResult, Values: []interface{}{
 				TaggedValue{Tag: TagAttribute, Value: time.Time{}},
-				TaggedValue{Tag: TagAttributeValue, Value: parseTime("Friday, March 14, 2008, 11:56:40 UTC")},
+				TaggedValue{Tag: TagAttributeValue, Value: parseTime("2008-03-14T11:56:40Z")},
 			}},
 		},
 		{
@@ -1280,8 +1288,69 @@ func TestEncoder_EncodeValue(t *testing.T) {
 
 }
 
+func TestEncoder_EncodeStructure(t *testing.T) {
+
+	type testCase struct {
+		name     string
+		f        func(*Encoder) error
+		expected interface{}
+	}
+
+	cases := []testCase{
+		{
+			name: "Encode Bool",
+			f: func(e *Encoder) error {
+				e.EncodeBool(TagActivationDate, true)
+				return nil
+			},
+			expected: Structure{
+				Tag: TagCancellationResult,
+				Values: []interface{}{
+					TaggedValue{
+						Tag:   TagActivationDate,
+						Value: true,
+					},
+				},
+			},
+		},
+		{
+			name: "Encode Value",
+			f: func(e *Encoder) error {
+				return e.EncodeValue(TagActivationDate, true)
+			},
+			expected: Structure{
+				Tag: TagCancellationResult,
+				Values: []interface{}{
+					TaggedValue{
+						Tag:   TagActivationDate,
+						Value: true,
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			buf := bytes.NewBuffer(nil)
+			enc := NewEncoder(buf)
+			require.NoError(t, enc.EncodeStructure(TagCancellationResult, tc.f))
+
+			require.NoError(t, enc.Flush())
+
+			buf2 := bytes.NewBuffer(nil)
+			enc2 := NewEncoder(buf2)
+			require.NoError(t, enc2.EncodeValue(TagNone, tc.expected))
+
+			require.Equal(t, TTLV(buf2.Bytes()), TTLV(buf.Bytes()))
+
+		})
+	}
+
+}
+
 func parseTime(s string) time.Time {
-	v, err := time.Parse("Monday, January 2, 2006, 15:04:05 MST", s)
+	v, err := time.Parse(time.RFC3339Nano, s)
 	if err != nil {
 		panic(err)
 	}
@@ -1388,5 +1457,23 @@ func BenchmarkEncoder_Encode_interval(b *testing.B) {
 	enc := NewEncoder(ioutil.Discard)
 	for i := 0; i < b.N; i++ {
 		_ = enc.EncodeValue(TagCertificateRequest, time.Minute)
+	}
+}
+
+func BenchmarkEncoder_EncodeByteString(b *testing.B) {
+	enc := NewEncoder(ioutil.Discard)
+	for i := 0; i < b.N; i++ {
+		enc.EncodeTextString(TagCertificateIssuer, "al;kjsaflksjdflakjsdfl;aksjdflaksjdflaksjdfl;ksjd")
+		require.NoError(b, enc.Flush())
+
+	}
+}
+
+func BenchmarkEncoder_EncodeInt(b *testing.B) {
+	enc := NewEncoder(ioutil.Discard)
+	for i := 0; i < b.N; i++ {
+		enc.EncodeInt(TagCertificateIssuer, 8)
+		require.NoError(b, enc.Flush())
+
 	}
 }

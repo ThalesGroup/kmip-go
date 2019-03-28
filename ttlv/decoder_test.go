@@ -66,7 +66,7 @@ func TestUnmarshal(t *testing.T) {
 			ptr: new(time.Duration),
 		},
 		{
-			in:  parseTime("Friday, March 14, 2008, 11:56:40 UTC"),
+			in:  parseTime("2008-03-14T11:56:40Z"),
 			ptr: new(time.Time),
 		},
 		{

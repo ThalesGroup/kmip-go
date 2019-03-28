@@ -144,7 +144,7 @@ func (dec *Decoder) unmarshal(val reflect.Value, ttlv TTLV) error {
 			return typeMismatchErr()
 		}
 		val.SetInt(int64(ttlv.ValueInterval()))
-	case TypeDateTime:
+	case TypeDateTime, TypeDateTimeExtended:
 		if val.Type() != timeType {
 			return typeMismatchErr()
 		}
@@ -261,7 +261,7 @@ func (dec *Decoder) NextTTLV() (TTLV, error) {
 
 	if err := TTLV(header).ValidHeader(); err != nil {
 		// bad header, abort
-		return TTLV(header), merry.Prependf(err, "invalid header: %s", TTLV(header))
+		return TTLV(header), merry.Prependf(err, "invalid header: %v", TTLV(header))
 	}
 
 	// allocate a buffer large enough for the entire message

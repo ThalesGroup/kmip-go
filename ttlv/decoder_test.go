@@ -170,10 +170,36 @@ func TestUnmarshal(t *testing.T) {
 			ptr: new(interface{}),
 			expected: func() interface{} {
 				b, err := Marshal(TaggedValue{Tag: TagBatchCount, Value: "red"})
-				if err != nil {
-					panic(err)
-				}
+				require.NoError(t, err)
 				return TTLV(b)
+			}(),
+		},
+		{
+			name: "structtypeerror",
+			in: Structure{TTLVTag: TagBatchCount, Values: []interface{}{
+				TaggedValue{Tag: TagComment, Value: "red"},
+			}},
+			ptr: new(int),
+			err: ErrUnsupportedTypeError,
+		},
+		{
+			name: "ttlvStructure",
+			in: Structure{TTLVTag: TagBatchCount, Values: []interface{}{
+				TaggedValue{Tag: TagBatchItem, Value: "red"},
+				TaggedValue{Tag: TagBatchContinueCapability, Value: "blue"},
+			}},
+			ptr: new(Structure),
+			expected: func() interface{} {
+				s := Structure{TTLVTag: TagBatchCount}
+				for _, v := range []TaggedValue{
+					{Tag: TagBatchItem, Value: "red"},
+					{Tag: TagBatchContinueCapability, Value: "blue"},
+				} {
+					b, err := Marshal(v)
+					require.NoError(t, err)
+					s.Values = append(s.Values, TTLV(b))
+				}
+				return s
 			}(),
 		},
 	}
@@ -184,7 +210,7 @@ func TestUnmarshal(t *testing.T) {
 	tests = append(tests,
 		unmarshalTest{
 			name: "simplestruct",
-			in: Structure{Tag: TagBatchCount, Values: []interface{}{
+			in: Structure{TTLVTag: TagBatchCount, Values: []interface{}{
 				TaggedValue{Tag: TagComment, Value: "red"},
 			}},
 			ptr:      new(A),
@@ -199,7 +225,7 @@ func TestUnmarshal(t *testing.T) {
 	tests = append(tests,
 		unmarshalTest{
 			name: "fieldtag",
-			in: Structure{Tag: TagBatchCount, Values: []interface{}{
+			in: Structure{TTLVTag: TagBatchCount, Values: []interface{}{
 				TaggedValue{Tag: TagComment, Value: "red"},
 			}},
 			ptr:      new(B),
@@ -215,7 +241,7 @@ func TestUnmarshal(t *testing.T) {
 	tests = append(tests,
 		unmarshalTest{
 			name: "multifields",
-			in: Structure{Tag: TagBatchCount, Values: []interface{}{
+			in: Structure{TTLVTag: TagBatchCount, Values: []interface{}{
 				TaggedValue{Tag: TagComment, Value: "red"},
 				TaggedValue{Tag: TagBatchCount, Value: "blue"},
 			}},
@@ -232,9 +258,9 @@ func TestUnmarshal(t *testing.T) {
 	tests = append(tests,
 		unmarshalTest{
 			name: "nested",
-			in: Structure{Tag: TagBatchCount, Values: []interface{}{
+			in: Structure{TTLVTag: TagBatchCount, Values: []interface{}{
 				TaggedValue{Tag: TagComment, Value: "red"},
-				Structure{Tag: TagBatchCount, Values: []interface{}{
+				Structure{TTLVTag: TagBatchCount, Values: []interface{}{
 					TaggedValue{Tag: TagComment, Value: "blue"},
 				}},
 			}},
@@ -251,9 +277,9 @@ func TestUnmarshal(t *testing.T) {
 	tests = append(tests,
 		unmarshalTest{
 			name: "nestedptr",
-			in: Structure{Tag: TagBatchCount, Values: []interface{}{
+			in: Structure{TTLVTag: TagBatchCount, Values: []interface{}{
 				TaggedValue{Tag: TagComment, Value: "red"},
-				Structure{Tag: TagBatchCount, Values: []interface{}{
+				Structure{TTLVTag: TagBatchCount, Values: []interface{}{
 					TaggedValue{Tag: TagComment, Value: "blue"},
 				}},
 			}},
@@ -269,7 +295,7 @@ func TestUnmarshal(t *testing.T) {
 	tests = append(tests,
 		unmarshalTest{
 			name: "slice",
-			in: Structure{Tag: TagBatchCount, Values: []interface{}{
+			in: Structure{TTLVTag: TagBatchCount, Values: []interface{}{
 				TaggedValue{Tag: TagComment, Value: "red"},
 				TaggedValue{Tag: TagComment, Value: "blue"},
 				TaggedValue{Tag: TagComment, Value: "green"},
@@ -278,6 +304,29 @@ func TestUnmarshal(t *testing.T) {
 			expected: G{Comment: []string{"red", "blue", "green"}},
 		},
 	)
+
+	type H struct {
+		Comment        string
+		Any1           []TaggedValue `kmip:",any"`
+		Any2           []TaggedValue `kmip:",any"`
+		AttributeValue string
+	}
+
+	tests = append(tests,
+		unmarshalTest{
+			name: "anyflag",
+			in: Structure{Values: []interface{}{
+				TaggedValue{Tag: TagComment, Value: "red"},
+				TaggedValue{Tag: TagNameType, Value: "blue"},
+				TaggedValue{Tag: TagName, Value: "orange"},
+				TaggedValue{Tag: TagAttributeValue, Value: "yellow"},
+			}},
+			ptr: new(H),
+			expected: H{Comment: "red", AttributeValue: "yellow", Any1: []TaggedValue{
+				{Tag: TagNameType, Value: "blue"},
+				{Tag: TagName, Value: "orange"},
+			}},
+		})
 
 	for _, test := range tests {
 		if test.name == "" {
@@ -288,13 +337,13 @@ func TestUnmarshal(t *testing.T) {
 			b, err := Marshal(TaggedValue{Tag: TagBatchCount, Value: test.in})
 			require.NoError(t, err)
 
+			t.Log(TTLV(b).String())
+
 			v := reflect.New(reflect.TypeOf(test.ptr).Elem())
 			expected := test.expected
 			if expected == nil {
 				expected = test.in
 			}
-
-			t.Log(TTLV(b).String())
 
 			err = Unmarshal(b, v.Interface())
 

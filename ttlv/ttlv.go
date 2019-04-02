@@ -646,7 +646,6 @@ func (t TTLV) MarshalJSON() ([]byte, error) {
 
 	sb.WriteString(`}`)
 	return []byte(sb.String()), nil
-	//return json.Marshal(&tval{Tag: t.Tag().String(), Type: t.Type().String(), Value: val})
 }
 
 func (t *TTLV) UnmarshalTTLV(d *Decoder, ttlv TTLV) error {

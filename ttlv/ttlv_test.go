@@ -499,17 +499,17 @@ func TestTTLV_UnmarshalJSON(t *testing.T) {
 					]
 				}`,
 			},
-			exp: Structure{Tag: TagBatchCount, Values: []interface{}{
+			exp: Structure{TTLVTag: TagBatchCount, Values: []interface{}{
 				TaggedValue{Tag: TagCryptographicUsageMask, Value: CryptographicUsageMaskDecrypt | CryptographicUsageMaskEncrypt},
 				TaggedValue{Tag: TagCryptographicAlgorithm, Value: CryptographicAlgorithmBlowfish},
-				Structure{Tag: TagObjectType, Values: []interface{}{
+				Structure{TTLVTag: TagObjectType, Values: []interface{}{
 					TaggedValue{Tag: TagOperation, Value: "red"},
 				}},
 			}},
 		},
 		{
 			name: "attributes",
-			exp: Structure{Tag: TagAttribute, Values: []interface{}{
+			exp: Structure{TTLVTag: TagAttribute, Values: []interface{}{
 				TaggedValue{Tag: TagAttributeName, Value: "Key Format Type"},
 				TaggedValue{Tag: TagAttributeValue, Value: KeyFormatTypeX_509},
 			}},
@@ -520,7 +520,7 @@ func TestTTLV_UnmarshalJSON(t *testing.T) {
 		},
 		{
 			name: "attributesmask",
-			exp: Structure{Tag: TagAttribute, Values: []interface{}{
+			exp: Structure{TTLVTag: TagAttribute, Values: []interface{}{
 				TaggedValue{Tag: TagAttributeName, Value: "Cryptographic Usage Mask"},
 				TaggedValue{Tag: TagAttributeValue, Value: CryptographicUsageMaskEncrypt},
 			}},
@@ -629,7 +629,7 @@ func TestTTLV_MarshalJSON(t *testing.T) {
 			exp: `{"tag":"KeyFormatType","type":"Interval","value":10}`,
 		},
 		{
-			in: Structure{Tag: TagKeyFormatType, Values: []interface{}{
+			in: Structure{TTLVTag: TagKeyFormatType, Values: []interface{}{
 				TaggedValue{Tag: TagBatchCount, Value: 10},
 				TaggedValue{Tag: Tag(0x540002), Value: 10},
 				TaggedValue{Tag: TagBatchItem, Value: true},
@@ -641,7 +641,7 @@ func TestTTLV_MarshalJSON(t *testing.T) {
 			]}`,
 		},
 		{
-			in: Structure{Tag: TagAttribute, Values: []interface{}{
+			in: Structure{TTLVTag: TagAttribute, Values: []interface{}{
 				TaggedValue{Tag: TagAttributeName, Value: "Key Format Type"},
 				TaggedValue{Tag: TagAttributeValue, Value: KeyFormatTypeX_509},
 			}},
@@ -651,7 +651,7 @@ func TestTTLV_MarshalJSON(t *testing.T) {
 			]}`,
 		},
 		{
-			in: Structure{Tag: TagAttribute, Values: []interface{}{
+			in: Structure{TTLVTag: TagAttribute, Values: []interface{}{
 				TaggedValue{Tag: TagAttributeName, Value: "Key Format Type"},
 				TaggedValue{Tag: TagAttributeValue, Value: "X_509"},
 			}},
@@ -662,7 +662,7 @@ func TestTTLV_MarshalJSON(t *testing.T) {
 		},
 		{
 			name: "attributesmask",
-			in: Structure{Tag: TagAttribute, Values: []interface{}{
+			in: Structure{TTLVTag: TagAttribute, Values: []interface{}{
 				TaggedValue{Tag: TagAttributeName, Value: "Cryptographic Usage Mask"},
 				TaggedValue{Tag: TagAttributeValue, Value: CryptographicUsageMaskExport},
 			}},
@@ -672,7 +672,7 @@ func TestTTLV_MarshalJSON(t *testing.T) {
 			]}`,
 		},
 		{
-			in: Structure{Tag: TagAttribute, Values: []interface{}{
+			in: Structure{TTLVTag: TagAttribute, Values: []interface{}{
 				TaggedValue{Tag: TagAttributeName, Value: "Key Format Type"},
 				TaggedValue{Tag: TagAttributeValue, Value: EnumValue(0x00000300)},
 			}},
@@ -777,7 +777,7 @@ func TestTTLV_MarshalXML(t *testing.T) {
 		},
 		{
 			name: "structure",
-			in: Structure{Tag: TagKeyFormatType, Values: []interface{}{
+			in: Structure{TTLVTag: TagKeyFormatType, Values: []interface{}{
 				TaggedValue{Tag: TagBatchCount, Value: 10},
 				TaggedValue{Tag: Tag(0x540002), Value: 10},
 				TaggedValue{Tag: TagBatchItem, Value: true},
@@ -786,7 +786,7 @@ func TestTTLV_MarshalXML(t *testing.T) {
 		},
 		{
 			name: "attributes",
-			in: Structure{Tag: TagAttribute, Values: []interface{}{
+			in: Structure{TTLVTag: TagAttribute, Values: []interface{}{
 				TaggedValue{Tag: TagAttributeName, Value: "Key Format Type"},
 				TaggedValue{Tag: TagAttributeValue, Value: KeyFormatTypeX_509},
 			}},
@@ -794,7 +794,7 @@ func TestTTLV_MarshalXML(t *testing.T) {
 		},
 		{
 			name: "attributesmask",
-			in: Structure{Tag: TagAttribute, Values: []interface{}{
+			in: Structure{TTLVTag: TagAttribute, Values: []interface{}{
 				TaggedValue{Tag: TagAttributeName, Value: "Cryptographic Usage Mask"},
 				TaggedValue{Tag: TagAttributeValue, Value: CryptographicUsageMaskExport},
 			}},
@@ -933,17 +933,17 @@ func TestTTLV_UnmarshalXML(t *testing.T) {
 						</ObjectType>
 				</BatchCount>`,
 			},
-			exp: Structure{Tag: TagBatchCount, Values: []interface{}{
+			exp: Structure{TTLVTag: TagBatchCount, Values: []interface{}{
 				TaggedValue{Tag: TagCryptographicUsageMask, Value: CryptographicUsageMaskDecrypt | CryptographicUsageMaskEncrypt},
 				TaggedValue{Tag: TagCryptographicAlgorithm, Value: CryptographicAlgorithmBlowfish},
-				Structure{Tag: TagObjectType, Values: []interface{}{
+				Structure{TTLVTag: TagObjectType, Values: []interface{}{
 					TaggedValue{Tag: TagOperation, Value: "red"},
 				}},
 			}},
 		},
 		{
 			name: "attributes",
-			exp: Structure{Tag: TagAttribute, Values: []interface{}{
+			exp: Structure{TTLVTag: TagAttribute, Values: []interface{}{
 				TaggedValue{Tag: TagAttributeName, Value: "Key Format Type"},
 				TaggedValue{Tag: TagAttributeValue, Value: KeyFormatTypeX_509},
 			}},
@@ -954,7 +954,7 @@ func TestTTLV_UnmarshalXML(t *testing.T) {
 		},
 		{
 			name: "attributesmask",
-			exp: Structure{Tag: TagAttribute, Values: []interface{}{
+			exp: Structure{TTLVTag: TagAttribute, Values: []interface{}{
 				TaggedValue{Tag: TagAttributeName, Value: "Cryptographic Usage Mask"},
 				TaggedValue{Tag: TagAttributeValue, Value: CryptographicUsageMaskEncrypt},
 			}},

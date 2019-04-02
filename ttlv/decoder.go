@@ -63,6 +63,10 @@ func (dec *Decoder) DecodeValue(v interface{}, ttlv TTLV) error {
 }
 
 func (dec *Decoder) unmarshal(val reflect.Value, ttlv TTLV) error {
+	if len(ttlv) == 0 {
+		return nil
+	}
+
 	// Load value from interface, but only if the result will be
 	// usefully addressable.
 	if val.Kind() == reflect.Interface && !val.IsNil() {
@@ -128,11 +132,13 @@ func (dec *Decoder) unmarshal(val reflect.Value, ttlv TTLV) error {
 		}
 		err := merry.WrapSkipping(e, 1).WithCause(ErrUnsupportedTypeError)
 		return err
-		//return err.WithMessagef("can't unmarshal TTLV type into go type")
 	}
 
 	switch ttlv.Type() {
 	case TypeStructure:
+		if val.Kind() != reflect.Struct {
+			return typeMismatchErr()
+		}
 		// stash currStruct
 		currStruct := dec.currStruct
 		err := dec.unmarshalStructure(ttlv, val)
@@ -221,31 +227,48 @@ func (dec *Decoder) unmarshal(val reflect.Value, ttlv TTLV) error {
 
 func (dec *Decoder) unmarshalStructure(ttlv TTLV, val reflect.Value) error {
 
-	fields, err := getFieldsInfo(val.Type())
+	ti, err := getTypeInfo(val.Type())
 	if err != nil {
-		return err
+		return dec.newUnmarshalerError(ttlv, val.Type(), err)
 	}
+
+	if ti.tagField != nil && ti.tagField.ti.typ == tagType {
+		val.FieldByIndex(ti.tagField.index).Set(reflect.ValueOf(ttlv.Tag()))
+	}
+
+	fields := ti.valueFields
 
 	// push currStruct (caller will pop)
 	dec.currStruct = val.Type()
-Next:
 	for n := ttlv.ValueStructure(); n != nil; n = n.Next() {
-		for _, field := range fields {
-			if field.tag == n.Tag() {
-				// push currField
-				currField := dec.currField
-				dec.currField = field.name
-				err := dec.unmarshal(val.FieldByIndex(field.index), n)
-				// restore currField
-				dec.currField = currField
-				if err != nil {
-					return err
+		fldIdx := -1
+		for i := range fields {
+			if fields[i].flags&fAny != 0 {
+				// if this is the first any field found, keep track
+				// of it as the current candidate match, but
+				// keep looking for a tag match
+				if fldIdx == -1 {
+					fldIdx = i
 				}
-				continue Next
+			} else if fields[i].tag == n.Tag() {
+				// tag match found
+				// we can stop looking
+				fldIdx = i
+				break
 			}
 		}
-		// should only get here if no fields matched the value
-		if dec.DisallowExtraValues {
+
+		if fldIdx > -1 {
+			// push currField
+			currField := dec.currField
+			dec.currField = fields[fldIdx].name
+			err := dec.unmarshal(val.FieldByIndex(fields[fldIdx].index), n)
+			// restore currField
+			dec.currField = currField
+			if err != nil {
+				return err
+			}
+		} else if dec.DisallowExtraValues {
 			return dec.newUnmarshalerError(ttlv, val.Type(), ErrUnexpectedValue)
 		}
 	}

@@ -64,9 +64,26 @@ type Marshaler interface {
 
 type EnumValue uint32
 
+func (v EnumValue) MarshalTTLV(e *Encoder, tag Tag) error {
+	e.EncodeEnumeration(tag, uint32(v))
+	return nil
+}
+
 type TaggedValue struct {
 	Tag   Tag
 	Value interface{}
+}
+
+func (t *TaggedValue) UnmarshalTTLV(d *Decoder, ttlv TTLV) error {
+	t.Tag = ttlv.Tag()
+	switch ttlv.Type() {
+	case TypeStructure:
+		t.Value = Structure{}
+		return d.DecodeValue(&t.Value, ttlv)
+	default:
+		t.Value = ttlv.Value()
+	}
+	return nil
 }
 
 func (t TaggedValue) MarshalTTLV(e *Encoder, tag Tag) error {
@@ -79,25 +96,48 @@ func (t TaggedValue) MarshalTTLV(e *Encoder, tag Tag) error {
 }
 
 type Structure struct {
-	Tag    Tag
-	Values []interface{}
+	TTLVTag Tag
+	Values  []interface{} `kmip:",any"`
 }
 
-func (s Structure) MarshalTTLV(e *Encoder, tag Tag) error {
-	if s.Tag != 0 {
-		tag = s.Tag
-	}
+func (s *Structure) UnmarshalTTLV(d *Decoder, ttlv TTLV) error {
+	s.TTLVTag = ttlv.Tag()
 
-	return e.EncodeStructure(tag, func(encoder *Encoder) error {
-		for _, v := range s.Values {
-			err := encoder.Encode(v)
-			if err != nil {
-				return err
-			}
+	ttlv = ttlv.ValueStructure()
+
+	for len(ttlv) > 0 {
+		var v interface{}
+		switch ttlv.Type() {
+		case TypeStructure:
+			v = Structure{}
+		default:
+			v = TaggedValue{}
 		}
-		return nil
-	})
+		err := d.DecodeValue(&v, ttlv)
+		if err != nil {
+			return err
+		}
+		s.Values = append(s.Values, v)
+		ttlv = ttlv.Next()
+	}
+	return nil
 }
+
+//func (s Structure) MarshalTTLV(e *Encoder, tag Tag) error {
+//	if s.TTLVTag != 0 {
+//		tag = s.TTLVTag
+//	}
+//
+//	return e.EncodeStructure(tag, func(encoder *Encoder) error {
+//		for _, v := range s.Values {
+//			err := encoder.Encode(v)
+//			if err != nil {
+//				return err
+//			}
+//		}
+//		return nil
+//	})
+//}
 
 type Encoder struct {
 	encodeDepth int
@@ -119,7 +159,7 @@ func (e *Encoder) Encode(v interface{}) error {
 }
 
 func (e *Encoder) EncodeValue(tag Tag, v interface{}) error {
-	err := e.encode(tag, reflect.ValueOf(v), 0)
+	err := e.encode(tag, reflect.ValueOf(v), nil)
 	if err != nil {
 		return err
 	}
@@ -236,7 +276,7 @@ var bigIntPtrType = reflect.TypeOf((*big.Int)(nil))
 var bigIntType = bigIntPtrType.Elem()
 var durationType = reflect.TypeOf(time.Nanosecond)
 var ttlvType = reflect.TypeOf((*TTLV)(nil)).Elem()
-var enumValueType = reflect.TypeOf((*EnumValue)(nil)).Elem()
+var tagType = reflect.TypeOf(Tag(0))
 
 var invalidValue = reflect.Value{}
 
@@ -333,7 +373,7 @@ func (e *Encoder) encodeReflectEnum(tag Tag, v reflect.Value) error {
 	}
 }
 
-func (e *Encoder) encode(tag Tag, v reflect.Value, flags fieldFlags) error {
+func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 
 	// if pointer or interface
 	v = indirect(v)
@@ -349,16 +389,17 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, flags fieldFlags) error {
 		return err
 	}
 
-	// resolve the tag, choosing the first of these which isn't TagNone:
-	// 1. the tag required the type
-	// 2. the requested tag arg
-	// 3. the tag inferred from the type
 	typeInfo, err := getTypeInfo(typ)
 	if err != nil {
 		return err
 	}
-	if typeInfo.tagRequired || tag == TagNone {
-		tag = typeInfo.tag
+	if tag == TagNone {
+		tag = tagForMarshal(v, typeInfo, fi)
+	}
+
+	var flags fieldFlags
+	if fi != nil {
+		flags = fi.flags
 	}
 
 	// check for Marshaler
@@ -395,15 +436,42 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, flags fieldFlags) error {
 		return nil
 	}
 
+	// recurse to handle slices of values
+	switch v.Kind() {
+	case reflect.Slice:
+		if typ.Elem() == byteType {
+			// special case, encode as a ByteString, handled below
+			break
+		}
+		fallthrough
+	case reflect.Array:
+		for i := 0; i < v.Len(); i++ {
+			// turn off the omit empty flag.  applies at the field level,
+			// not to each member of the slice
+			// TODO: is this true?
+			var fi2 *fieldInfo
+			if fi != nil {
+				fi2 = &(*fi)
+				fi2.flags = fi2.flags &^ fOmitEmpty
+			}
+			err := e.encode(tag, v.Index(i), fi2)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	if tag == TagNone {
+		return e.marshalingError(tag, v.Type(), ErrNoTag)
+	}
+
 	// handle the enum flag
 	if flags&fEnum != 0 {
 		return e.encodeReflectEnum(tag, v)
 	}
 
 	switch typ {
-	case enumValueType:
-		e.encBuf.encodeEnum(tag, uint32(v.Uint()))
-		return nil
 	case timeType:
 		if flags&fDateTimeExtended != 0 {
 			e.encBuf.encodeDateTimeExtended(tag, v.Interface().(time.Time))
@@ -429,12 +497,8 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, flags fieldFlags) error {
 		currStruct := e.currStruct
 		e.currStruct = typ.Name()
 
-		fields, err := getFieldsInfo(typ)
-		if err != nil {
-			return err
-		}
 		err = e.EncodeStructure(tag, func(e *Encoder) error {
-			for _, field := range fields {
+			for _, field := range typeInfo.valueFields {
 				fv := v.FieldByIndex(field.index)
 
 				// note: we're staying in reflection world here instead of
@@ -472,7 +536,7 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, flags fieldFlags) error {
 				// push the currField
 				currField := e.currField
 				e.currField = field.name
-				err := e.encode(field.tag, fv, field.flags)
+				err := e.encode(TagNone, fv, &field)
 				// pop the currField
 				e.currField = currField
 				if err != nil {
@@ -487,22 +551,10 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, flags fieldFlags) error {
 	case reflect.String:
 		e.encBuf.encodeTextString(tag, v.String())
 	case reflect.Slice:
-		switch typ.Elem() {
-		case byteType:
-			// special case, encode as a ByteString
-			e.encBuf.encodeByteString(tag, v.Bytes())
-			return nil
-		}
-		fallthrough
-	case reflect.Array:
-		for i := 0; i < v.Len(); i++ {
-			// turn off the omit empty flag.  applies at the field level,
-			// not to each member of the slice
-			err := e.encode(tag, v.Index(i), flags&^fOmitEmpty)
-			if err != nil {
-				return err
-			}
-		}
+		// special case, encode as a ByteString
+		// all slices which aren't []byte should have been handled above
+		// the call to v.Bytes() will panic if this assumption is wrong
+		e.encBuf.encodeByteString(tag, v.Bytes())
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32:
 		i := v.Int()
 		if i > math.MaxInt32 {
@@ -530,7 +582,29 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, flags fieldFlags) error {
 		panic(errors.New("should never get here"))
 	}
 	return nil
+}
 
+func tagForMarshal(v reflect.Value, ti typeInfo, fi *fieldInfo) Tag {
+	// the tag on the TTLVTag field
+	if ti.tagField != nil && ti.tagField.explicitTag != TagNone {
+		return ti.tagField.explicitTag
+	}
+
+	// the value of the TTLVTag field of type Tag
+	if v.IsValid() && ti.tagField != nil && ti.tagField.ti.typ == tagType {
+		tag := v.FieldByIndex(ti.tagField.index).Interface().(Tag)
+		if tag != TagNone {
+			return tag
+		}
+	}
+
+	// can tag be inferred from the field, if this value came from a struct field?
+	if fi != nil && fi.tag != TagNone {
+		return fi.tag
+	}
+
+	// the name of the value's type
+	return ti.inferredTag
 }
 
 // encBuf encodes basic KMIP types into TTLV
@@ -675,11 +749,10 @@ func (h *encBuf) encodeByteString(tag Tag, b []byte) {
 }
 
 func getTypeInfo(typ reflect.Type) (ti typeInfo, err error) {
-	// figure out whether this type has a required or suggested kmip tag
-	// TODO: required tags support, from a subfield like xml.Name
-	ti.tag, _ = ParseTag(typ.Name())
+	ti.inferredTag, _ = ParseTag(typ.Name())
 	ti.typ = typ
-	return
+	err = ti.getFieldsInfo()
+	return ti, err
 }
 
 var errSkip = errors.New("skip")
@@ -692,6 +765,12 @@ func getFieldInfo(typ reflect.Type, sf reflect.StructField) (fi fieldInfo, err e
 		return
 	}
 
+	fi.name = sf.Name
+	fi.structType = typ
+	fi.index = sf.Index
+
+	var anyField bool
+
 	// handle field tags
 	parts := strings.Split(sf.Tag.Get(kmipStructTag), ",")
 	for i, value := range parts {
@@ -703,7 +782,7 @@ func getFieldInfo(typ reflect.Type, sf reflect.StructField) (fi fieldInfo, err e
 				return
 			case "":
 			default:
-				fi.tag, err = ParseTag(value)
+				fi.explicitTag, err = ParseTag(value)
 				if err != nil {
 					return
 				}
@@ -716,8 +795,15 @@ func getFieldInfo(typ reflect.Type, sf reflect.StructField) (fi fieldInfo, err e
 				fi.flags |= fOmitEmpty
 			case "dateTimeExtended":
 				fi.flags |= fDateTimeExtended
+			case "any":
+				anyField = true
+				fi.flags |= fAny
 			}
 		}
+	}
+
+	if anyField && fi.explicitTag != TagNone {
+		return fi, merry.Here(ErrTagConflict).Appendf(`field %s.%s may not specify a TTLV tag and the "any" flag`, fi.structType.Name(), fi.name)
 	}
 
 	// extract type info for the field.  The KMIP tag
@@ -728,83 +814,76 @@ func getFieldInfo(typ reflect.Type, sf reflect.StructField) (fi fieldInfo, err e
 		return
 	}
 
-	// order of precedence for field tag:
-	// 1. explicit field tag (which must match the type's tag if required)
-	// 2. field name
-	// 3. field type
-
-	// if the field type requires a tag, which doesn't match the tag
-	// encoded in the field tag, throw an error
-	if fi.ti.tagRequired && fi.tag != TagNone && fi.ti.tag != fi.tag {
-		err := &MarshalerError{
-			Type:   sf.Type,
-			Struct: typ.Name(),
-			Field:  sf.Name,
+	if fi.ti.tagField != nil && fi.ti.tagField.explicitTag != TagNone {
+		fi.tag = fi.ti.tagField.explicitTag
+		if fi.explicitTag != TagNone && fi.explicitTag != fi.tag {
+			// if there was a tag on the struct field containing this value, it must
+			// agree with the value's intrinsic tag
+			return fi, merry.Here(ErrTagConflict).Appendf(`TTLV tag "%s" in tag of %s.%s conflicts with TTLV tag "%s" in %s.%s`, fi.explicitTag, fi.structType.Name(), fi.name, fi.ti.tagField.explicitTag, fi.ti.typ.Name(), fi.ti.tagField.name)
 		}
-		return fi, merry.WithCause(err, ErrTagConflict).Appendf(`field tag "%s" conflicts type's tag "%s"`, fi.tag, fi.ti.tag)
 	}
 
+	// pre-calculate the tag for this field.  This intentional duplicates
+	// some of tagForMarshaling().  The value is primarily used in unmarshaling
+	// where the dynamic value of the field is not needed.
 	if fi.tag == TagNone {
-		// try resolving the tag from the field name, but this is not required.
-		// will fall back on trying to extract the tag from the value if this
-		// fails
-		fi.tag, _ = ParseTag(sf.Name)
+		fi.tag = fi.explicitTag
 	}
-
 	if fi.tag == TagNone {
-		fi.tag = fi.ti.tag
+		fi.tag, _ = ParseTag(fi.name)
 	}
-
 	if fi.tag == TagNone {
-		err := &MarshalerError{
-			Type:   sf.Type,
-			Struct: typ.Name(),
-			Field:  sf.Name,
-		}
-		return fi, merry.WithCause(err, ErrNoTag)
+		fi.tag = fi.ti.inferredTag
 	}
 
-	fi.name = sf.Name
-	fi.structType = typ
-	fi.index = sf.Index
 	return
+
 }
 
-func getFieldsInfo(typ reflect.Type) (fields []fieldInfo, err error) {
+func (ti *typeInfo) getFieldsInfo() error {
 
-	for i := 0; i < typ.NumField(); i++ {
-		fi, err := getFieldInfo(typ, typ.Field(i))
-		switch err {
-		case errSkip:
-		case nil:
-			fields = append(fields, fi)
+	if ti.typ.Kind() != reflect.Struct {
+		return nil
+	}
+
+	for i := 0; i < ti.typ.NumField(); i++ {
+		fi, err := getFieldInfo(ti.typ, ti.typ.Field(i))
+		switch {
+		case err == errSkip:
+			// skip
+		case err != nil:
+			return err
+		case fi.name == "TTLVTag":
+			ti.tagField = &fi
 		default:
-			return nil, err
+			ti.valueFields = append(ti.valueFields, fi)
 		}
 	}
 
 	// verify that multiple fields don't have the same tag
 	names := map[Tag]string{}
-	for _, f := range fields {
-		if fname, ok := names[f.tag]; ok {
-			err := &MarshalerError{
-				Type:   f.ti.typ,
-				Struct: typ.Name(),
-				Field:  f.name,
-				Tag:    f.tag,
-			}
-			return fields, merry.WithCause(err, ErrTagConflict).Appendf("field resolves to the same tag (%s) as other field (%s)", f.tag, fname)
+	for _, f := range ti.valueFields {
+		if f.flags&fAny != 0 {
+			// ignore any fields
+			continue
 		}
-		names[f.tag] = f.name
+		tag := f.tag
+		if tag != TagNone {
+			if fname, ok := names[tag]; ok {
+				return merry.Here(ErrTagConflict).Appendf("field resolves to the same tag (%s) as other field (%s)", tag, fname)
+			}
+			names[tag] = f.name
+		}
 	}
 
-	return fields, nil
+	return nil
 }
 
 type typeInfo struct {
 	typ         reflect.Type
-	tag         Tag
-	tagRequired bool
+	inferredTag Tag
+	tagField    *fieldInfo
+	valueFields []fieldInfo
 }
 
 type fieldFlags int
@@ -813,13 +892,14 @@ const (
 	fOmitEmpty fieldFlags = 1 << iota
 	fEnum
 	fDateTimeExtended
+	fAny
 )
 
 type fieldInfo struct {
-	structType reflect.Type
-	name       string
-	tag        Tag
-	index      []int
-	flags      fieldFlags
-	ti         typeInfo
+	structType       reflect.Type
+	explicitTag, tag Tag
+	name             string
+	index            []int
+	flags            fieldFlags
+	ti               typeInfo
 }

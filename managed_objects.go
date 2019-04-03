@@ -39,7 +39,7 @@ type SplitKey struct {
 	KeyPartIdentifier int
 	SplitKeyThreshold int
 	SplitKeyMethod    ttlv.SplitKeyMethod
-	PrimeFieldSize    *big.Int `kmip:",omitempty"`
+	PrimeFieldSize    *big.Int `ttlv:",omitempty"`
 	KeyBlock          KeyBlock
 }
 

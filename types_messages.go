@@ -21,24 +21,24 @@ type ResponseMessage struct {
 
 type RequestHeader struct {
 	ProtocolVersion              ProtocolVersion
-	MaximumResponseSize          int    `kmip:",omitempty"`
-	ClientCorrelationValue       string `kmip:",omitempty"`
-	ServerCorrelationValue       string `kmip:",omitempty"`
-	AsynchronousIndicator        bool   `kmip:",omitempty"`
-	AttestationCapableIndicator  bool   `kmip:",omitempty"`
+	MaximumResponseSize          int    `ttlv:",omitempty"`
+	ClientCorrelationValue       string `ttlv:",omitempty"`
+	ServerCorrelationValue       string `ttlv:",omitempty"`
+	AsynchronousIndicator        bool   `ttlv:",omitempty"`
+	AttestationCapableIndicator  bool   `ttlv:",omitempty"`
 	AttestationType              []ttlv.AttestationType
 	Authentication               *Authentication
-	BatchErrorContinuationOption ttlv.BatchErrorContinuationOption `kmip:",omitempty"`
-	BatchOrderOption             bool                              `kmip:",omitempty"`
+	BatchErrorContinuationOption ttlv.BatchErrorContinuationOption `ttlv:",omitempty"`
+	BatchOrderOption             bool                              `ttlv:",omitempty"`
 	TimeStamp                    *time.Time
 	BatchCount                   int
 }
 
 type RequestBatchItem struct {
 	Operation         ttlv.Operation
-	UniqueBatchItemID []byte `kmip:",omitempty"`
+	UniqueBatchItemID []byte `ttlv:",omitempty"`
 	RequestPayload    interface{}
-	MessageExtension  *MessageExtension `kmip:",omitempty"`
+	MessageExtension  *MessageExtension `ttlv:",omitempty"`
 }
 
 type ResponseHeader struct {
@@ -46,18 +46,18 @@ type ResponseHeader struct {
 	TimeStamp              time.Time
 	Nonce                  *Nonce
 	AttestationType        []ttlv.AttestationType
-	ClientCorrelationValue string `kmip:",omitempty"`
-	ServerCorrelationValue string `kmip:",omitempty"`
+	ClientCorrelationValue string `ttlv:",omitempty"`
+	ServerCorrelationValue string `ttlv:",omitempty"`
 	BatchCount             int
 }
 
 type ResponseBatchItem struct {
-	Operation                    ttlv.Operation `kmip:",omitempty"`
-	UniqueBatchItemID            []byte         `kmip:",omitempty"`
+	Operation                    ttlv.Operation `ttlv:",omitempty"`
+	UniqueBatchItemID            []byte         `ttlv:",omitempty"`
 	ResultStatus                 ttlv.ResultStatus
-	ResultReason                 ttlv.ResultReason `kmip:",omitempty"`
-	ResultMessage                string            `kmip:",omitempty"`
-	AsynchronousCorrelationValue []byte            `kmip:",omitempty"`
-	ResponsePayload              interface{}       `kmip:",omitempty"`
+	ResultReason                 ttlv.ResultReason `ttlv:",omitempty"`
+	ResultMessage                string            `ttlv:",omitempty"`
+	AsynchronousCorrelationValue []byte            `ttlv:",omitempty"`
+	ResponsePayload              interface{}       `ttlv:",omitempty"`
 	MessageExtension             *MessageExtension
 }

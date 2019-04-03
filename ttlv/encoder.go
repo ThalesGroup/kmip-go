@@ -40,7 +40,7 @@ func (t DateTimeExtended) MarshalTTLV(e *Encoder, tag Tag) error {
 	return nil
 }
 
-const kmipStructTag = "kmip"
+const structFieldTag = "ttlv"
 
 var ErrIntOverflow = fmt.Errorf("value exceeds max int value %d", math.MaxInt32)
 var ErrLongIntOverflow = fmt.Errorf("value exceeds max long int value %d", math.MaxInt64)
@@ -763,7 +763,7 @@ func getFieldInfo(typ reflect.Type, sf reflect.StructField) (fi fieldInfo, err e
 	var anyField bool
 
 	// handle field tags
-	parts := strings.Split(sf.Tag.Get(kmipStructTag), ",")
+	parts := strings.Split(sf.Tag.Get(structFieldTag), ",")
 	for i, value := range parts {
 		if i == 0 {
 			switch value {

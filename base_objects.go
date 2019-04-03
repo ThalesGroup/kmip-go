@@ -24,7 +24,7 @@ import (
 // Index is not specified it SHALL be assumed to be 0.
 type Attribute struct {
 	AttributeName  string
-	AttributeIndex int `kmip:",omitempty"`
+	AttributeIndex int `ttlv:",omitempty"`
 	AttributeValue interface{}
 }
 
@@ -81,7 +81,7 @@ type Credential struct {
 // is a secret that authenticates the client.
 type UsernameAndPasswordCredentialValue struct {
 	Username string
-	Password string `kmip:",omitempty"`
+	Password string `ttlv:",omitempty"`
 }
 
 // DeviceCredentialValue 2.1.2 Table 5
@@ -92,12 +92,12 @@ type UsernameAndPasswordCredentialValue struct {
 // individual fields.  A shared secret or password MAY also be used to authenticate the client.
 // The client SHALL provide at least one field.
 type DeviceCredentialValue struct {
-	DeviceSerialNumber string `kmip:",omitempty"`
-	Password           string `kmip:",omitempty"`
-	DeviceIdentifier   string `kmip:",omitempty"`
-	NetworkIdentifier  string `kmip:",omitempty"`
-	MachineIdentifier  string `kmip:",omitempty"`
-	MediaIdentifier    string `kmip:",omitempty"`
+	DeviceSerialNumber string `ttlv:",omitempty"`
+	Password           string `ttlv:",omitempty"`
+	DeviceIdentifier   string `ttlv:",omitempty"`
+	NetworkIdentifier  string `ttlv:",omitempty"`
+	MachineIdentifier  string `ttlv:",omitempty"`
+	MediaIdentifier    string `ttlv:",omitempty"`
 }
 
 // AttestationCredentialValue 2.1.2 Table 6
@@ -112,8 +112,8 @@ type DeviceCredentialValue struct {
 type AttestationCredentialValue struct {
 	Nonce                  Nonce
 	AttestationType        ttlv.AttestationType
-	AttestationMeasurement []byte `kmip:",omitempty"`
-	AttestationAssertion   []byte `kmip:",omitempty"`
+	AttestationMeasurement []byte `ttlv:",omitempty"`
+	AttestationAssertion   []byte `ttlv:",omitempty"`
 }
 
 // KeyBlock 2.1.3 Table 7
@@ -149,11 +149,11 @@ type AttestationCredentialValue struct {
 // TODO: Unmarshaler impl which unmarshals correct KeyValue type.
 type KeyBlock struct {
 	KeyFormatType      ttlv.KeyFormatType
-	KeyCompressionType ttlv.KeyCompressionType `kmip:",omitempty"`
+	KeyCompressionType ttlv.KeyCompressionType `ttlv:",omitempty"`
 	// KeyValue should be either []byte or KeyValue
-	KeyValue               interface{}                 `kmip:",omitempty"` // should be either a []byte or KeyValue
-	CryptographicAlgorithm ttlv.CryptographicAlgorithm `kmip:",omitempty"`
-	CryptographicLength    int                         `kmip:",omitempty"`
+	KeyValue               interface{}                 `ttlv:",omitempty"` // should be either a []byte or KeyValue
+	CryptographicAlgorithm ttlv.CryptographicAlgorithm `ttlv:",omitempty"`
+	CryptographicLength    int                         `ttlv:",omitempty"`
 	KeyWrappingData        *KeyWrappingData
 }
 
@@ -223,7 +223,7 @@ type KeyWrappingData struct {
 	MACSignatureKeyInformation *MACSignatureKeyInformation
 	MACSignature               []byte
 	IVCounterNonce             []byte
-	EncodingOption             ttlv.EncodingOption `kmip:",omitempty" default:"TTLVEncoding"`
+	EncodingOption             ttlv.EncodingOption `ttlv:",omitempty" default:"TTLVEncoding"`
 }
 
 // EncryptionKeyInformation 2.1.5 Table 10

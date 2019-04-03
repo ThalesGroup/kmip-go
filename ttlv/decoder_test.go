@@ -211,7 +211,7 @@ func TestUnmarshal(t *testing.T) {
 	)
 
 	type B struct {
-		S string `kmip:"Comment"`
+		S string `ttlv:"Comment"`
 	}
 
 	tests = append(tests,
@@ -299,8 +299,8 @@ func TestUnmarshal(t *testing.T) {
 
 	type H struct {
 		Comment        string
-		Any1           []Value `kmip:",any"`
-		Any2           []Value `kmip:",any"`
+		Any1           []Value `ttlv:",any"`
+		Any2           []Value `ttlv:",any"`
 		AttributeValue string
 	}
 
@@ -431,7 +431,7 @@ func TestUnmarshal_tagPrecedence(t *testing.T) {
 
 	type B struct {
 		N struct {
-			TTLVTag string `kmip:"Name"`
+			TTLVTag string `ttlv:"Name"`
 			Value
 		}
 	}
@@ -446,7 +446,7 @@ func TestUnmarshal_tagPrecedence(t *testing.T) {
 	// next: the field's tag
 
 	type C struct {
-		N string `kmip:"Name"`
+		N string `ttlv:"Name"`
 	}
 
 	var c C
@@ -464,35 +464,35 @@ func TestUnmarshal_tagPrecedence(t *testing.T) {
 	}{
 		{name: "field name and field tag", v: &struct {
 			Name string
-			N    string `kmip:"Name"`
+			N    string `ttlv:"Name"`
 		}{}},
 		{name: "field name and TTLVTag", v: &struct {
 			Name string
 			N    struct {
-				TTLVTag string `kmip:"Name"`
+				TTLVTag string `ttlv:"Name"`
 				Value
 			}
 		}{}},
 		{name: "field tag and TTLVTag", v: &struct {
-			S string `kmip:"Name"`
+			S string `ttlv:"Name"`
 			N struct {
-				TTLVTag string `kmip:"Name"`
+				TTLVTag string `ttlv:"Name"`
 				Value
 			}
 		}{}},
 		{name: "field tag and TTLVTag", v: &struct {
 			N struct {
-				TTLVTag string `kmip:"Name"`
+				TTLVTag string `ttlv:"Name"`
 				Value
-			} `kmip:"Comment"`
+			} `ttlv:"Comment"`
 		}{}},
 		{
 			name: "field tag and TTLVTag",
 			v: &struct {
 				N struct {
-					TTLVTag string `kmip:"Name"`
+					TTLVTag string `ttlv:"Name"`
 					Value
-				} `kmip:"Name"`
+				} `ttlv:"Name"`
 			}{},
 			allowed: true,
 		},
@@ -512,7 +512,7 @@ func TestUnmarshal_tagPrecedence(t *testing.T) {
 
 	type D struct {
 		Name string
-		N    string `kmip:"Name"`
+		N    string `ttlv:"Name"`
 	}
 
 	err = Unmarshal(b, &D{})

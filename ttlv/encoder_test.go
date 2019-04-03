@@ -266,25 +266,25 @@ func TestMarshal_tagPrecedence(t *testing.T) {
 		Comment string
 
 		// infer from field tag (higher precedent than name)
-		AttributeValue string `kmip:"BatchCount"`
+		AttributeValue string `ttlv:"BatchCount"`
 
 		// infer from dynamic value if the TTLVTag subfield (higher precedent than the name or tag)
 		ArchiveDate struct {
 			TTLVTag Tag
 			Comment string
-		} `kmip:"AttributeValue"`
+		} `ttlv:"AttributeValue"`
 
 		// highest precedent: the tag on the TTLVTag subfield
 		AttributeName struct {
-			TTLVTag Tag `kmip:"PSource"`
+			TTLVTag Tag `ttlv:"PSource"`
 			Comment string
 		}
 
 		// If this last option is specified, it must agree with the field tag
 		MaskGenerator struct {
-			TTLVTag Tag `kmip:"Description"`
+			TTLVTag Tag `ttlv:"Description"`
 			Comment string
-		} `kmip:"Description"`
+		} `ttlv:"Description"`
 	}
 
 	n := Name{
@@ -394,7 +394,7 @@ func TestEncoder_EncodeValue_errors(t *testing.T) {
 		{
 			name: "unsupportedtypeignoresomitempty",
 			v: struct {
-				Attribute complex128 `kmip:",omitempty"`
+				Attribute complex128 `ttlv:",omitempty"`
 			}{},
 			expErr: ErrUnsupportedTypeError,
 		},
@@ -481,19 +481,19 @@ func TestEncoder_EncodeValue(t *testing.T) {
 
 	type attr struct {
 		AttributeName  string
-		Value          interface{} `kmip:"AttributeValue"`
-		AttributeIndex int         `kmip:",omitempty"`
+		Value          interface{} `ttlv:"AttributeValue"`
+		AttributeIndex int         `ttlv:",omitempty"`
 	}
 	type cert struct {
 		CertificateIdentifier string
 		CertificateIssuer     struct {
 			CertificateIssuerAlternativeName string
 			CertificateIssuerC               *string
-			CertificateIssuerEmail           uint32 `kmip:",enum"`
-			CN                               string `kmip:"CertificateIssuerCN,enum"`
-			CertificateIssuerUID             uint32 `kmip:",omitempty,enum"`
-			DC                               uint32 `kmip:"CertificateIssuerDC,omitempty,enum"`
-			Len                              int    `kmip:"CertificateLength,omitempty,enum"`
+			CertificateIssuerEmail           uint32 `ttlv:",enum"`
+			CN                               string `ttlv:"CertificateIssuerCN,enum"`
+			CertificateIssuerUID             uint32 `ttlv:",omitempty,enum"`
+			DC                               uint32 `ttlv:"CertificateIssuerDC,omitempty,enum"`
+			Len                              int    `ttlv:"CertificateLength,omitempty,enum"`
 		}
 	}
 	type Complex struct {
@@ -647,7 +647,7 @@ func TestEncoder_EncodeValue(t *testing.T) {
 		{
 			name: "structtag",
 			v: struct {
-				AttributeName string `kmip:"Attribute"`
+				AttributeName string `ttlv:"Attribute"`
 			}{"red"},
 			expected: Value{
 				Tag: TagCancellationResult,
@@ -669,7 +669,7 @@ func TestEncoder_EncodeValue(t *testing.T) {
 		{
 			name: "structtaghex",
 			v: struct {
-				AttributeName string `kmip:"0x42000b"`
+				AttributeName string `ttlv:"0x42000b"`
 			}{"red"},
 			expected: Value{
 				Tag: TagCancellationResult,
@@ -681,7 +681,7 @@ func TestEncoder_EncodeValue(t *testing.T) {
 		{
 			name: "structtagskip",
 			v: struct {
-				AttributeName  string `kmip:"-"`
+				AttributeName  string `ttlv:"-"`
 				AttributeValue string
 			}{"red", "green"},
 			expected: Value{
@@ -720,9 +720,9 @@ func TestEncoder_EncodeValue(t *testing.T) {
 		{
 			name: "dateTimeTypes",
 			v: struct {
-				A time.Time        `kmip:"CertificateIssuerCN"`
-				B time.Time        `kmip:"CertificateIssuerDC,dateTimeExtended"`
-				C DateTimeExtended `kmip:"AttributeName"`
+				A time.Time        `ttlv:"CertificateIssuerCN"`
+				B time.Time        `ttlv:"CertificateIssuerDC,dateTimeExtended"`
+				C DateTimeExtended `ttlv:"AttributeName"`
 			}{
 				parseTime("2008-03-14T11:56:40.123456Z"),
 				parseTime("2008-03-14T11:56:40.123456Z"),
@@ -792,7 +792,7 @@ func TestEncoder_EncodeValue(t *testing.T) {
 		{
 			name: "tagfromfieldtag",
 			v: struct {
-				Color string `kmip:"ArchiveDate"`
+				Color string `ttlv:"ArchiveDate"`
 			}{"red"},
 			expected: Value{Tag: TagCancellationResult, Value: Values{
 				Value{Tag: TagArchiveDate, Value: "red"},
@@ -802,7 +802,7 @@ func TestEncoder_EncodeValue(t *testing.T) {
 		{
 			name: "fieldtagoverridesfieldname",
 			v: struct {
-				AttributeValue string `kmip:"ArchiveDate"`
+				AttributeValue string `ttlv:"ArchiveDate"`
 			}{"red"},
 			expected: Value{Tag: TagCancellationResult, Value: Values{
 				Value{Tag: TagArchiveDate, Value: "red"},
@@ -812,7 +812,7 @@ func TestEncoder_EncodeValue(t *testing.T) {
 		{
 			name: "fieldtagoverridestype",
 			v: struct {
-				Color AttributeValue `kmip:"ArchiveDate"`
+				Color AttributeValue `ttlv:"ArchiveDate"`
 			}{"red"},
 			expected: Value{Tag: TagCancellationResult, Value: Values{
 				Value{Tag: TagArchiveDate, Value: "red"},
@@ -833,8 +833,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			name: "omitempty",
 			v: struct {
 				Attribute      string
-				AttributeValue string `kmip:",omitempty"`
-				ArchiveDate    string `kmip:",omitempty"`
+				AttributeValue string `ttlv:",omitempty"`
+				ArchiveDate    string `ttlv:",omitempty"`
 			}{
 				AttributeValue: "blue",
 			},
@@ -847,8 +847,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			name: "omitemptydatetime",
 			v: struct {
 				Attribute      time.Time
-				AttributeValue time.Time `kmip:",omitempty"`
-				ArchiveDate    time.Time `kmip:",omitempty"`
+				AttributeValue time.Time `ttlv:",omitempty"`
+				ArchiveDate    time.Time `ttlv:",omitempty"`
 			}{
 				AttributeValue: parseTime("2008-03-14T11:56:40Z"),
 			},
@@ -861,8 +861,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			name: "omitemptydatetimeptr",
 			v: struct {
 				Attribute      *time.Time
-				AttributeValue *time.Time `kmip:",omitempty"`
-				ArchiveDate    *time.Time `kmip:",omitempty"`
+				AttributeValue *time.Time `ttlv:",omitempty"`
+				ArchiveDate    *time.Time `ttlv:",omitempty"`
 			}{
 				Attribute:      &time.Time{},
 				AttributeValue: func() *time.Time { t := parseTime("2008-03-14T11:56:40Z"); return &t }(),
@@ -877,8 +877,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			name: "omitemptybigint",
 			v: struct {
 				Attribute      big.Int
-				AttributeValue big.Int `kmip:",omitempty"`
-				ArchiveDate    big.Int `kmip:",omitempty"`
+				AttributeValue big.Int `ttlv:",omitempty"`
+				ArchiveDate    big.Int `ttlv:",omitempty"`
 			}{
 				AttributeValue: *parseBigInt("1"),
 			},
@@ -891,8 +891,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			name: "omitemptybigintptr",
 			v: struct {
 				Attribute      *big.Int
-				AttributeValue *big.Int `kmip:",omitempty"`
-				ArchiveDate    *big.Int `kmip:",omitempty"`
+				AttributeValue *big.Int `ttlv:",omitempty"`
+				ArchiveDate    *big.Int `ttlv:",omitempty"`
 			}{
 				Attribute:      parseBigInt("0"),
 				AttributeValue: parseBigInt("1"),
@@ -907,8 +907,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			name: "omitemptyint",
 			v: struct {
 				Attribute      int
-				AttributeValue int `kmip:",omitempty"`
-				ArchiveDate    int `kmip:",omitempty"`
+				AttributeValue int `ttlv:",omitempty"`
+				ArchiveDate    int `ttlv:",omitempty"`
 			}{
 				AttributeValue: 6,
 			},
@@ -921,8 +921,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			name: "omitemptyint8",
 			v: struct {
 				Attribute      int8
-				AttributeValue int8 `kmip:",omitempty"`
-				ArchiveDate    int8 `kmip:",omitempty"`
+				AttributeValue int8 `ttlv:",omitempty"`
+				ArchiveDate    int8 `ttlv:",omitempty"`
 			}{
 				AttributeValue: 6,
 			},
@@ -935,8 +935,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			name: "omitemptyint16",
 			v: struct {
 				Attribute      int16
-				AttributeValue int16 `kmip:",omitempty"`
-				ArchiveDate    int16 `kmip:",omitempty"`
+				AttributeValue int16 `ttlv:",omitempty"`
+				ArchiveDate    int16 `ttlv:",omitempty"`
 			}{
 				AttributeValue: 6,
 			},
@@ -949,8 +949,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			name: "omitemptyint32",
 			v: struct {
 				Attribute      int32
-				AttributeValue int32 `kmip:",omitempty"`
-				ArchiveDate    int32 `kmip:",omitempty"`
+				AttributeValue int32 `ttlv:",omitempty"`
+				ArchiveDate    int32 `ttlv:",omitempty"`
 			}{
 				AttributeValue: 6,
 			},
@@ -963,8 +963,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			name: "omitemptyint64",
 			v: struct {
 				Attribute      int64
-				AttributeValue int64 `kmip:",omitempty"`
-				ArchiveDate    int64 `kmip:",omitempty"`
+				AttributeValue int64 `ttlv:",omitempty"`
+				ArchiveDate    int64 `ttlv:",omitempty"`
 			}{
 				AttributeValue: 6,
 			},
@@ -977,8 +977,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			name: "omitemptyuint",
 			v: struct {
 				Attribute      uint
-				AttributeValue uint `kmip:",omitempty"`
-				ArchiveDate    uint `kmip:",omitempty"`
+				AttributeValue uint `ttlv:",omitempty"`
+				ArchiveDate    uint `ttlv:",omitempty"`
 			}{
 				AttributeValue: 6,
 			},
@@ -991,8 +991,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			name: "omitemptyuint8",
 			v: struct {
 				Attribute      uint8
-				AttributeValue uint8 `kmip:",omitempty"`
-				ArchiveDate    uint8 `kmip:",omitempty"`
+				AttributeValue uint8 `ttlv:",omitempty"`
+				ArchiveDate    uint8 `ttlv:",omitempty"`
 			}{
 				AttributeValue: 6,
 			},
@@ -1005,8 +1005,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			name: "omitemptyuint16",
 			v: struct {
 				Attribute      uint16
-				AttributeValue uint16 `kmip:",omitempty"`
-				ArchiveDate    uint16 `kmip:",omitempty"`
+				AttributeValue uint16 `ttlv:",omitempty"`
+				ArchiveDate    uint16 `ttlv:",omitempty"`
 			}{
 				AttributeValue: 6,
 			},
@@ -1019,8 +1019,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			name: "omitemptyuint32",
 			v: struct {
 				Attribute      uint32
-				AttributeValue uint32 `kmip:",omitempty"`
-				ArchiveDate    uint32 `kmip:",omitempty"`
+				AttributeValue uint32 `ttlv:",omitempty"`
+				ArchiveDate    uint32 `ttlv:",omitempty"`
 			}{
 				AttributeValue: 6,
 			},
@@ -1033,8 +1033,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			name: "omitemptyuint64",
 			v: struct {
 				Attribute      uint64
-				AttributeValue uint64 `kmip:",omitempty"`
-				ArchiveDate    uint64 `kmip:",omitempty"`
+				AttributeValue uint64 `ttlv:",omitempty"`
+				ArchiveDate    uint64 `ttlv:",omitempty"`
 			}{
 				AttributeValue: 6,
 			},
@@ -1047,8 +1047,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			name: "omitemptybool",
 			v: struct {
 				Attribute      bool
-				AttributeValue bool `kmip:",omitempty"`
-				ArchiveDate    bool `kmip:",omitempty"`
+				AttributeValue bool `ttlv:",omitempty"`
+				ArchiveDate    bool `ttlv:",omitempty"`
 			}{
 				AttributeValue: true,
 			},
@@ -1061,8 +1061,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			name: "omitemptyfloat32",
 			v: struct {
 				Attribute      Marshalablefloat32
-				AttributeValue Marshalablefloat32 `kmip:",omitempty"`
-				ArchiveDate    Marshalablefloat32 `kmip:",omitempty"`
+				AttributeValue Marshalablefloat32 `ttlv:",omitempty"`
+				ArchiveDate    Marshalablefloat32 `ttlv:",omitempty"`
 			}{
 				AttributeValue: Marshalablefloat32(6),
 			},
@@ -1075,8 +1075,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			name: "omitemptyfloat32ptr",
 			v: &struct {
 				Attribute      Marshalablefloat32Ptr
-				AttributeValue Marshalablefloat32Ptr `kmip:",omitempty"`
-				ArchiveDate    Marshalablefloat32Ptr `kmip:",omitempty"`
+				AttributeValue Marshalablefloat32Ptr `ttlv:",omitempty"`
+				ArchiveDate    Marshalablefloat32Ptr `ttlv:",omitempty"`
 			}{
 				AttributeValue: Marshalablefloat32Ptr(7),
 			},
@@ -1089,8 +1089,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			name: "omitemptyfloat64",
 			v: &struct {
 				Attribute      Marshalablefloat64
-				AttributeValue Marshalablefloat64 `kmip:",omitempty"`
-				ArchiveDate    Marshalablefloat64 `kmip:",omitempty"`
+				AttributeValue Marshalablefloat64 `ttlv:",omitempty"`
+				ArchiveDate    Marshalablefloat64 `ttlv:",omitempty"`
 			}{
 				AttributeValue: Marshalablefloat64(7),
 			},
@@ -1103,8 +1103,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			name: "omitemptyfloat64ptr",
 			v: &struct {
 				Attribute      Marshalablefloat64Ptr
-				AttributeValue Marshalablefloat64Ptr `kmip:",omitempty"`
-				ArchiveDate    Marshalablefloat64Ptr `kmip:",omitempty"`
+				AttributeValue Marshalablefloat64Ptr `ttlv:",omitempty"`
+				ArchiveDate    Marshalablefloat64Ptr `ttlv:",omitempty"`
 			}{
 				AttributeValue: Marshalablefloat64Ptr(7),
 			},
@@ -1118,8 +1118,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			v: &struct {
 				AttributeIndex MarshalableMap
 				Attribute      MarshalableMap
-				AttributeValue MarshalableMap `kmip:",omitempty"`
-				ArchiveDate    MarshalableMap `kmip:",omitempty"`
+				AttributeValue MarshalableMap `ttlv:",omitempty"`
+				ArchiveDate    MarshalableMap `ttlv:",omitempty"`
 			}{
 				Attribute:      MarshalableMap{},
 				AttributeValue: MarshalableMap{"color": "red"},
@@ -1135,8 +1135,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			v: &struct {
 				AttributeIndex MarshalableMapPtr
 				Attribute      MarshalableMapPtr
-				AttributeValue MarshalableMapPtr `kmip:",omitempty"`
-				ArchiveDate    MarshalableMapPtr `kmip:",omitempty"`
+				AttributeValue MarshalableMapPtr `ttlv:",omitempty"`
+				ArchiveDate    MarshalableMapPtr `ttlv:",omitempty"`
 			}{
 				Attribute:      MarshalableMapPtr{},
 				AttributeValue: MarshalableMapPtr{"color": "red"},
@@ -1152,8 +1152,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			v: &struct {
 				AttributeIndex MarshalableSlice
 				Attribute      MarshalableSlice
-				AttributeValue MarshalableSlice `kmip:",omitempty"`
-				ArchiveDate    MarshalableSlice `kmip:",omitempty"`
+				AttributeValue MarshalableSlice `ttlv:",omitempty"`
+				ArchiveDate    MarshalableSlice `ttlv:",omitempty"`
 			}{
 				Attribute:      MarshalableSlice{},
 				AttributeValue: MarshalableSlice{"color"},
@@ -1169,8 +1169,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			v: &struct {
 				AttributeIndex MarshalableSlicePtr
 				Attribute      MarshalableSlicePtr
-				AttributeValue MarshalableSlicePtr `kmip:",omitempty"`
-				ArchiveDate    MarshalableSlicePtr `kmip:",omitempty"`
+				AttributeValue MarshalableSlicePtr `ttlv:",omitempty"`
+				ArchiveDate    MarshalableSlicePtr `ttlv:",omitempty"`
 			}{
 				Attribute:      MarshalableSlicePtr{},
 				AttributeValue: MarshalableSlicePtr{"color"},
@@ -1184,17 +1184,17 @@ func TestEncoder_EncodeValue(t *testing.T) {
 		{
 			name: "enumtag",
 			v: struct {
-				Comment string `kmip:",enum"`
-				Int     int    `kmip:"CommonTemplateAttribute,enum"`
-				Int8    int8   `kmip:"CompromiseDate,enum"`
-				Int16   int16  `kmip:"CompromiseOccurrenceDate,enum"`
-				Int32   int32  `kmip:"ContactInformation,enum"`
-				Int64   int64  `kmip:"CorrelationValue,enum"`
-				Uint    uint   `kmip:"CounterLength,enum"`
-				Uint8   uint8  `kmip:"Credential,enum"`
-				Uint16  uint16 `kmip:"CredentialType,enum"`
-				Uint32  uint32 `kmip:"CredentialValue,enum"`
-				Uint64  uint64 `kmip:"CriticalityIndicator,enum"`
+				Comment string `ttlv:",enum"`
+				Int     int    `ttlv:"CommonTemplateAttribute,enum"`
+				Int8    int8   `ttlv:"CompromiseDate,enum"`
+				Int16   int16  `ttlv:"CompromiseOccurrenceDate,enum"`
+				Int32   int32  `ttlv:"ContactInformation,enum"`
+				Int64   int64  `ttlv:"CorrelationValue,enum"`
+				Uint    uint   `ttlv:"CounterLength,enum"`
+				Uint8   uint8  `ttlv:"Credential,enum"`
+				Uint16  uint16 `ttlv:"CredentialType,enum"`
+				Uint32  uint32 `ttlv:"CredentialValue,enum"`
+				Uint64  uint64 `ttlv:"CriticalityIndicator,enum"`
 			}{
 				Comment: "0x00000001",
 				Int:     2,

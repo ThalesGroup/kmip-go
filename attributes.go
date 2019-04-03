@@ -47,22 +47,22 @@ type Name struct {
 //
 // Initial Counter Value is the starting counter value for CTR mode (for [RFC3686] it is 1).
 type CryptographicParameters struct {
-	BlockCipherMode           ttlv.BlockCipherMode           `kmip:",omitempty"`
-	PaddingMethod             ttlv.PaddingMethod             `kmip:",omitempty"`
-	HashingAlgorithm          ttlv.HashingAlgorithm          `kmip:",omitempty"`
-	KeyRoleType               ttlv.KeyRoleType               `kmip:",omitempty"`
-	DigitalSignatureAlgorithm ttlv.DigitalSignatureAlgorithm `kmip:",omitempty"`
-	CryptographicAlgorithm    ttlv.CryptographicAlgorithm    `kmip:",omitempty"`
-	RandomIV                  bool                           `kmip:",omitempty"`
-	IVLength                  int                            `kmip:",omitempty"`
-	TagLength                 int                            `kmip:",omitempty"`
-	FixedFieldLength          int                            `kmip:",omitempty"`
-	InvocationFieldLength     int                            `kmip:",omitempty"`
-	CounterLength             int                            `kmip:",omitempty"`
-	InitialCounterValue       int                            `kmip:",omitempty"`
-	SaltLength                int                            `kmip:",omitempty"`
-	MaskGenerator             ttlv.MaskGenerator             `kmip:",omitempty" default:"1"` // defaults to MGF1
-	MaskHashingAlgorithm      ttlv.HashingAlgorithm          `kmip:",omitempty" default:"4"` // defaults to SHA-1
-	PSource                   []byte                         `kmip:",omitempty"`
-	TrailerField              int                            `kmip:",omitempty"`
+	BlockCipherMode           ttlv.BlockCipherMode           `ttlv:",omitempty"`
+	PaddingMethod             ttlv.PaddingMethod             `ttlv:",omitempty"`
+	HashingAlgorithm          ttlv.HashingAlgorithm          `ttlv:",omitempty"`
+	KeyRoleType               ttlv.KeyRoleType               `ttlv:",omitempty"`
+	DigitalSignatureAlgorithm ttlv.DigitalSignatureAlgorithm `ttlv:",omitempty"`
+	CryptographicAlgorithm    ttlv.CryptographicAlgorithm    `ttlv:",omitempty"`
+	RandomIV                  bool                           `ttlv:",omitempty"`
+	IVLength                  int                            `ttlv:",omitempty"`
+	TagLength                 int                            `ttlv:",omitempty"`
+	FixedFieldLength          int                            `ttlv:",omitempty"`
+	InvocationFieldLength     int                            `ttlv:",omitempty"`
+	CounterLength             int                            `ttlv:",omitempty"`
+	InitialCounterValue       int                            `ttlv:",omitempty"`
+	SaltLength                int                            `ttlv:",omitempty"`
+	MaskGenerator             ttlv.MaskGenerator             `ttlv:",omitempty" default:"1"` // defaults to MGF1
+	MaskHashingAlgorithm      ttlv.HashingAlgorithm          `ttlv:",omitempty" default:"4"` // defaults to SHA-1
+	PSource                   []byte                         `ttlv:",omitempty"`
+	TrailerField              int                            `ttlv:",omitempty"`
 }

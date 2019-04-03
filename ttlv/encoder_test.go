@@ -250,6 +250,86 @@ func TestMarshal(t *testing.T) {
 	}
 }
 
+func TestMarshal_tagPrecedence(t *testing.T) {
+	// test precedence order for picking the tag to marshal to
+
+	// first: the name of the type (only applies to values which
+	// where did not come from a field)
+	// next: name of struct field
+
+	// for values not originating in a field, infer tag from the type name
+	type Name struct {
+
+		// for fields:
+
+		// infer from field name
+		Comment string
+
+		// infer from field tag (higher precedent than name)
+		AttributeValue string `kmip:"BatchCount"`
+
+		// infer from dynamic value if the TTLVTag subfield (higher precedent than the name or tag)
+		ArchiveDate struct {
+			TTLVTag Tag
+			Comment string
+		} `kmip:"AttributeValue"`
+
+		// highest precedent: the tag on the TTLVTag subfield
+		AttributeName struct {
+			TTLVTag Tag `kmip:"PSource"`
+			Comment string
+		}
+
+		// If this last option is specified, it must agree with the field tag
+		MaskGenerator struct {
+			TTLVTag Tag `kmip:"Description"`
+			Comment string
+		} `kmip:"Description"`
+	}
+
+	n := Name{
+		Comment:        "red",
+		AttributeValue: "blue",
+	}
+
+	// dynamic value of the TTLVTag field should override the field name
+	n.ArchiveDate.TTLVTag = TagNameType
+	n.ArchiveDate.Comment = "yellow"
+
+	// this dynamic value of TTLVTag field will be ignored because there is
+	// an explicit tag on the on it
+	n.AttributeName.TTLVTag = TagObjectGroup
+	n.AttributeName.Comment = "orange"
+	n.MaskGenerator.Comment = "black"
+
+	b, err := Marshal(n)
+	require.NoError(t, err)
+
+	var v Value
+	err = Unmarshal(b, &v)
+	require.NoError(t, err)
+
+	assert.Equal(t, Value{
+		Tag: TagName,
+		Value: Values{
+			{TagComment, "red"},
+			// field name should be overridden by the explicit tag
+			{TagBatchCount, "blue"},
+			// tag should come from the value of TTLVTag
+			{TagNameType, Values{
+				{TagComment, "yellow"},
+			}},
+			// tag should come from the tag on TTLVTag field
+			{TagPSource, Values{
+				{TagComment, "orange"},
+			}},
+			{TagDescription, Values{
+				{TagComment, "black"},
+			}},
+		},
+	}, v)
+}
+
 func TestEncoder_Encode(t *testing.T) {
 	_, err := Marshal(MarshalerStruct{})
 	require.NoError(t, err)
@@ -698,16 +778,6 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			name:     "invalidnamedtypemarshaler",
 			v:        Marshalablefloat32(7),
 			expected: Value{Tag: TagCancellationResult, Value: int32(5)},
-		},
-		{
-			name: "tagfromtype",
-			v: struct {
-				Color AttributeValue
-			}{"red"},
-			expected: Value{Tag: TagCancellationResult, Value: Values{
-				Value{Tag: TagAttributeValue, Value: "red"},
-			},
-			},
 		},
 		{
 			name: "tagfromfieldname",

@@ -386,6 +386,140 @@ func TestUnmarshal(t *testing.T) {
 
 }
 
+func TestUnmarshal_tagfield(t *testing.T) {
+	// tests unmarshaling into structs which contain
+	// a TTLVTag field.  Unmarshal should record the tag of the value
+	// in this field
+
+	b, err := Marshal(Value{TagComment, Values{{TagName, "red"}}})
+	require.NoError(t, err)
+
+	type M struct {
+		TTLVTag Tag
+		Name    string
+	}
+
+	var m M
+
+	err = Unmarshal(b, &m)
+	require.NoError(t, err)
+
+	assert.Equal(t, M{TagComment, "red"}, m)
+
+}
+
+func TestUnmarshal_tagPrecedence(t *testing.T) {
+	// tests the order of precedence for matching a field
+	// to a ttlv
+
+	b, err := Marshal(Value{TagComment, Values{{TagName, "red"}}})
+	require.NoError(t, err)
+
+	// lowest precedence: the name of the field
+	type A struct {
+		Name string
+	}
+
+	var a A
+
+	err = Unmarshal(b, &a)
+	require.NoError(t, err)
+
+	assert.EqualValues(t, "red", a.Name)
+
+	// next: the TTLVTag tag of the struct field
+
+	type B struct {
+		N struct {
+			TTLVTag string `kmip:"Name"`
+			Value
+		}
+	}
+
+	var bb B
+
+	err = Unmarshal(b, &bb)
+	require.NoError(t, err)
+
+	assert.EqualValues(t, "red", bb.N.Value.Value)
+
+	// next: the field's tag
+
+	type C struct {
+		N string `kmip:"Name"`
+	}
+
+	var c C
+
+	err = Unmarshal(b, &c)
+	require.NoError(t, err)
+
+	assert.EqualValues(t, "red", c.N)
+
+	// conflicts of these result in errors
+	cases := []struct {
+		name    string
+		v       interface{}
+		allowed bool
+	}{
+		{name: "field name and field tag", v: &struct {
+			Name string
+			N    string `kmip:"Name"`
+		}{}},
+		{name: "field name and TTLVTag", v: &struct {
+			Name string
+			N    struct {
+				TTLVTag string `kmip:"Name"`
+				Value
+			}
+		}{}},
+		{name: "field tag and TTLVTag", v: &struct {
+			S string `kmip:"Name"`
+			N struct {
+				TTLVTag string `kmip:"Name"`
+				Value
+			}
+		}{}},
+		{name: "field tag and TTLVTag", v: &struct {
+			N struct {
+				TTLVTag string `kmip:"Name"`
+				Value
+			} `kmip:"Comment"`
+		}{}},
+		{
+			name: "field tag and TTLVTag",
+			v: &struct {
+				N struct {
+					TTLVTag string `kmip:"Name"`
+					Value
+				} `kmip:"Name"`
+			}{},
+			allowed: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := Unmarshal(b, tc.v)
+			if tc.allowed {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+				assert.True(t, merry.Is(err, ErrTagConflict), "%+v", err)
+			}
+		})
+	}
+
+	type D struct {
+		Name string
+		N    string `kmip:"Name"`
+	}
+
+	err = Unmarshal(b, &D{})
+	require.Error(t, err)
+	assert.True(t, merry.Is(err, ErrTagConflict))
+}
+
 func TestDecoder_DisallowUnknownFields(t *testing.T) {
 	type A struct {
 		Comment    string

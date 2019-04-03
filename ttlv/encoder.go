@@ -47,7 +47,7 @@ var ErrLongIntOverflow = fmt.Errorf("value exceeds max long int value %d", math.
 var ErrUnsupportedEnumTypeError = errors.New("unsupported type for enums, must be string, or int types")
 var ErrUnsupportedTypeError = errors.New("marshaling/unmarshaling is not supported for this type")
 var ErrNoTag = errors.New("unable to determine tag for field")
-var ErrTagConflict = errors.New("")
+var ErrTagConflict = errors.New("tag conflict")
 
 func Marshal(v interface{}) ([]byte, error) {
 	buf := bytes.NewBuffer(nil)
@@ -589,13 +589,13 @@ func tagForMarshal(v reflect.Value, ti typeInfo, fi *fieldInfo) Tag {
 		}
 	}
 
-	// can tag be inferred from the field, if this value came from a struct field?
-	if fi != nil && fi.tag != TagNone {
+	// if value is in a struct field, infer the tag from the field
+	// else infer from the value's type name
+	if fi != nil {
 		return fi.tag
+	} else {
+		return ti.inferredTag
 	}
-
-	// the name of the value's type
-	return ti.inferredTag
 }
 
 // encBuf encodes basic KMIP types into TTLV
@@ -822,9 +822,6 @@ func getFieldInfo(typ reflect.Type, sf reflect.StructField) (fi fieldInfo, err e
 	}
 	if fi.tag == TagNone {
 		fi.tag, _ = ParseTag(fi.name)
-	}
-	if fi.tag == TagNone {
-		fi.tag = fi.ti.inferredTag
 	}
 
 	return

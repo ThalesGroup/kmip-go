@@ -242,7 +242,7 @@ func TestMarshal(t *testing.T) {
 			var got []byte
 			var err error
 
-			got, err = Marshal(TaggedValue{Tag: Tag(0x420001), Value: sample.v})
+			got, err = Marshal(Value{Tag: Tag(0x420001), Value: sample.v})
 
 			require.NoError(t, err)
 			assert.Equal(t, exp, got)
@@ -435,27 +435,27 @@ func TestEncoder_EncodeValue(t *testing.T) {
 		{
 			name:     "byteslice",
 			v:        []byte{0x01, 0x02, 0x03},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: []byte{0x01, 0x02, 0x03}},
+			expected: Value{Tag: TagCancellationResult, Value: []byte{0x01, 0x02, 0x03}},
 		},
 		{
 			name:     "bytesliceptr",
 			v:        func() *[]byte { b := []byte{0x01, 0x02, 0x03}; return &b }(),
-			expected: TaggedValue{Tag: TagCancellationResult, Value: []byte{0x01, 0x02, 0x03}},
+			expected: Value{Tag: TagCancellationResult, Value: []byte{0x01, 0x02, 0x03}},
 		},
 		// text strings
 		{
 			v:        "red",
-			expected: TaggedValue{Tag: TagCancellationResult, Value: "red"},
+			expected: Value{Tag: TagCancellationResult, Value: "red"},
 		},
 		{
 			name:     "array",
 			v:        [1]string{"red"},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: "red"},
+			expected: Value{Tag: TagCancellationResult, Value: "red"},
 		},
 		{
 			name:     "strptr",
 			v:        func() *string { s := "red"; return &s }(),
-			expected: TaggedValue{Tag: TagCancellationResult, Value: "red"},
+			expected: Value{Tag: TagCancellationResult, Value: "red"},
 		},
 		{
 			name:     "zeroptr",
@@ -485,50 +485,50 @@ func TestEncoder_EncodeValue(t *testing.T) {
 		// date time
 		{
 			v:        parseTime("2008-03-14T11:56:40Z"),
-			expected: TaggedValue{Tag: TagCancellationResult, Value: parseTime("2008-03-14T11:56:40Z")},
+			expected: Value{Tag: TagCancellationResult, Value: parseTime("2008-03-14T11:56:40Z")},
 		},
 		// big int ptr
 		{
 			v:        parseBigInt("1234567890000000000000000000"),
-			expected: TaggedValue{Tag: TagCancellationResult, Value: parseBigInt("1234567890000000000000000000")},
+			expected: Value{Tag: TagCancellationResult, Value: parseBigInt("1234567890000000000000000000")},
 		},
 		// big int
 		{
 			v:        func() interface{} { return *(parseBigInt("1234567890000000000000000000")) }(),
-			expected: TaggedValue{Tag: TagCancellationResult, Value: parseBigInt("1234567890000000000000000000")},
+			expected: Value{Tag: TagCancellationResult, Value: parseBigInt("1234567890000000000000000000")},
 		},
 		// duration
 		{
 			v:        time.Second * 10,
-			expected: TaggedValue{Tag: TagCancellationResult, Value: time.Second * 10},
+			expected: Value{Tag: TagCancellationResult, Value: time.Second * 10},
 		},
 		// boolean
 		{
 			v:        true,
-			expected: TaggedValue{Tag: TagCancellationResult, Value: true},
+			expected: Value{Tag: TagCancellationResult, Value: true},
 		},
 		// enum value
 		{
 			name:     "enum",
 			v:        CredentialTypeAttestation,
-			expected: TaggedValue{Tag: TagCancellationResult, Value: EnumValue(0x03)},
+			expected: Value{Tag: TagCancellationResult, Value: EnumValue(0x03)},
 		},
 		// slice
 		{
 			name: "slice",
 			v:    []interface{}{5, 6, 7},
 			expected: []interface{}{
-				TaggedValue{Tag: TagCancellationResult, Value: int32(5)},
-				TaggedValue{Tag: TagCancellationResult, Value: int32(6)},
-				TaggedValue{Tag: TagCancellationResult, Value: int32(7)},
+				Value{Tag: TagCancellationResult, Value: int32(5)},
+				Value{Tag: TagCancellationResult, Value: int32(6)},
+				Value{Tag: TagCancellationResult, Value: int32(7)},
 			},
 		},
 		{
 			v: []string{"red", "green", "blue"},
 			expected: []interface{}{
-				TaggedValue{Tag: TagCancellationResult, Value: "red"},
-				TaggedValue{Tag: TagCancellationResult, Value: "green"},
-				TaggedValue{Tag: TagCancellationResult, Value: "blue"},
+				Value{Tag: TagCancellationResult, Value: "red"},
+				Value{Tag: TagCancellationResult, Value: "green"},
+				Value{Tag: TagCancellationResult, Value: "blue"},
 			},
 		},
 		// nil
@@ -540,27 +540,27 @@ func TestEncoder_EncodeValue(t *testing.T) {
 		{
 			name:     "marshalable",
 			v:        MarshalerFunc(func(e *Encoder, tag Tag) error { return e.EncodeValue(TagArchiveDate, 5) }),
-			expected: TaggedValue{Tag: TagArchiveDate, Value: int32(5)},
+			expected: Value{Tag: TagArchiveDate, Value: int32(5)},
 		},
 		{
 			name:     "namedtype",
 			v:        AttributeValue("blue"),
-			expected: TaggedValue{Tag: TagCancellationResult, Value: "blue"},
+			expected: Value{Tag: TagCancellationResult, Value: "blue"},
 		},
 		{
 			name:         "namedtypenotag",
 			noDefaultTag: true,
 			v:            AttributeValue("blue"),
-			expected:     TaggedValue{Tag: TagAttributeValue, Value: "blue"},
+			expected:     Value{Tag: TagAttributeValue, Value: "blue"},
 		},
 		// struct
 		{
 			name: "struct",
 			v:    struct{ AttributeName string }{"red"},
-			expected: TaggedValue{
+			expected: Value{
 				Tag: TagCancellationResult,
-				Value: TaggedValues{
-					TaggedValue{Tag: TagAttributeName, Value: "red"},
+				Value: Values{
+					Value{Tag: TagAttributeName, Value: "red"},
 				},
 			},
 		},
@@ -569,20 +569,20 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			v: struct {
 				AttributeName string `kmip:"Attribute"`
 			}{"red"},
-			expected: TaggedValue{
+			expected: Value{
 				Tag: TagCancellationResult,
-				Value: TaggedValues{
-					TaggedValue{Tag: TagAttribute, Value: "red"},
+				Value: Values{
+					Value{Tag: TagAttribute, Value: "red"},
 				},
 			},
 		},
 		{
 			name: "structptr",
 			v:    &Attribute{"red"},
-			expected: TaggedValue{
+			expected: Value{
 				Tag: TagCancellationResult,
-				Value: TaggedValues{
-					TaggedValue{Tag: TagAttributeValue, Value: "red"},
+				Value: Values{
+					Value{Tag: TagAttributeValue, Value: "red"},
 				},
 			},
 		},
@@ -591,10 +591,10 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			v: struct {
 				AttributeName string `kmip:"0x42000b"`
 			}{"red"},
-			expected: TaggedValue{
+			expected: Value{
 				Tag: TagCancellationResult,
-				Value: TaggedValues{
-					TaggedValue{Tag: TagAttributeValue, Value: "red"},
+				Value: Values{
+					Value{Tag: TagAttributeValue, Value: "red"},
 				},
 			},
 		},
@@ -604,10 +604,10 @@ func TestEncoder_EncodeValue(t *testing.T) {
 				AttributeName  string `kmip:"-"`
 				AttributeValue string
 			}{"red", "green"},
-			expected: TaggedValue{
+			expected: Value{
 				Tag: TagCancellationResult,
-				Value: TaggedValues{
-					TaggedValue{Tag: TagAttributeValue, Value: "green"},
+				Value: Values{
+					Value{Tag: TagAttributeValue, Value: "green"},
 				},
 			},
 		},
@@ -617,10 +617,10 @@ func TestEncoder_EncodeValue(t *testing.T) {
 				AttributeName string
 				Attribute
 			}{"red", Attribute{"green"}},
-			expected: TaggedValue{
+			expected: Value{
 				Tag: TagCancellationResult,
-				Value: TaggedValues{
-					TaggedValue{Tag: TagAttributeName, Value: "red"},
+				Value: Values{
+					Value{Tag: TagAttributeName, Value: "red"},
 				},
 			},
 		},
@@ -630,10 +630,10 @@ func TestEncoder_EncodeValue(t *testing.T) {
 				AttributeName  string
 				attributeValue string
 			}{"red", "green"},
-			expected: TaggedValue{
+			expected: Value{
 				Tag: TagCancellationResult,
-				Value: TaggedValues{
-					TaggedValue{Tag: TagAttributeName, Value: "red"},
+				Value: Values{
+					Value{Tag: TagAttributeName, Value: "red"},
 				},
 			},
 		},
@@ -648,12 +648,12 @@ func TestEncoder_EncodeValue(t *testing.T) {
 				parseTime("2008-03-14T11:56:40.123456Z"),
 				DateTimeExtended{parseTime("2008-03-14T11:56:40.123456Z")},
 			},
-			expected: TaggedValue{
+			expected: Value{
 				Tag: TagCancellationResult,
-				Value: TaggedValues{
-					TaggedValue{Tag: TagCertificateIssuerCN, Value: parseTime("2008-03-14T11:56:40Z")},
-					TaggedValue{Tag: TagCertificateIssuerDC, Value: DateTimeExtended{parseTime("2008-03-14T11:56:40.123456Z")}},
-					TaggedValue{Tag: TagAttributeName, Value: DateTimeExtended{parseTime("2008-03-14T11:56:40.123456Z")}},
+				Value: Values{
+					Value{Tag: TagCertificateIssuerCN, Value: parseTime("2008-03-14T11:56:40Z")},
+					Value{Tag: TagCertificateIssuerDC, Value: DateTimeExtended{parseTime("2008-03-14T11:56:40.123456Z")}},
+					Value{Tag: TagAttributeName, Value: DateTimeExtended{parseTime("2008-03-14T11:56:40.123456Z")}},
 				},
 			},
 		},
@@ -669,43 +669,43 @@ func TestEncoder_EncodeValue(t *testing.T) {
 				AttributeIndex:     &ptrMarshaler{},
 				Certificate:        func() **ptrMarshaler { p := &ptrMarshaler{}; return &p }(),
 			},
-			expected: TaggedValue{
+			expected: Value{
 				Tag: TagCancellationResult,
-				Value: TaggedValues{
-					TaggedValue{Tag: TagAttribute, Value: int32(5)},
-					TaggedValue{Tag: TagAttributeName, Value: int32(5)},
-					TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
-					TaggedValue{Tag: TagArchiveDate, Value: int32(5)},
-					TaggedValue{Tag: TagCancellationResult, Value: int32(5)},
-					TaggedValue{Tag: TagCustomAttribute, Value: int32(5)},
-					TaggedValue{Tag: TagAttributeIndex, Value: int32(5)},
-					TaggedValue{Tag: TagCertificate, Value: int32(5)},
+				Value: Values{
+					Value{Tag: TagAttribute, Value: int32(5)},
+					Value{Tag: TagAttributeName, Value: int32(5)},
+					Value{Tag: TagAttributeValue, Value: int32(5)},
+					Value{Tag: TagArchiveDate, Value: int32(5)},
+					Value{Tag: TagCancellationResult, Value: int32(5)},
+					Value{Tag: TagCustomAttribute, Value: int32(5)},
+					Value{Tag: TagAttributeIndex, Value: int32(5)},
+					Value{Tag: TagCertificate, Value: int32(5)},
 				},
 			},
 		},
 		{
 			name: "nilmarshalerfields",
 			v:    &MarshalableFields{},
-			expected: TaggedValue{
+			expected: Value{
 				Tag: TagCancellationResult,
-				Value: TaggedValues{
-					TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
-					TaggedValue{Tag: TagCustomAttribute, Value: int32(5)},
+				Value: Values{
+					Value{Tag: TagAttributeValue, Value: int32(5)},
+					Value{Tag: TagCustomAttribute, Value: int32(5)},
 				},
 			},
 		},
 		{
 			name:     "invalidnamedtypemarshaler",
 			v:        Marshalablefloat32(7),
-			expected: TaggedValue{Tag: TagCancellationResult, Value: int32(5)},
+			expected: Value{Tag: TagCancellationResult, Value: int32(5)},
 		},
 		{
 			name: "tagfromtype",
 			v: struct {
 				Color AttributeValue
 			}{"red"},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagAttributeValue, Value: "red"},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagAttributeValue, Value: "red"},
 			},
 			},
 		},
@@ -714,8 +714,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			v: struct {
 				AttributeValue string
 			}{"red"},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagAttributeValue, Value: "red"},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagAttributeValue, Value: "red"},
 			},
 			},
 		},
@@ -724,8 +724,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			v: struct {
 				Color string `kmip:"ArchiveDate"`
 			}{"red"},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagArchiveDate, Value: "red"},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagArchiveDate, Value: "red"},
 			},
 			},
 		},
@@ -734,8 +734,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			v: struct {
 				AttributeValue string `kmip:"ArchiveDate"`
 			}{"red"},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagArchiveDate, Value: "red"},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagArchiveDate, Value: "red"},
 			},
 			},
 		},
@@ -744,8 +744,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			v: struct {
 				Color AttributeValue `kmip:"ArchiveDate"`
 			}{"red"},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagArchiveDate, Value: "red"},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagArchiveDate, Value: "red"},
 			},
 			},
 		},
@@ -754,8 +754,8 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			v: struct {
 				ArchiveDate AttributeValue
 			}{"red"},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagArchiveDate, Value: "red"},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagArchiveDate, Value: "red"},
 			},
 			},
 		},
@@ -768,9 +768,9 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			}{
 				AttributeValue: "blue",
 			},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagAttribute, Value: ""},
-				TaggedValue{Tag: TagAttributeValue, Value: "blue"},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagAttribute, Value: ""},
+				Value{Tag: TagAttributeValue, Value: "blue"},
 			}},
 		},
 		{
@@ -782,9 +782,9 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			}{
 				AttributeValue: parseTime("2008-03-14T11:56:40Z"),
 			},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagAttribute, Value: time.Time{}},
-				TaggedValue{Tag: TagAttributeValue, Value: parseTime("2008-03-14T11:56:40Z")},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagAttribute, Value: time.Time{}},
+				Value{Tag: TagAttributeValue, Value: parseTime("2008-03-14T11:56:40Z")},
 			}},
 		},
 		{
@@ -798,9 +798,9 @@ func TestEncoder_EncodeValue(t *testing.T) {
 				AttributeValue: func() *time.Time { t := parseTime("2008-03-14T11:56:40Z"); return &t }(),
 				ArchiveDate:    &time.Time{},
 			},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagAttribute, Value: time.Time{}},
-				TaggedValue{Tag: TagAttributeValue, Value: parseTime("2008-03-14T11:56:40Z")},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagAttribute, Value: time.Time{}},
+				Value{Tag: TagAttributeValue, Value: parseTime("2008-03-14T11:56:40Z")},
 			}},
 		},
 		{
@@ -812,9 +812,9 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			}{
 				AttributeValue: *parseBigInt("1"),
 			},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagAttribute, Value: big.Int{}},
-				TaggedValue{Tag: TagAttributeValue, Value: parseBigInt("1")},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagAttribute, Value: big.Int{}},
+				Value{Tag: TagAttributeValue, Value: parseBigInt("1")},
 			}},
 		},
 		{
@@ -828,9 +828,9 @@ func TestEncoder_EncodeValue(t *testing.T) {
 				AttributeValue: parseBigInt("1"),
 				ArchiveDate:    parseBigInt("0"),
 			},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagAttribute, Value: big.Int{}},
-				TaggedValue{Tag: TagAttributeValue, Value: parseBigInt("1")},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagAttribute, Value: big.Int{}},
+				Value{Tag: TagAttributeValue, Value: parseBigInt("1")},
 			}},
 		},
 		{
@@ -842,9 +842,9 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			}{
 				AttributeValue: 6,
 			},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagAttribute, Value: int32(0)},
-				TaggedValue{Tag: TagAttributeValue, Value: int32(6)},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagAttribute, Value: int32(0)},
+				Value{Tag: TagAttributeValue, Value: int32(6)},
 			}},
 		},
 		{
@@ -856,9 +856,9 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			}{
 				AttributeValue: 6,
 			},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagAttribute, Value: int32(0)},
-				TaggedValue{Tag: TagAttributeValue, Value: int32(6)},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagAttribute, Value: int32(0)},
+				Value{Tag: TagAttributeValue, Value: int32(6)},
 			}},
 		},
 		{
@@ -870,9 +870,9 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			}{
 				AttributeValue: 6,
 			},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagAttribute, Value: int32(0)},
-				TaggedValue{Tag: TagAttributeValue, Value: int32(6)},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagAttribute, Value: int32(0)},
+				Value{Tag: TagAttributeValue, Value: int32(6)},
 			}},
 		},
 		{
@@ -884,9 +884,9 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			}{
 				AttributeValue: 6,
 			},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagAttribute, Value: int32(0)},
-				TaggedValue{Tag: TagAttributeValue, Value: int32(6)},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagAttribute, Value: int32(0)},
+				Value{Tag: TagAttributeValue, Value: int32(6)},
 			}},
 		},
 		{
@@ -898,9 +898,9 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			}{
 				AttributeValue: 6,
 			},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagAttribute, Value: int64(0)},
-				TaggedValue{Tag: TagAttributeValue, Value: int64(6)},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagAttribute, Value: int64(0)},
+				Value{Tag: TagAttributeValue, Value: int64(6)},
 			}},
 		},
 		{
@@ -912,9 +912,9 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			}{
 				AttributeValue: 6,
 			},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagAttribute, Value: int32(0)},
-				TaggedValue{Tag: TagAttributeValue, Value: int32(6)},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagAttribute, Value: int32(0)},
+				Value{Tag: TagAttributeValue, Value: int32(6)},
 			}},
 		},
 		{
@@ -926,9 +926,9 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			}{
 				AttributeValue: 6,
 			},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagAttribute, Value: int32(0)},
-				TaggedValue{Tag: TagAttributeValue, Value: int32(6)},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagAttribute, Value: int32(0)},
+				Value{Tag: TagAttributeValue, Value: int32(6)},
 			}},
 		},
 		{
@@ -940,9 +940,9 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			}{
 				AttributeValue: 6,
 			},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagAttribute, Value: int32(0)},
-				TaggedValue{Tag: TagAttributeValue, Value: int32(6)},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagAttribute, Value: int32(0)},
+				Value{Tag: TagAttributeValue, Value: int32(6)},
 			}},
 		},
 		{
@@ -954,9 +954,9 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			}{
 				AttributeValue: 6,
 			},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagAttribute, Value: int32(0)},
-				TaggedValue{Tag: TagAttributeValue, Value: int32(6)},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagAttribute, Value: int32(0)},
+				Value{Tag: TagAttributeValue, Value: int32(6)},
 			}},
 		},
 		{
@@ -968,9 +968,9 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			}{
 				AttributeValue: 6,
 			},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagAttribute, Value: int64(0)},
-				TaggedValue{Tag: TagAttributeValue, Value: int64(6)},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagAttribute, Value: int64(0)},
+				Value{Tag: TagAttributeValue, Value: int64(6)},
 			}},
 		},
 		{
@@ -982,9 +982,9 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			}{
 				AttributeValue: true,
 			},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagAttribute, Value: false},
-				TaggedValue{Tag: TagAttributeValue, Value: true},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagAttribute, Value: false},
+				Value{Tag: TagAttributeValue, Value: true},
 			}},
 		},
 		{
@@ -996,9 +996,9 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			}{
 				AttributeValue: Marshalablefloat32(6),
 			},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagAttribute, Value: int32(5)},
-				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagAttribute, Value: int32(5)},
+				Value{Tag: TagAttributeValue, Value: int32(5)},
 			}},
 		},
 		{
@@ -1010,9 +1010,9 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			}{
 				AttributeValue: Marshalablefloat32Ptr(7),
 			},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagAttribute, Value: int32(5)},
-				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagAttribute, Value: int32(5)},
+				Value{Tag: TagAttributeValue, Value: int32(5)},
 			}},
 		},
 		{
@@ -1024,9 +1024,9 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			}{
 				AttributeValue: Marshalablefloat64(7),
 			},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagAttribute, Value: int32(5)},
-				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagAttribute, Value: int32(5)},
+				Value{Tag: TagAttributeValue, Value: int32(5)},
 			}},
 		},
 		{
@@ -1038,9 +1038,9 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			}{
 				AttributeValue: Marshalablefloat64Ptr(7),
 			},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagAttribute, Value: int32(5)},
-				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagAttribute, Value: int32(5)},
+				Value{Tag: TagAttributeValue, Value: int32(5)},
 			}},
 		},
 		{
@@ -1055,9 +1055,9 @@ func TestEncoder_EncodeValue(t *testing.T) {
 				AttributeValue: MarshalableMap{"color": "red"},
 				ArchiveDate:    MarshalableMap{},
 			},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagAttribute, Value: int32(5)},
-				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagAttribute, Value: int32(5)},
+				Value{Tag: TagAttributeValue, Value: int32(5)},
 			}},
 		},
 		{
@@ -1072,9 +1072,9 @@ func TestEncoder_EncodeValue(t *testing.T) {
 				AttributeValue: MarshalableMapPtr{"color": "red"},
 				ArchiveDate:    MarshalableMapPtr{},
 			},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagAttribute, Value: int32(5)},
-				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagAttribute, Value: int32(5)},
+				Value{Tag: TagAttributeValue, Value: int32(5)},
 			}},
 		},
 		{
@@ -1089,9 +1089,9 @@ func TestEncoder_EncodeValue(t *testing.T) {
 				AttributeValue: MarshalableSlice{"color"},
 				ArchiveDate:    MarshalableSlice{},
 			},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagAttribute, Value: int32(5)},
-				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagAttribute, Value: int32(5)},
+				Value{Tag: TagAttributeValue, Value: int32(5)},
 			}},
 		},
 		{
@@ -1106,9 +1106,9 @@ func TestEncoder_EncodeValue(t *testing.T) {
 				AttributeValue: MarshalableSlicePtr{"color"},
 				ArchiveDate:    MarshalableSlicePtr{},
 			},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagAttribute, Value: int32(5)},
-				TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagAttribute, Value: int32(5)},
+				Value{Tag: TagAttributeValue, Value: int32(5)},
 			}},
 		},
 		{
@@ -1138,18 +1138,18 @@ func TestEncoder_EncodeValue(t *testing.T) {
 				Uint32:  10,
 				Uint64:  11,
 			},
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagComment, Value: EnumValue(1)},
-				TaggedValue{Tag: TagCommonTemplateAttribute, Value: EnumValue(2)},
-				TaggedValue{Tag: TagCompromiseDate, Value: EnumValue(3)},
-				TaggedValue{Tag: TagCompromiseOccurrenceDate, Value: EnumValue(4)},
-				TaggedValue{Tag: TagContactInformation, Value: EnumValue(5)},
-				TaggedValue{Tag: TagCorrelationValue, Value: EnumValue(6)},
-				TaggedValue{Tag: TagCounterLength, Value: EnumValue(7)},
-				TaggedValue{Tag: TagCredential, Value: EnumValue(8)},
-				TaggedValue{Tag: TagCredentialType, Value: EnumValue(9)},
-				TaggedValue{Tag: TagCredentialValue, Value: EnumValue(10)},
-				TaggedValue{Tag: TagCriticalityIndicator, Value: EnumValue(11)},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagComment, Value: EnumValue(1)},
+				Value{Tag: TagCommonTemplateAttribute, Value: EnumValue(2)},
+				Value{Tag: TagCompromiseDate, Value: EnumValue(3)},
+				Value{Tag: TagCompromiseOccurrenceDate, Value: EnumValue(4)},
+				Value{Tag: TagContactInformation, Value: EnumValue(5)},
+				Value{Tag: TagCorrelationValue, Value: EnumValue(6)},
+				Value{Tag: TagCounterLength, Value: EnumValue(7)},
+				Value{Tag: TagCredential, Value: EnumValue(8)},
+				Value{Tag: TagCredentialType, Value: EnumValue(9)},
+				Value{Tag: TagCredentialValue, Value: EnumValue(10)},
+				Value{Tag: TagCriticalityIndicator, Value: EnumValue(11)},
 			}},
 		},
 		{
@@ -1182,78 +1182,78 @@ func TestEncoder_EncodeValue(t *testing.T) {
 
 				return c
 			}(),
-			expected: TaggedValue{Tag: TagCancellationResult, Value: TaggedValues{
-				TaggedValue{Tag: TagAttribute, Value: TaggedValues{
-					TaggedValue{Tag: TagAttributeName, Value: "color"},
-					TaggedValue{Tag: TagAttributeValue, Value: "red"},
+			expected: Value{Tag: TagCancellationResult, Value: Values{
+				Value{Tag: TagAttribute, Value: Values{
+					Value{Tag: TagAttributeName, Value: "color"},
+					Value{Tag: TagAttributeValue, Value: "red"},
 				}},
-				TaggedValue{Tag: TagAttribute, Value: TaggedValues{
-					TaggedValue{Tag: TagAttributeName, Value: "size"},
-					TaggedValue{Tag: TagAttributeValue, Value: int32(5)},
-					TaggedValue{Tag: TagAttributeIndex, Value: int32(1)},
+				Value{Tag: TagAttribute, Value: Values{
+					Value{Tag: TagAttributeName, Value: "size"},
+					Value{Tag: TagAttributeValue, Value: int32(5)},
+					Value{Tag: TagAttributeIndex, Value: int32(1)},
 				}},
-				TaggedValue{Tag: TagCertificate, Value: TaggedValues{
-					TaggedValue{Tag: TagCertificateIdentifier, Value: "blue"},
-					TaggedValue{Tag: TagCertificateIssuer, Value: TaggedValues{
-						TaggedValue{Tag: TagCertificateIssuerAlternativeName, Value: "rick"},
-						TaggedValue{Tag: TagCertificateIssuerC, Value: "bob"},
-						TaggedValue{Tag: TagCertificateIssuerEmail, Value: EnumValue(0)},
-						TaggedValue{Tag: TagCertificateIssuerCN, Value: EnumValue(2)},
-						TaggedValue{Tag: TagCertificateIssuerUID, Value: EnumValue(3)},
-						TaggedValue{Tag: TagCertificateLength, Value: EnumValue(10)},
+				Value{Tag: TagCertificate, Value: Values{
+					Value{Tag: TagCertificateIdentifier, Value: "blue"},
+					Value{Tag: TagCertificateIssuer, Value: Values{
+						Value{Tag: TagCertificateIssuerAlternativeName, Value: "rick"},
+						Value{Tag: TagCertificateIssuerC, Value: "bob"},
+						Value{Tag: TagCertificateIssuerEmail, Value: EnumValue(0)},
+						Value{Tag: TagCertificateIssuerCN, Value: EnumValue(2)},
+						Value{Tag: TagCertificateIssuerUID, Value: EnumValue(3)},
+						Value{Tag: TagCertificateLength, Value: EnumValue(10)},
 					}},
 				}},
-				TaggedValue{Tag: TagBlockCipherMode, Value: int32(5)},
+				Value{Tag: TagBlockCipherMode, Value: int32(5)},
 			}},
 		},
 		{
 			name:     "intenum",
-			v:        TaggedValue{Tag: TagWrappingMethod, Value: int(WrappingMethodMACSign)},
+			v:        Value{Tag: TagWrappingMethod, Value: int(WrappingMethodMACSign)},
 			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
 		},
 		{
 			name:     "int8enum",
-			v:        TaggedValue{Tag: TagWrappingMethod, Value: int8(WrappingMethodMACSign)},
+			v:        Value{Tag: TagWrappingMethod, Value: int8(WrappingMethodMACSign)},
 			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
 		},
 		{
 			name:     "int16enum",
-			v:        TaggedValue{Tag: TagWrappingMethod, Value: int16(WrappingMethodMACSign)},
+			v:        Value{Tag: TagWrappingMethod, Value: int16(WrappingMethodMACSign)},
 			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
 		},
 		{
 			name:     "int32enum",
-			v:        TaggedValue{Tag: TagWrappingMethod, Value: int32(WrappingMethodMACSign)},
+			v:        Value{Tag: TagWrappingMethod, Value: int32(WrappingMethodMACSign)},
 			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
 		},
 		{
 			name:     "int64enum",
-			v:        TaggedValue{Tag: TagWrappingMethod, Value: int64(WrappingMethodMACSign)},
+			v:        Value{Tag: TagWrappingMethod, Value: int64(WrappingMethodMACSign)},
 			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
 		},
 		{
 			name:     "uintenum",
-			v:        TaggedValue{Tag: TagWrappingMethod, Value: uint(WrappingMethodMACSign)},
+			v:        Value{Tag: TagWrappingMethod, Value: uint(WrappingMethodMACSign)},
 			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
 		},
 		{
 			name:     "uint8enum",
-			v:        TaggedValue{Tag: TagWrappingMethod, Value: uint8(WrappingMethodMACSign)},
+			v:        Value{Tag: TagWrappingMethod, Value: uint8(WrappingMethodMACSign)},
 			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
 		},
 		{
 			name:     "uint16enum",
-			v:        TaggedValue{Tag: TagWrappingMethod, Value: uint16(WrappingMethodMACSign)},
+			v:        Value{Tag: TagWrappingMethod, Value: uint16(WrappingMethodMACSign)},
 			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
 		},
 		{
 			name:     "uint32enum",
-			v:        TaggedValue{Tag: TagWrappingMethod, Value: uint32(WrappingMethodMACSign)},
+			v:        Value{Tag: TagWrappingMethod, Value: uint32(WrappingMethodMACSign)},
 			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
 		},
 		{
 			name:     "uint64enum",
-			v:        TaggedValue{Tag: TagWrappingMethod, Value: uint64(WrappingMethodMACSign)},
+			v:        Value{Tag: TagWrappingMethod, Value: uint64(WrappingMethodMACSign)},
 			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
 		},
 	}
@@ -1262,7 +1262,7 @@ func TestEncoder_EncodeValue(t *testing.T) {
 	for _, v := range []interface{}{int8(5), uint(5), uint8(5), int16(5), uint16(5), int(5), int32(5), uint32(5), byte(5), rune(5)} {
 		tests = append(tests, testCase{
 			v:        v,
-			expected: []interface{}{TaggedValue{Tag: TagCancellationResult, Value: int32(5)}},
+			expected: []interface{}{Value{Tag: TagCancellationResult, Value: int32(5)}},
 		})
 	}
 
@@ -1270,7 +1270,7 @@ func TestEncoder_EncodeValue(t *testing.T) {
 	for _, v := range []interface{}{int64(5), uint64(5)} {
 		tests = append(tests, testCase{
 			v:        v,
-			expected: []interface{}{TaggedValue{Tag: TagCancellationResult, Value: int64(5)}},
+			expected: []interface{}{Value{Tag: TagCancellationResult, Value: int64(5)}},
 		})
 	}
 
@@ -1320,10 +1320,10 @@ func TestEncoder_EncodeStructure(t *testing.T) {
 				e.EncodeBool(TagActivationDate, true)
 				return nil
 			},
-			expected: TaggedValue{
+			expected: Value{
 				Tag: TagCancellationResult,
-				Value: TaggedValues{
-					TaggedValue{
+				Value: Values{
+					Value{
 						Tag:   TagActivationDate,
 						Value: true,
 					},
@@ -1335,10 +1335,10 @@ func TestEncoder_EncodeStructure(t *testing.T) {
 			f: func(e *Encoder) error {
 				return e.EncodeValue(TagActivationDate, true)
 			},
-			expected: TaggedValue{
+			expected: Value{
 				Tag: TagCancellationResult,
-				Value: TaggedValues{
-					TaggedValue{
+				Value: Values{
+					Value{
 						Tag:   TagActivationDate,
 						Value: true,
 					},
@@ -1367,18 +1367,18 @@ func TestEncoder_EncodeStructure(t *testing.T) {
 }
 
 func TestTaggedValue_UnmarshalTTLV(t *testing.T) {
-	var tv TaggedValue
+	var tv Value
 
 	b := hex2bytes("42000d02000000040000000500000000")
 
 	err := Unmarshal(b, &tv)
 	require.NoError(t, err)
 
-	assert.Equal(t, TaggedValue{Tag: TagBatchCount, Value: 5}, tv)
+	assert.Equal(t, Value{Tag: TagBatchCount, Value: 5}, tv)
 
-	s := TaggedValue{Tag: TagAttributeValue, Value: TaggedValues{
-		TaggedValue{Tag: TagNameType, Value: "red"},
-		TaggedValue{Tag: TagAttributeValue, Value: "blue"},
+	s := Value{Tag: TagAttributeValue, Value: Values{
+		Value{Tag: TagNameType, Value: "red"},
+		Value{Tag: TagAttributeValue, Value: "blue"},
 	}}
 
 	b, err = Marshal(s)
@@ -1394,7 +1394,7 @@ func TestTaggedValue_UnmarshalTTLV(t *testing.T) {
 }
 
 func TestTaggedValue_MarshalTTLV(t *testing.T) {
-	tv := TaggedValue{}
+	tv := Value{}
 
 	b, err := Marshal(&tv)
 	require.NoError(t, err)
@@ -1439,7 +1439,7 @@ func TestTaggedValue_MarshalTTLV(t *testing.T) {
 	assert.Equal(t, TypeInteger, ttlv.Type())
 	assert.Equal(t, 5, ttlv.ValueInteger())
 
-	tv.Value = TaggedValues{
+	tv.Value = Values{
 		{Tag: TagComment, Value: "red"},
 	}
 

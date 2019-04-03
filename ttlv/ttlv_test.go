@@ -381,7 +381,7 @@ func TestTTLV_UnmarshalJSON(t *testing.T) {
 				`{"tag":"0x42000d","type":"Boolean","value":true}`,
 				`{"tag":"BatchCount","type":"Boolean","value":"0x0000000000000001"}`,
 			},
-			exp: TaggedValue{Tag: TagBatchCount, Value: true},
+			exp: Value{Tag: TagBatchCount, Value: true},
 		},
 		{
 			name: "boolfalse",
@@ -389,35 +389,35 @@ func TestTTLV_UnmarshalJSON(t *testing.T) {
 				`{"tag":"BatchCount","type":"Boolean","value":false}`,
 				`{"tag":"BatchCount","type":"Boolean","value":"0x0000000000000000"}`,
 			},
-			exp: TaggedValue{Tag: TagBatchCount, Value: false},
+			exp: Value{Tag: TagBatchCount, Value: false},
 		},
 		{
 			name: "string",
 			inputs: []string{
 				`{"tag":"BatchCount","type":"TextString","value":"red"}`,
 			},
-			exp: TaggedValue{Tag: TagBatchCount, Value: "red"},
+			exp: Value{Tag: TagBatchCount, Value: "red"},
 		},
 		{
 			name: "stringempty",
 			inputs: []string{
 				`{"tag":"BatchCount","type":"TextString","value":""}`,
 			},
-			exp: TaggedValue{Tag: TagBatchCount, Value: ""},
+			exp: Value{Tag: TagBatchCount, Value: ""},
 		},
 		{
 			name: "bytes",
 			inputs: []string{
 				`{"tag":"BatchCount","type":"ByteString","value":"FF5601"}`,
 			},
-			exp: TaggedValue{Tag: TagBatchCount, Value: []byte{0xFF, 0x56, 0x01}},
+			exp: Value{Tag: TagBatchCount, Value: []byte{0xFF, 0x56, 0x01}},
 		},
 		{
 			name: "bytesempty",
 			inputs: []string{
 				`{"tag":"BatchCount","type":"ByteString","value":""}`,
 			},
-			exp: TaggedValue{Tag: TagBatchCount, Value: []byte{}},
+			exp: Value{Tag: TagBatchCount, Value: []byte{}},
 		},
 		{
 			name: "interval",
@@ -425,21 +425,21 @@ func TestTTLV_UnmarshalJSON(t *testing.T) {
 				`{"tag":"BatchCount","type":"Interval","value":10}`,
 				`{"tag":"BatchCount","type":"Interval","value":"0x0000000A"}`,
 			},
-			exp: TaggedValue{Tag: TagBatchCount, Value: 10 * time.Second},
+			exp: Value{Tag: TagBatchCount, Value: 10 * time.Second},
 		},
 		{
 			name: "datetime",
 			inputs: []string{
 				`{"tag":"BatchCount","type":"DateTime","value":"2001-01-01T10:00:00+10:00"}`,
 			},
-			exp: TaggedValue{Tag: TagBatchCount, Value: time.Date(2001, 01, 01, 0, 0, 0, 0, time.FixedZone("UTC", 0))},
+			exp: Value{Tag: TagBatchCount, Value: time.Date(2001, 01, 01, 0, 0, 0, 0, time.FixedZone("UTC", 0))},
 		},
 		{
 			name: "datetimehex",
 			inputs: []string{
 				`{"tag":"BatchCount","type":"DateTime","value":"0x0000000047DA67F8"}`,
 			},
-			exp: TaggedValue{Tag: TagBatchCount, Value: time.Date(2008, 03, 14, 11, 56, 40, 0, time.FixedZone("UTC", 0))},
+			exp: Value{Tag: TagBatchCount, Value: time.Date(2008, 03, 14, 11, 56, 40, 0, time.FixedZone("UTC", 0))},
 		},
 		{
 			name: "integer",
@@ -447,7 +447,7 @@ func TestTTLV_UnmarshalJSON(t *testing.T) {
 				`{"tag":"BatchCount","type":"Integer","value":"0x00000005"}`,
 				`{"tag":"BatchCount","type":"Integer","value":5}`,
 			},
-			exp: TaggedValue{Tag: TagBatchCount, Value: 5},
+			exp: Value{Tag: TagBatchCount, Value: 5},
 		},
 		{
 			name: "integermask",
@@ -457,7 +457,7 @@ func TestTTLV_UnmarshalJSON(t *testing.T) {
 				`{"tag":"CryptographicUsageMask","type":"Integer","value":"Decrypt|0x00000040"}`,
 				`{"tag":"CryptographicUsageMask","type":"Integer","value":"0x00000048"}`,
 			},
-			exp: TaggedValue{Tag: TagCryptographicUsageMask, Value: CryptographicUsageMaskDecrypt | CryptographicUsageMaskExport},
+			exp: Value{Tag: TagCryptographicUsageMask, Value: CryptographicUsageMaskDecrypt | CryptographicUsageMaskExport},
 		},
 		{
 			name: "longinteger",
@@ -465,7 +465,7 @@ func TestTTLV_UnmarshalJSON(t *testing.T) {
 				`{"tag":"BatchCount","type":"LongInteger","value":"0x0000000000000005"}`,
 				`{"tag":"BatchCount","type":"LongInteger","value":5}`,
 			},
-			exp: TaggedValue{Tag: TagBatchCount, Value: int64(5)},
+			exp: Value{Tag: TagBatchCount, Value: int64(5)},
 		},
 		{
 			name: "biginteger",
@@ -474,7 +474,7 @@ func TestTTLV_UnmarshalJSON(t *testing.T) {
 				`{"tag":"BatchCount","type":"BigInteger","value":"0x00000000000000000000000000000005"}`,
 				`{"tag":"BatchCount","type":"BigInteger","value":5}`,
 			},
-			exp: TaggedValue{Tag: TagBatchCount, Value: big.NewInt(5)},
+			exp: Value{Tag: TagBatchCount, Value: big.NewInt(5)},
 		},
 		{
 			name: "enumeration",
@@ -483,7 +483,7 @@ func TestTTLV_UnmarshalJSON(t *testing.T) {
 				`{"tag":"ObjectType","type":"Enumeration","value":"0x00000002"}`,
 				`{"tag":"ObjectType","type":"Enumeration","value":"SymmetricKey"}`,
 			},
-			exp: TaggedValue{Tag: TagObjectType, Value: ObjectTypeSymmetricKey},
+			exp: Value{Tag: TagObjectType, Value: ObjectTypeSymmetricKey},
 		},
 		{
 			name: "structure",
@@ -499,19 +499,19 @@ func TestTTLV_UnmarshalJSON(t *testing.T) {
 					]
 				}`,
 			},
-			exp: TaggedValue{Tag: TagBatchCount, Value: TaggedValues{
-				TaggedValue{Tag: TagCryptographicUsageMask, Value: CryptographicUsageMaskDecrypt | CryptographicUsageMaskEncrypt},
-				TaggedValue{Tag: TagCryptographicAlgorithm, Value: CryptographicAlgorithmBlowfish},
-				TaggedValue{Tag: TagObjectType, Value: TaggedValues{
-					TaggedValue{Tag: TagOperation, Value: "red"},
+			exp: Value{Tag: TagBatchCount, Value: Values{
+				Value{Tag: TagCryptographicUsageMask, Value: CryptographicUsageMaskDecrypt | CryptographicUsageMaskEncrypt},
+				Value{Tag: TagCryptographicAlgorithm, Value: CryptographicAlgorithmBlowfish},
+				Value{Tag: TagObjectType, Value: Values{
+					Value{Tag: TagOperation, Value: "red"},
 				}},
 			}},
 		},
 		{
 			name: "attributes",
-			exp: TaggedValue{Tag: TagAttribute, Value: TaggedValues{
-				TaggedValue{Tag: TagAttributeName, Value: "Key Format Type"},
-				TaggedValue{Tag: TagAttributeValue, Value: KeyFormatTypeX_509},
+			exp: Value{Tag: TagAttribute, Value: Values{
+				Value{Tag: TagAttributeName, Value: "Key Format Type"},
+				Value{Tag: TagAttributeValue, Value: KeyFormatTypeX_509},
 			}},
 			inputs: []string{`{"tag":"Attribute","value":[
 				{"tag":"AttributeName","type":"TextString","value":"Key Format Type"},
@@ -520,9 +520,9 @@ func TestTTLV_UnmarshalJSON(t *testing.T) {
 		},
 		{
 			name: "attributesmask",
-			exp: TaggedValue{Tag: TagAttribute, Value: TaggedValues{
-				TaggedValue{Tag: TagAttributeName, Value: "Cryptographic Usage Mask"},
-				TaggedValue{Tag: TagAttributeValue, Value: CryptographicUsageMaskEncrypt},
+			exp: Value{Tag: TagAttribute, Value: Values{
+				Value{Tag: TagAttributeName, Value: "Cryptographic Usage Mask"},
+				Value{Tag: TagAttributeValue, Value: CryptographicUsageMaskEncrypt},
 			}},
 			inputs: []string{`{"tag":"Attribute","value":[
 				{"tag":"AttributeName","type":"TextString","value":"Cryptographic Usage Mask"},
@@ -555,69 +555,69 @@ func TestTTLV_MarshalJSON(t *testing.T) {
 		exp  string
 	}{
 		{
-			in:  TaggedValue{Tag: TagBatchCount, Value: 10},
+			in:  Value{Tag: TagBatchCount, Value: 10},
 			exp: `{"tag":"BatchCount","type":"Integer","value":10}`,
 		},
 		{
-			in:  TaggedValue{Tag: Tag(0x540002), Value: 10},
+			in:  Value{Tag: Tag(0x540002), Value: 10},
 			exp: `{"tag":"0x540002","type":"Integer","value":10}`,
 		},
 		{
-			in:  TaggedValue{Tag: TagBatchCount, Value: `"Red Rover"`},
+			in:  Value{Tag: TagBatchCount, Value: `"Red Rover"`},
 			exp: `{"tag":"BatchCount","type":"TextString","value":"\"Red Rover\""}`,
 		},
 		{
-			in:  TaggedValue{Tag: TagBatchCount, Value: true},
+			in:  Value{Tag: TagBatchCount, Value: true},
 			exp: `{"tag":"BatchCount","type":"Boolean","value":true}`,
 		},
 		{
-			in:  TaggedValue{Tag: TagBatchCount, Value: false},
+			in:  Value{Tag: TagBatchCount, Value: false},
 			exp: `{"tag":"BatchCount","type":"Boolean","value":false}`,
 		},
 		{
-			in:  TaggedValue{Tag: TagBatchCount, Value: math.MaxInt32},
+			in:  Value{Tag: TagBatchCount, Value: math.MaxInt32},
 			exp: `{"tag":"BatchCount","type":"Integer","value":` + strconv.Itoa(math.MaxInt32) + `}`,
 		},
 		{
-			in:  TaggedValue{Tag: TagBatchCount, Value: int64(math.MaxInt32) + 1},
+			in:  Value{Tag: TagBatchCount, Value: int64(math.MaxInt32) + 1},
 			exp: `{"tag":"BatchCount","type":"LongInteger","value":` + strconv.FormatInt(int64(math.MaxInt32)+1, 10) + `}`,
 		},
 		{
 			// test values higher than max json number, should be encoded in hex
-			in: TaggedValue{Tag: TagBatchCount, Value: int64(1) << 53},
+			in: Value{Tag: TagBatchCount, Value: int64(1) << 53},
 			exp: func() string {
-				ttlv, err := Marshal(TaggedValue{Tag: TagBatchCount, Value: int64(1) << 53})
+				ttlv, err := Marshal(Value{Tag: TagBatchCount, Value: int64(1) << 53})
 				require.NoError(t, err)
 				return `{"tag":"BatchCount","type":"LongInteger","value":"0x` + hex.EncodeToString(TTLV(ttlv).ValueRaw()) + `"}`
 			}(),
 		},
 		{
-			in:  TaggedValue{Tag: TagBatchCount, Value: big.NewInt(10)},
+			in:  Value{Tag: TagBatchCount, Value: big.NewInt(10)},
 			exp: `{"tag":"BatchCount","type":"BigInteger","value":10}`,
 		},
 		{
 			// test values higher than max json number, should be encoded in hex
-			in: TaggedValue{Tag: TagBatchCount, Value: big.NewInt(int64(1) << 53)},
+			in: Value{Tag: TagBatchCount, Value: big.NewInt(int64(1) << 53)},
 			exp: func() string {
-				ttlv, err := Marshal(TaggedValue{Tag: TagBatchCount, Value: big.NewInt(int64(1) << 53)})
+				ttlv, err := Marshal(Value{Tag: TagBatchCount, Value: big.NewInt(int64(1) << 53)})
 				require.NoError(t, err)
 				return `{"tag":"BatchCount","type":"BigInteger","value":"0x` + hex.EncodeToString(TTLV(ttlv).ValueRaw()) + `"}`
 			}(),
 		},
 		{
-			in:  TaggedValue{Tag: TagBatchCount, Value: WrappingMethodMACSign},
+			in:  Value{Tag: TagBatchCount, Value: WrappingMethodMACSign},
 			exp: `{"tag":"BatchCount","type":"Enumeration","value":"0x00000002"}`,
 		},
 		{
-			in:  TaggedValue{Tag: TagKeyFormatType, Value: KeyFormatTypeX_509},
+			in:  Value{Tag: TagKeyFormatType, Value: KeyFormatTypeX_509},
 			exp: `{"tag":"KeyFormatType","type":"Enumeration","value":"X_509"}`,
 		},
 		{
-			in:  TaggedValue{Tag: TagKeyFormatType, Value: EnumValue(0x00050000)},
+			in:  Value{Tag: TagKeyFormatType, Value: EnumValue(0x00050000)},
 			exp: `{"tag":"KeyFormatType","type":"Enumeration","value":"0x00050000"}`,
 		},
 		{
-			in: TaggedValue{Tag: TagBatchCount, Value: func() time.Time {
+			in: Value{Tag: TagBatchCount, Value: func() time.Time {
 				d, err := time.Parse(time.RFC3339, "2006-01-02T15:04:05+04:00")
 				require.NoError(t, err)
 				return d
@@ -625,14 +625,14 @@ func TestTTLV_MarshalJSON(t *testing.T) {
 			exp: `{"tag":"BatchCount","type":"DateTime","value":"2006-01-02T11:04:05Z"}`,
 		},
 		{
-			in:  TaggedValue{Tag: TagKeyFormatType, Value: 10 * time.Second},
+			in:  Value{Tag: TagKeyFormatType, Value: 10 * time.Second},
 			exp: `{"tag":"KeyFormatType","type":"Interval","value":10}`,
 		},
 		{
-			in: TaggedValue{Tag: TagKeyFormatType, Value: TaggedValues{
-				TaggedValue{Tag: TagBatchCount, Value: 10},
-				TaggedValue{Tag: Tag(0x540002), Value: 10},
-				TaggedValue{Tag: TagBatchItem, Value: true},
+			in: Value{Tag: TagKeyFormatType, Value: Values{
+				Value{Tag: TagBatchCount, Value: 10},
+				Value{Tag: Tag(0x540002), Value: 10},
+				Value{Tag: TagBatchItem, Value: true},
 			}},
 			exp: `{"tag":"KeyFormatType","value":[
 				{"tag":"BatchCount","type":"Integer","value":10},
@@ -641,9 +641,9 @@ func TestTTLV_MarshalJSON(t *testing.T) {
 			]}`,
 		},
 		{
-			in: TaggedValue{Tag: TagAttribute, Value: TaggedValues{
-				TaggedValue{Tag: TagAttributeName, Value: "Key Format Type"},
-				TaggedValue{Tag: TagAttributeValue, Value: KeyFormatTypeX_509},
+			in: Value{Tag: TagAttribute, Value: Values{
+				Value{Tag: TagAttributeName, Value: "Key Format Type"},
+				Value{Tag: TagAttributeValue, Value: KeyFormatTypeX_509},
 			}},
 			exp: `{"tag":"Attribute","value":[
 				{"tag":"AttributeName","type":"TextString","value":"Key Format Type"},
@@ -651,9 +651,9 @@ func TestTTLV_MarshalJSON(t *testing.T) {
 			]}`,
 		},
 		{
-			in: TaggedValue{Tag: TagAttribute, Value: TaggedValues{
-				TaggedValue{Tag: TagAttributeName, Value: "Key Format Type"},
-				TaggedValue{Tag: TagAttributeValue, Value: "X_509"},
+			in: Value{Tag: TagAttribute, Value: Values{
+				Value{Tag: TagAttributeName, Value: "Key Format Type"},
+				Value{Tag: TagAttributeValue, Value: "X_509"},
 			}},
 			exp: `{"tag":"Attribute","value":[
 				{"tag":"AttributeName","type":"TextString","value":"Key Format Type"},
@@ -662,9 +662,9 @@ func TestTTLV_MarshalJSON(t *testing.T) {
 		},
 		{
 			name: "attributesmask",
-			in: TaggedValue{Tag: TagAttribute, Value: TaggedValues{
-				TaggedValue{Tag: TagAttributeName, Value: "Cryptographic Usage Mask"},
-				TaggedValue{Tag: TagAttributeValue, Value: CryptographicUsageMaskExport},
+			in: Value{Tag: TagAttribute, Value: Values{
+				Value{Tag: TagAttributeName, Value: "Cryptographic Usage Mask"},
+				Value{Tag: TagAttributeValue, Value: CryptographicUsageMaskExport},
 			}},
 			exp: `{"tag":"Attribute","value":[
 				{"tag":"AttributeName","type":"TextString","value":"Cryptographic Usage Mask"},
@@ -672,9 +672,9 @@ func TestTTLV_MarshalJSON(t *testing.T) {
 			]}`,
 		},
 		{
-			in: TaggedValue{Tag: TagAttribute, Value: TaggedValues{
-				TaggedValue{Tag: TagAttributeName, Value: "Key Format Type"},
-				TaggedValue{Tag: TagAttributeValue, Value: EnumValue(0x00000300)},
+			in: Value{Tag: TagAttribute, Value: Values{
+				Value{Tag: TagAttributeName, Value: "Key Format Type"},
+				Value{Tag: TagAttributeValue, Value: EnumValue(0x00000300)},
 			}},
 			exp: `{"tag":"Attribute","value":[
 				{"tag":"AttributeName","type":"TextString","value":"Key Format Type"},
@@ -682,7 +682,7 @@ func TestTTLV_MarshalJSON(t *testing.T) {
 			]}`,
 		},
 		{
-			in:  TaggedValue{Tag: TagCryptographicUsageMask, Value: CryptographicUsageMaskCRLSign},
+			in:  Value{Tag: TagCryptographicUsageMask, Value: CryptographicUsageMaskCRLSign},
 			exp: `{"tag":"CryptographicUsageMask","type":"Integer","value":"CRLSign"}`,
 		},
 	}
@@ -707,96 +707,96 @@ func TestTTLV_MarshalXML(t *testing.T) {
 	}{
 		{
 			name: "integer",
-			in:   TaggedValue{Tag: TagBatchCount, Value: 10},
+			in:   Value{Tag: TagBatchCount, Value: 10},
 			exp:  `<BatchCount type="Integer" value="10"></BatchCount>`,
 		},
 		{
 			name: "unknowntag",
-			in:   TaggedValue{Tag: 0x54FFFF, Value: 10},
+			in:   Value{Tag: 0x54FFFF, Value: 10},
 			exp:  `<TTLV tag="0x54ffff" type="Integer" value="10"></TTLV>`,
 		},
 		{
 			name: "booltrue",
-			in:   TaggedValue{Tag: TagBatchCount, Value: true},
+			in:   Value{Tag: TagBatchCount, Value: true},
 			exp:  `<BatchCount type="Boolean" value="true"></BatchCount>`,
 		},
 		{
 			name: "boolfalse",
-			in:   TaggedValue{Tag: TagBatchCount, Value: false},
+			in:   Value{Tag: TagBatchCount, Value: false},
 			exp:  `<BatchCount type="Boolean" value="false"></BatchCount>`,
 		},
 		{
 			name: "longinteger",
-			in:   TaggedValue{Tag: TagBatchCount, Value: int64(6)},
+			in:   Value{Tag: TagBatchCount, Value: int64(6)},
 			exp:  `<BatchCount type="LongInteger" value="6"></BatchCount>`,
 		},
 		{
 			name: "biginteger",
-			in:   TaggedValue{Tag: TagBatchCount, Value: big.NewInt(6)},
+			in:   Value{Tag: TagBatchCount, Value: big.NewInt(6)},
 			exp:  `<BatchCount type="BigInteger" value="0000000000000006"></BatchCount>`,
 		},
 		{
 			name: "bitmask",
-			in:   TaggedValue{Tag: TagCryptographicUsageMask, Value: CryptographicUsageMaskExport | CryptographicUsageMaskSign},
+			in:   Value{Tag: TagCryptographicUsageMask, Value: CryptographicUsageMaskExport | CryptographicUsageMaskSign},
 			exp:  `<CryptographicUsageMask type="Integer" value="Sign Export"></CryptographicUsageMask>`,
 		},
 		{
 			name: "enumeration",
-			in:   TaggedValue{Tag: TagOperation, Value: OperationActivate},
+			in:   Value{Tag: TagOperation, Value: OperationActivate},
 			exp:  `<Operation type="Enumeration" value="Activate"></Operation>`,
 		},
 		{
 			name: "enumerationext",
-			in:   TaggedValue{Tag: TagOperation, Value: 0x0000002c},
+			in:   Value{Tag: TagOperation, Value: 0x0000002c},
 			exp:  `<Operation type="Enumeration" value="0x0000002c"></Operation>`,
 		},
 		{
 			name: "textstring",
-			in:   TaggedValue{Tag: TagBatchCount, Value: "red"},
+			in:   Value{Tag: TagBatchCount, Value: "red"},
 			exp:  `<BatchCount type="TextString" value="red"></BatchCount>`,
 		},
 		{
 			name: "textstringempty",
-			in:   TaggedValue{Tag: TagBatchCount, Value: ""},
+			in:   Value{Tag: TagBatchCount, Value: ""},
 			exp:  `<BatchCount type="TextString"></BatchCount>`,
 		},
 		{
 			name: "bytestring",
-			in:   TaggedValue{Tag: TagBatchCount, Value: []byte{0x01, 0x02, 0x03}},
+			in:   Value{Tag: TagBatchCount, Value: []byte{0x01, 0x02, 0x03}},
 			exp:  `<BatchCount type="ByteString" value="010203"></BatchCount>`,
 		},
 		{
 			name: "datetime",
-			in:   TaggedValue{Tag: TagBatchCount, Value: time.Date(2001, 01, 01, 0, 0, 0, 0, time.FixedZone("UTC", 0))},
+			in:   Value{Tag: TagBatchCount, Value: time.Date(2001, 01, 01, 0, 0, 0, 0, time.FixedZone("UTC", 0))},
 			exp:  `<BatchCount type="DateTime" value="2001-01-01T00:00:00Z"></BatchCount>`,
 		},
 		{
 			name: "interval",
-			in:   TaggedValue{Tag: TagBatchCount, Value: 10 * time.Second},
+			in:   Value{Tag: TagBatchCount, Value: 10 * time.Second},
 			exp:  `<BatchCount type="Interval" value="10"></BatchCount>`,
 		},
 		{
 			name: "structure",
-			in: TaggedValue{Tag: TagKeyFormatType, Value: TaggedValues{
-				TaggedValue{Tag: TagBatchCount, Value: 10},
-				TaggedValue{Tag: Tag(0x540002), Value: 10},
-				TaggedValue{Tag: TagBatchItem, Value: true},
+			in: Value{Tag: TagKeyFormatType, Value: Values{
+				Value{Tag: TagBatchCount, Value: 10},
+				Value{Tag: Tag(0x540002), Value: 10},
+				Value{Tag: TagBatchItem, Value: true},
 			}},
 			exp: `<KeyFormatType><BatchCount type="Integer" value="10"></BatchCount><TTLV tag="0x540002" type="Integer" value="10"></TTLV><BatchItem type="Boolean" value="true"></BatchItem></KeyFormatType>`,
 		},
 		{
 			name: "attributes",
-			in: TaggedValue{Tag: TagAttribute, Value: TaggedValues{
-				TaggedValue{Tag: TagAttributeName, Value: "Key Format Type"},
-				TaggedValue{Tag: TagAttributeValue, Value: KeyFormatTypeX_509},
+			in: Value{Tag: TagAttribute, Value: Values{
+				Value{Tag: TagAttributeName, Value: "Key Format Type"},
+				Value{Tag: TagAttributeValue, Value: KeyFormatTypeX_509},
 			}},
 			exp: `<Attribute><AttributeName type="TextString" value="Key Format Type"></AttributeName><AttributeValue type="Enumeration" value="X_509"></AttributeValue></Attribute>`,
 		},
 		{
 			name: "attributesmask",
-			in: TaggedValue{Tag: TagAttribute, Value: TaggedValues{
-				TaggedValue{Tag: TagAttributeName, Value: "Cryptographic Usage Mask"},
-				TaggedValue{Tag: TagAttributeValue, Value: CryptographicUsageMaskExport},
+			in: Value{Tag: TagAttribute, Value: Values{
+				Value{Tag: TagAttributeName, Value: "Cryptographic Usage Mask"},
+				Value{Tag: TagAttributeValue, Value: CryptographicUsageMaskExport},
 			}},
 			exp: `<Attribute><AttributeName type="TextString" value="Cryptographic Usage Mask"></AttributeName><AttributeValue type="Integer" value="Export"></AttributeValue></Attribute>`,
 		},
@@ -830,7 +830,7 @@ func TestTTLV_UnmarshalXML(t *testing.T) {
 				`<BatchCount type="0x06" value="true"/>`,
 				`<TTLV tag="0x42000d" type="Boolean" value="true"/>`,
 			},
-			exp: TaggedValue{Tag: TagBatchCount, Value: true},
+			exp: Value{Tag: TagBatchCount, Value: true},
 		},
 		{
 			name: "boolfalse",
@@ -838,56 +838,56 @@ func TestTTLV_UnmarshalXML(t *testing.T) {
 				`<BatchCount type="Boolean" value="false"/>`,
 				`<BatchCount type="Boolean" value="0"/>`,
 			},
-			exp: TaggedValue{Tag: TagBatchCount, Value: false},
+			exp: Value{Tag: TagBatchCount, Value: false},
 		},
 		{
 			name: "string",
 			inputs: []string{
 				`<BatchCount type="TextString" value="red"/>`,
 			},
-			exp: TaggedValue{Tag: TagBatchCount, Value: "red"},
+			exp: Value{Tag: TagBatchCount, Value: "red"},
 		},
 		{
 			name: "stringempty",
 			inputs: []string{
 				`<BatchCount type="TextString"/>`,
 			},
-			exp: TaggedValue{Tag: TagBatchCount, Value: ""},
+			exp: Value{Tag: TagBatchCount, Value: ""},
 		},
 		{
 			name: "bytes",
 			inputs: []string{
 				`<BatchCount type="ByteString" value="FF5601"/>`,
 			},
-			exp: TaggedValue{Tag: TagBatchCount, Value: []byte{0xFF, 0x56, 0x01}},
+			exp: Value{Tag: TagBatchCount, Value: []byte{0xFF, 0x56, 0x01}},
 		},
 		{
 			name: "bytesempty",
 			inputs: []string{
 				`<BatchCount type="ByteString" value=""/>`,
 			},
-			exp: TaggedValue{Tag: TagBatchCount, Value: []byte{}},
+			exp: Value{Tag: TagBatchCount, Value: []byte{}},
 		},
 		{
 			name: "interval",
 			inputs: []string{
 				`<BatchCount type="Interval" value="10"/>`,
 			},
-			exp: TaggedValue{Tag: TagBatchCount, Value: 10 * time.Second},
+			exp: Value{Tag: TagBatchCount, Value: 10 * time.Second},
 		},
 		{
 			name: "datetime",
 			inputs: []string{
 				`<BatchCount type="DateTime" value="2001-01-01T10:00:00+10:00"/>`,
 			},
-			exp: TaggedValue{Tag: TagBatchCount, Value: time.Date(2001, 01, 01, 0, 0, 0, 0, time.FixedZone("UTC", 0))},
+			exp: Value{Tag: TagBatchCount, Value: time.Date(2001, 01, 01, 0, 0, 0, 0, time.FixedZone("UTC", 0))},
 		},
 		{
 			name: "integer",
 			inputs: []string{
 				`<BatchCount type="Integer" value="5"/>`,
 			},
-			exp: TaggedValue{Tag: TagBatchCount, Value: 5},
+			exp: Value{Tag: TagBatchCount, Value: 5},
 		},
 		{
 			name: "integermask",
@@ -898,21 +898,21 @@ func TestTTLV_UnmarshalXML(t *testing.T) {
 				`<CryptographicUsageMask type="Integer" value="Decrypt Export"/>`,
 				`<CryptographicUsageMask type="Integer" value="Decrypt 0x00000040"/>`,
 			},
-			exp: TaggedValue{Tag: TagCryptographicUsageMask, Value: CryptographicUsageMaskDecrypt | CryptographicUsageMaskExport},
+			exp: Value{Tag: TagCryptographicUsageMask, Value: CryptographicUsageMaskDecrypt | CryptographicUsageMaskExport},
 		},
 		{
 			name: "longinteger",
 			inputs: []string{
 				`<BatchCount type="LongInteger" value="5"/>`,
 			},
-			exp: TaggedValue{Tag: TagBatchCount, Value: int64(5)},
+			exp: Value{Tag: TagBatchCount, Value: int64(5)},
 		},
 		{
 			name: "biginteger",
 			inputs: []string{
 				`<BatchCount type="BigInteger" value="00000000000000000000000000000005"/>`,
 			},
-			exp: TaggedValue{Tag: TagBatchCount, Value: big.NewInt(5)},
+			exp: Value{Tag: TagBatchCount, Value: big.NewInt(5)},
 		},
 		{
 			name: "enumeration",
@@ -920,7 +920,7 @@ func TestTTLV_UnmarshalXML(t *testing.T) {
 				`<ObjectType type="Enumeration" value="0x00000002"/>`,
 				`<ObjectType type="Enumeration" value="SymmetricKey"/>`,
 			},
-			exp: TaggedValue{Tag: TagObjectType, Value: ObjectTypeSymmetricKey},
+			exp: Value{Tag: TagObjectType, Value: ObjectTypeSymmetricKey},
 		},
 		{
 			name: "structure",
@@ -933,19 +933,19 @@ func TestTTLV_UnmarshalXML(t *testing.T) {
 						</ObjectType>
 				</BatchCount>`,
 			},
-			exp: TaggedValue{Tag: TagBatchCount, Value: TaggedValues{
-				TaggedValue{Tag: TagCryptographicUsageMask, Value: CryptographicUsageMaskDecrypt | CryptographicUsageMaskEncrypt},
-				TaggedValue{Tag: TagCryptographicAlgorithm, Value: CryptographicAlgorithmBlowfish},
-				TaggedValue{Tag: TagObjectType, Value: TaggedValues{
-					TaggedValue{Tag: TagOperation, Value: "red"},
+			exp: Value{Tag: TagBatchCount, Value: Values{
+				Value{Tag: TagCryptographicUsageMask, Value: CryptographicUsageMaskDecrypt | CryptographicUsageMaskEncrypt},
+				Value{Tag: TagCryptographicAlgorithm, Value: CryptographicAlgorithmBlowfish},
+				Value{Tag: TagObjectType, Value: Values{
+					Value{Tag: TagOperation, Value: "red"},
 				}},
 			}},
 		},
 		{
 			name: "attributes",
-			exp: TaggedValue{Tag: TagAttribute, Value: TaggedValues{
-				TaggedValue{Tag: TagAttributeName, Value: "Key Format Type"},
-				TaggedValue{Tag: TagAttributeValue, Value: KeyFormatTypeX_509},
+			exp: Value{Tag: TagAttribute, Value: Values{
+				Value{Tag: TagAttributeName, Value: "Key Format Type"},
+				Value{Tag: TagAttributeValue, Value: KeyFormatTypeX_509},
 			}},
 			inputs: []string{`<Attribute>
 				<AttributeName type="TextString" value="Key Format Type"/>
@@ -954,9 +954,9 @@ func TestTTLV_UnmarshalXML(t *testing.T) {
 		},
 		{
 			name: "attributesmask",
-			exp: TaggedValue{Tag: TagAttribute, Value: TaggedValues{
-				TaggedValue{Tag: TagAttributeName, Value: "Cryptographic Usage Mask"},
-				TaggedValue{Tag: TagAttributeValue, Value: CryptographicUsageMaskEncrypt},
+			exp: Value{Tag: TagAttribute, Value: Values{
+				Value{Tag: TagAttributeName, Value: "Cryptographic Usage Mask"},
+				Value{Tag: TagAttributeValue, Value: CryptographicUsageMaskEncrypt},
 			}},
 			inputs: []string{`<Attribute>
 				<AttributeName type="TextString" value="Cryptographic Usage Mask"/>

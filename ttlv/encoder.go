@@ -69,16 +69,26 @@ func (v EnumValue) MarshalTTLV(e *Encoder, tag Tag) error {
 	return nil
 }
 
-type TaggedValue struct {
+// Value is a go-typed mapping for a TTLV value.  It holds a tag, and the value in
+// the form of a native go type.
+//
+// Value supports marshaling and unmarshaling, allowing a mapping between encoded TTLV
+// bytes and native go types.
+//
+// TTLV Structure types are mapped to the Values go type.  When marshaling, if the Value
+// field is set to a Values{}, the resulting TTLV will be TypeStructure.  When unmarshaling
+// a TTLV with TypeStructure, the Value field will contain a Values{}.
+type Value struct {
 	Tag   Tag
 	Value interface{}
 }
 
-func (t *TaggedValue) UnmarshalTTLV(d *Decoder, ttlv TTLV) error {
+// UnmarshalTTLV implements Unmarshaler
+func (t *Value) UnmarshalTTLV(d *Decoder, ttlv TTLV) error {
 	t.Tag = ttlv.Tag()
 	switch ttlv.Type() {
 	case TypeStructure:
-		var v TaggedValues
+		var v Values
 
 		ttlv = ttlv.ValueStructure()
 		for ttlv.Valid() == nil {
@@ -96,13 +106,14 @@ func (t *TaggedValue) UnmarshalTTLV(d *Decoder, ttlv TTLV) error {
 	return nil
 }
 
-func (t TaggedValue) MarshalTTLV(e *Encoder, tag Tag) error {
+// MarshalTTLV implements Marshaler
+func (t Value) MarshalTTLV(e *Encoder, tag Tag) error {
 	// if tag is set, override the suggested tag
 	if t.Tag != TagNone {
 		tag = t.Tag
 	}
 
-	if tvs, ok := t.Value.(TaggedValues); ok {
+	if tvs, ok := t.Value.(Values); ok {
 		return e.EncodeStructure(tag, func(e *Encoder) error {
 			for _, v := range tvs {
 				if err := e.Encode(v); err != nil {
@@ -116,7 +127,8 @@ func (t TaggedValue) MarshalTTLV(e *Encoder, tag Tag) error {
 	return e.EncodeValue(tag, t.Value)
 }
 
-type TaggedValues []TaggedValue
+// Values is a slice of Value objects.  It represents the body of a TTLV with a type of Structure.
+type Values []Value
 
 type Encoder struct {
 	encodeDepth int

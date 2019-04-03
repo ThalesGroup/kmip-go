@@ -166,32 +166,32 @@ func TestUnmarshal(t *testing.T) {
 			skipExactRoundtripTest: true,
 		},
 		{
-			in:  TaggedValue{Tag: TagBatchCount, Value: "red"},
+			in:  Value{Tag: TagBatchCount, Value: "red"},
 			ptr: new(interface{}),
 			expected: func() interface{} {
-				b, err := Marshal(TaggedValue{Tag: TagBatchCount, Value: "red"})
+				b, err := Marshal(Value{Tag: TagBatchCount, Value: "red"})
 				require.NoError(t, err)
 				return TTLV(b)
 			}(),
 		},
 		{
 			name: "structtypeerror",
-			in: TaggedValue{Tag: TagBatchCount, Value: TaggedValues{
-				TaggedValue{Tag: TagComment, Value: "red"},
+			in: Value{Tag: TagBatchCount, Value: Values{
+				Value{Tag: TagComment, Value: "red"},
 			}},
 			ptr: new(int),
 			err: ErrUnsupportedTypeError,
 		},
 		{
 			name: "ttlvStructure",
-			in: TaggedValue{Tag: TagBatchCount, Value: TaggedValues{
-				TaggedValue{Tag: TagBatchItem, Value: "red"},
-				TaggedValue{Tag: TagBatchContinueCapability, Value: "blue"},
+			in: Value{Tag: TagBatchCount, Value: Values{
+				Value{Tag: TagBatchItem, Value: "red"},
+				Value{Tag: TagBatchContinueCapability, Value: "blue"},
 			}},
-			ptr: new(TaggedValue),
-			expected: TaggedValue{Tag: TagBatchCount, Value: TaggedValues{
-				TaggedValue{Tag: TagBatchItem, Value: "red"},
-				TaggedValue{Tag: TagBatchContinueCapability, Value: "blue"},
+			ptr: new(Value),
+			expected: Value{Tag: TagBatchCount, Value: Values{
+				Value{Tag: TagBatchItem, Value: "red"},
+				Value{Tag: TagBatchContinueCapability, Value: "blue"},
 			}},
 		},
 	}
@@ -202,8 +202,8 @@ func TestUnmarshal(t *testing.T) {
 	tests = append(tests,
 		unmarshalTest{
 			name: "simplestruct",
-			in: TaggedValue{Tag: TagBatchCount, Value: TaggedValues{
-				TaggedValue{Tag: TagComment, Value: "red"},
+			in: Value{Tag: TagBatchCount, Value: Values{
+				Value{Tag: TagComment, Value: "red"},
 			}},
 			ptr:      new(A),
 			expected: A{Comment: "red"},
@@ -217,8 +217,8 @@ func TestUnmarshal(t *testing.T) {
 	tests = append(tests,
 		unmarshalTest{
 			name: "fieldtag",
-			in: TaggedValue{Tag: TagBatchCount, Value: TaggedValues{
-				TaggedValue{Tag: TagComment, Value: "red"},
+			in: Value{Tag: TagBatchCount, Value: Values{
+				Value{Tag: TagComment, Value: "red"},
 			}},
 			ptr:      new(B),
 			expected: B{S: "red"},
@@ -233,9 +233,9 @@ func TestUnmarshal(t *testing.T) {
 	tests = append(tests,
 		unmarshalTest{
 			name: "multifields",
-			in: TaggedValue{Tag: TagBatchCount, Value: TaggedValues{
-				TaggedValue{Tag: TagComment, Value: "red"},
-				TaggedValue{Tag: TagBatchCount, Value: "blue"},
+			in: Value{Tag: TagBatchCount, Value: Values{
+				Value{Tag: TagComment, Value: "red"},
+				Value{Tag: TagBatchCount, Value: "blue"},
 			}},
 			ptr:      new(D),
 			expected: D{Comment: "red", BatchCount: "blue"},
@@ -250,10 +250,10 @@ func TestUnmarshal(t *testing.T) {
 	tests = append(tests,
 		unmarshalTest{
 			name: "nested",
-			in: TaggedValue{Tag: TagBatchCount, Value: TaggedValues{
-				TaggedValue{Tag: TagComment, Value: "red"},
-				TaggedValue{Tag: TagBatchCount, Value: TaggedValues{
-					TaggedValue{Tag: TagComment, Value: "blue"},
+			in: Value{Tag: TagBatchCount, Value: Values{
+				Value{Tag: TagComment, Value: "red"},
+				Value{Tag: TagBatchCount, Value: Values{
+					Value{Tag: TagComment, Value: "blue"},
 				}},
 			}},
 			ptr:      new(E),
@@ -269,10 +269,10 @@ func TestUnmarshal(t *testing.T) {
 	tests = append(tests,
 		unmarshalTest{
 			name: "nestedptr",
-			in: TaggedValue{Tag: TagBatchCount, Value: TaggedValues{
-				TaggedValue{Tag: TagComment, Value: "red"},
-				TaggedValue{Tag: TagBatchCount, Value: TaggedValues{
-					TaggedValue{Tag: TagComment, Value: "blue"},
+			in: Value{Tag: TagBatchCount, Value: Values{
+				Value{Tag: TagComment, Value: "red"},
+				Value{Tag: TagBatchCount, Value: Values{
+					Value{Tag: TagComment, Value: "blue"},
 				}},
 			}},
 			ptr:      new(F),
@@ -287,10 +287,10 @@ func TestUnmarshal(t *testing.T) {
 	tests = append(tests,
 		unmarshalTest{
 			name: "slice",
-			in: TaggedValue{Tag: TagBatchCount, Value: TaggedValues{
-				TaggedValue{Tag: TagComment, Value: "red"},
-				TaggedValue{Tag: TagComment, Value: "blue"},
-				TaggedValue{Tag: TagComment, Value: "green"},
+			in: Value{Tag: TagBatchCount, Value: Values{
+				Value{Tag: TagComment, Value: "red"},
+				Value{Tag: TagComment, Value: "blue"},
+				Value{Tag: TagComment, Value: "green"},
 			}},
 			ptr:      new(G),
 			expected: G{Comment: []string{"red", "blue", "green"}},
@@ -299,22 +299,22 @@ func TestUnmarshal(t *testing.T) {
 
 	type H struct {
 		Comment        string
-		Any1           []TaggedValue `kmip:",any"`
-		Any2           []TaggedValue `kmip:",any"`
+		Any1           []Value `kmip:",any"`
+		Any2           []Value `kmip:",any"`
 		AttributeValue string
 	}
 
 	tests = append(tests,
 		unmarshalTest{
 			name: "anyflag",
-			in: TaggedValue{Value: TaggedValues{
-				TaggedValue{Tag: TagComment, Value: "red"},
-				TaggedValue{Tag: TagNameType, Value: "blue"},
-				TaggedValue{Tag: TagName, Value: "orange"},
-				TaggedValue{Tag: TagAttributeValue, Value: "yellow"},
+			in: Value{Value: Values{
+				Value{Tag: TagComment, Value: "red"},
+				Value{Tag: TagNameType, Value: "blue"},
+				Value{Tag: TagName, Value: "orange"},
+				Value{Tag: TagAttributeValue, Value: "yellow"},
 			}},
 			ptr: new(H),
-			expected: H{Comment: "red", AttributeValue: "yellow", Any1: []TaggedValue{
+			expected: H{Comment: "red", AttributeValue: "yellow", Any1: []Value{
 				{Tag: TagNameType, Value: "blue"},
 				{Tag: TagName, Value: "orange"},
 			}},
@@ -326,7 +326,7 @@ func TestUnmarshal(t *testing.T) {
 		}
 		t.Run(test.name, func(t *testing.T) {
 
-			b, err := Marshal(TaggedValue{Tag: TagBatchCount, Value: test.in})
+			b, err := Marshal(Value{Tag: TagBatchCount, Value: test.in})
 			require.NoError(t, err)
 
 			t.Log(TTLV(b).String())
@@ -365,7 +365,7 @@ func TestUnmarshal(t *testing.T) {
 			}
 
 			t.Run("roundtrip", func(t *testing.T) {
-				bb, err := Marshal(TaggedValue{Tag: TagBatchCount, Value: v.Elem().Interface()})
+				bb, err := Marshal(Value{Tag: TagBatchCount, Value: v.Elem().Interface()})
 				require.NoError(t, err)
 
 				if !test.skipExactRoundtripTest {
@@ -394,13 +394,13 @@ func TestDecoder_DisallowUnknownFields(t *testing.T) {
 
 	tests := []struct {
 		name  string
-		input TaggedValue
+		input Value
 	}{
 		{
 			name: "middle",
-			input: TaggedValue{
+			input: Value{
 				TagAlternativeName,
-				TaggedValues{
+				Values{
 					{TagComment, "red"},
 					{TagArchiveDate, "blue"},
 					{TagBatchCount, 5},
@@ -409,9 +409,9 @@ func TestDecoder_DisallowUnknownFields(t *testing.T) {
 		},
 		{
 			name: "first",
-			input: TaggedValue{
+			input: Value{
 				TagAlternativeName,
-				TaggedValues{
+				Values{
 					{TagArchiveDate, "blue"},
 					{TagComment, "red"},
 					{TagBatchCount, 5},
@@ -420,9 +420,9 @@ func TestDecoder_DisallowUnknownFields(t *testing.T) {
 		},
 		{
 			name: "last",
-			input: TaggedValue{
+			input: Value{
 				TagAlternativeName,
-				TaggedValues{
+				Values{
 					{TagComment, "red"},
 					{TagBatchCount, 5},
 					{TagArchiveDate, "blue"},

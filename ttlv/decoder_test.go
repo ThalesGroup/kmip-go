@@ -176,7 +176,7 @@ func TestUnmarshal(t *testing.T) {
 		},
 		{
 			name: "structtypeerror",
-			in: Structure{TTLVTag: TagBatchCount, Values: []interface{}{
+			in: TaggedValue{Tag: TagBatchCount, Value: TaggedValues{
 				TaggedValue{Tag: TagComment, Value: "red"},
 			}},
 			ptr: new(int),
@@ -184,23 +184,15 @@ func TestUnmarshal(t *testing.T) {
 		},
 		{
 			name: "ttlvStructure",
-			in: Structure{TTLVTag: TagBatchCount, Values: []interface{}{
+			in: TaggedValue{Tag: TagBatchCount, Value: TaggedValues{
 				TaggedValue{Tag: TagBatchItem, Value: "red"},
 				TaggedValue{Tag: TagBatchContinueCapability, Value: "blue"},
 			}},
-			ptr: new(Structure),
-			expected: func() interface{} {
-				s := Structure{TTLVTag: TagBatchCount}
-				for _, v := range []TaggedValue{
-					{Tag: TagBatchItem, Value: "red"},
-					{Tag: TagBatchContinueCapability, Value: "blue"},
-				} {
-					b, err := Marshal(v)
-					require.NoError(t, err)
-					s.Values = append(s.Values, TTLV(b))
-				}
-				return s
-			}(),
+			ptr: new(TaggedValue),
+			expected: TaggedValue{Tag: TagBatchCount, Value: TaggedValues{
+				TaggedValue{Tag: TagBatchItem, Value: "red"},
+				TaggedValue{Tag: TagBatchContinueCapability, Value: "blue"},
+			}},
 		},
 	}
 
@@ -210,7 +202,7 @@ func TestUnmarshal(t *testing.T) {
 	tests = append(tests,
 		unmarshalTest{
 			name: "simplestruct",
-			in: Structure{TTLVTag: TagBatchCount, Values: []interface{}{
+			in: TaggedValue{Tag: TagBatchCount, Value: TaggedValues{
 				TaggedValue{Tag: TagComment, Value: "red"},
 			}},
 			ptr:      new(A),
@@ -225,7 +217,7 @@ func TestUnmarshal(t *testing.T) {
 	tests = append(tests,
 		unmarshalTest{
 			name: "fieldtag",
-			in: Structure{TTLVTag: TagBatchCount, Values: []interface{}{
+			in: TaggedValue{Tag: TagBatchCount, Value: TaggedValues{
 				TaggedValue{Tag: TagComment, Value: "red"},
 			}},
 			ptr:      new(B),
@@ -241,7 +233,7 @@ func TestUnmarshal(t *testing.T) {
 	tests = append(tests,
 		unmarshalTest{
 			name: "multifields",
-			in: Structure{TTLVTag: TagBatchCount, Values: []interface{}{
+			in: TaggedValue{Tag: TagBatchCount, Value: TaggedValues{
 				TaggedValue{Tag: TagComment, Value: "red"},
 				TaggedValue{Tag: TagBatchCount, Value: "blue"},
 			}},
@@ -258,9 +250,9 @@ func TestUnmarshal(t *testing.T) {
 	tests = append(tests,
 		unmarshalTest{
 			name: "nested",
-			in: Structure{TTLVTag: TagBatchCount, Values: []interface{}{
+			in: TaggedValue{Tag: TagBatchCount, Value: TaggedValues{
 				TaggedValue{Tag: TagComment, Value: "red"},
-				Structure{TTLVTag: TagBatchCount, Values: []interface{}{
+				TaggedValue{Tag: TagBatchCount, Value: TaggedValues{
 					TaggedValue{Tag: TagComment, Value: "blue"},
 				}},
 			}},
@@ -277,9 +269,9 @@ func TestUnmarshal(t *testing.T) {
 	tests = append(tests,
 		unmarshalTest{
 			name: "nestedptr",
-			in: Structure{TTLVTag: TagBatchCount, Values: []interface{}{
+			in: TaggedValue{Tag: TagBatchCount, Value: TaggedValues{
 				TaggedValue{Tag: TagComment, Value: "red"},
-				Structure{TTLVTag: TagBatchCount, Values: []interface{}{
+				TaggedValue{Tag: TagBatchCount, Value: TaggedValues{
 					TaggedValue{Tag: TagComment, Value: "blue"},
 				}},
 			}},
@@ -295,7 +287,7 @@ func TestUnmarshal(t *testing.T) {
 	tests = append(tests,
 		unmarshalTest{
 			name: "slice",
-			in: Structure{TTLVTag: TagBatchCount, Values: []interface{}{
+			in: TaggedValue{Tag: TagBatchCount, Value: TaggedValues{
 				TaggedValue{Tag: TagComment, Value: "red"},
 				TaggedValue{Tag: TagComment, Value: "blue"},
 				TaggedValue{Tag: TagComment, Value: "green"},
@@ -315,7 +307,7 @@ func TestUnmarshal(t *testing.T) {
 	tests = append(tests,
 		unmarshalTest{
 			name: "anyflag",
-			in: Structure{Values: []interface{}{
+			in: TaggedValue{Value: TaggedValues{
 				TaggedValue{Tag: TagComment, Value: "red"},
 				TaggedValue{Tag: TagNameType, Value: "blue"},
 				TaggedValue{Tag: TagName, Value: "orange"},
@@ -402,38 +394,38 @@ func TestDecoder_DisallowUnknownFields(t *testing.T) {
 
 	tests := []struct {
 		name  string
-		input Structure
+		input TaggedValue
 	}{
 		{
 			name: "middle",
-			input: Structure{
+			input: TaggedValue{
 				TagAlternativeName,
-				[]interface{}{
-					TaggedValue{TagComment, "red"},
-					TaggedValue{TagArchiveDate, "blue"},
-					TaggedValue{TagBatchCount, 5},
+				TaggedValues{
+					{TagComment, "red"},
+					{TagArchiveDate, "blue"},
+					{TagBatchCount, 5},
 				},
 			},
 		},
 		{
 			name: "first",
-			input: Structure{
+			input: TaggedValue{
 				TagAlternativeName,
-				[]interface{}{
-					TaggedValue{TagArchiveDate, "blue"},
-					TaggedValue{TagComment, "red"},
-					TaggedValue{TagBatchCount, 5},
+				TaggedValues{
+					{TagArchiveDate, "blue"},
+					{TagComment, "red"},
+					{TagBatchCount, 5},
 				},
 			},
 		},
 		{
 			name: "last",
-			input: Structure{
+			input: TaggedValue{
 				TagAlternativeName,
-				[]interface{}{
-					TaggedValue{TagComment, "red"},
-					TaggedValue{TagBatchCount, 5},
-					TaggedValue{TagArchiveDate, "blue"},
+				TaggedValues{
+					{TagComment, "red"},
+					{TagBatchCount, 5},
+					{TagArchiveDate, "blue"},
 				},
 			},
 		},

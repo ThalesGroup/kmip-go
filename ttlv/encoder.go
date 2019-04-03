@@ -78,8 +78,18 @@ func (t *TaggedValue) UnmarshalTTLV(d *Decoder, ttlv TTLV) error {
 	t.Tag = ttlv.Tag()
 	switch ttlv.Type() {
 	case TypeStructure:
-		t.Value = Structure{}
-		return d.DecodeValue(&t.Value, ttlv)
+		var v TaggedValues
+
+		ttlv = ttlv.ValueStructure()
+		for ttlv.Valid() == nil {
+			err := d.DecodeValue(&v, ttlv)
+			if err != nil {
+				return err
+			}
+			ttlv = ttlv.Next()
+		}
+
+		t.Value = v
 	default:
 		t.Value = ttlv.Value()
 	}
@@ -92,52 +102,21 @@ func (t TaggedValue) MarshalTTLV(e *Encoder, tag Tag) error {
 		tag = t.Tag
 	}
 
+	if tvs, ok := t.Value.(TaggedValues); ok {
+		return e.EncodeStructure(tag, func(e *Encoder) error {
+			for _, v := range tvs {
+				if err := e.Encode(v); err != nil {
+					return err
+				}
+			}
+			return nil
+		})
+	}
+
 	return e.EncodeValue(tag, t.Value)
 }
 
-type Structure struct {
-	TTLVTag Tag
-	Values  []interface{} `kmip:",any"`
-}
-
-func (s *Structure) UnmarshalTTLV(d *Decoder, ttlv TTLV) error {
-	s.TTLVTag = ttlv.Tag()
-
-	ttlv = ttlv.ValueStructure()
-
-	for len(ttlv) > 0 {
-		var v interface{}
-		switch ttlv.Type() {
-		case TypeStructure:
-			v = Structure{}
-		default:
-			v = TaggedValue{}
-		}
-		err := d.DecodeValue(&v, ttlv)
-		if err != nil {
-			return err
-		}
-		s.Values = append(s.Values, v)
-		ttlv = ttlv.Next()
-	}
-	return nil
-}
-
-//func (s Structure) MarshalTTLV(e *Encoder, tag Tag) error {
-//	if s.TTLVTag != 0 {
-//		tag = s.TTLVTag
-//	}
-//
-//	return e.EncodeStructure(tag, func(encoder *Encoder) error {
-//		for _, v := range s.Values {
-//			err := encoder.Encode(v)
-//			if err != nil {
-//				return err
-//			}
-//		}
-//		return nil
-//	})
-//}
+type TaggedValues []TaggedValue
 
 type Encoder struct {
 	encodeDepth int

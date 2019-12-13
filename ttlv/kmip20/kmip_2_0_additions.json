@@ -1,0 +1,216 @@
+{
+  "tags": {
+    "Attributes": "0x420125",
+    "Common Attributes": "0x420126",
+    "Private Key Attributes": "0x420127",
+    "Public Key Attributes": "0x420128",
+    "Extension Enumeration": "0x420129",
+    "Extension Attribute": "0x42012A",
+    "Extension Parent Structure Tag": "0x42012B",
+    "Extension Description": "0x42012C",
+    "Server Name": "0x42012D",
+    "Server Serial Number": "0x42012E",
+    "Server Version": "0x42012F",
+    "Server Load": "0x420130",
+    "Product Name": "0x420131",
+    "Build Level": "0x420132",
+    "Build Date": "0x420133",
+    "Cluster Info": "0x420134",
+    "Alternate Failover Endpoints": "0x420135",
+    "Short Unique Identifier": "0x420136",
+    "Reserved": "0x420137",
+    "Tag": "0x420138",
+    "Certificate Request Unique Identifier": "0x420139",
+    "NIST Key Type": "0x42013A",
+    "Attribute Reference": "0x42013B",
+    "Current Attribute": "0x42013C",
+    "New Attribute": "0x42013D",
+    "Certificate Request Value": "0x420140",
+    "Log Message": "0x420141",
+    "Profile Version": "0x420142",
+    "Profile Version Major": "0x420143",
+    "Profile Version Minor": "0x420144",
+    "Protection Level": "0x420145",
+    "Protection Period": "0x420146",
+    "Quantum Safe": "0x420147",
+    "Quantum Safe Capability": "0x420148",
+    "Ticket": "0x420149",
+    "Ticket Type": "0x42014A",
+    "Ticket Value": "0x42014B",
+    "Request Count": "0x42014C",
+    "Rights": "0x42014D",
+    "Objects": "0x42014E",
+    "Operations": "0x42014F",
+    "Right": "0x420150",
+    "Endpoint Role": "0x420151",
+    "Defaults Information": "0x420152",
+    "Object Defaults": "0x420153",
+    "Ephemeral": "0x420154",
+    "Server Hashed Password": "0x420155",
+    "One Time Password": "0x420156",
+    "Hashed Password": "0x420157",
+    "Adjustment Type": "0x420158",
+    "PKCS#11 Interface": "0x420159",
+    "PKCS#11 Function": "0x42015A",
+    "PKCS#11 Input Parameters": "0x42015B",
+    "PKCS#11 Output Parameters": "0x42015C",
+    "PKCS#11 Return Code": "0x42015D",
+    "Protection Storage Mask": "0x42015E",
+    "Protection Storage Masks": "0x42015F",
+    "Interop Function": "0x420160",
+    "Interop Identifier": "0x420161",
+    "Adjustment Value": "420162"
+  },
+  "enums": [
+    {
+      "name": "Adjustment Type",
+      "comment": "11.1",
+      "tags": ["Adjustment Type"],
+      "values": {
+        "Increment": "0x00000001",
+        "Decrement": "0x00000002",
+        "Negate": "0x00000003"
+      }
+    },
+    {
+      "name": "Asynchronous Indicator",
+      "comment": "11.3",
+      "tags": ["Asynchronous Indicator"],
+      "values": {
+        "Mandatory": "0x00000001",
+        "Optional": "0x00000002",
+        "Prohibited": "0x00000003"
+      }
+    },
+    {
+      "name": "Data",
+      "comment": "11.13",
+      "tags": ["Data"],
+      "values": {
+        "Decrypt": "0x00000001",
+        "Encrypt": "0x00000002",
+        "Hash": "0x00000003",
+        "MAC MAC Data": "0x00000004",
+        "RNG Retrieve": "0x00000005",
+        "Sign Signature Data": "0x00000006",
+        "Signature Verify": "0x00000007"
+      }
+    },
+    {
+      "name": "Endpoint Role",
+      "comment": "11.19",
+      "tags": ["Endpoint Role"],
+      "values": {
+        "Client": "0x00000001",
+        "Server": "0x00000002"
+      }
+    },
+    {
+      "name": "Interop Function",
+      "comment": "11.22",
+      "tags": ["Interop Function"],
+      "values": {
+        "Begin": "0x00000001",
+        "End": "0x00000002",
+        "Reset": "0x00000003"
+      }
+    },
+    {
+      "name": "NIST Key Type",
+      "tags": ["NIST Key Type"],
+      "values": {
+        "Private signature key": "0x00000001",
+        "Public signature verification key": "0x00000002",
+        "Symmetric authentication key": "0x00000003",
+        "Private authentication key": "0x00000004",
+        "Public authentication key": "0x00000005",
+        "Symmetric data encryption key": "0x00000006",
+        "Symmetric key wrapping key": "0x00000007",
+        "Symmetric random number generation key": "0x00000008",
+        "Symmetric master key": "0x00000009",
+        "Private key transport key": "0x0000000A",
+        "Public key transport key": "0x0000000B",
+        "Symmetric key agreement key": "0x0000000C",
+        "Private static key agreement key": "0x0000000D",
+        "Public static key agreement key": "0x0000000E",
+        "Private ephemeral key agreement key": "0x0000000F",
+        "Public ephemeral key agreement key": "0x00000010",
+        "Symmetric authorization key": "0x00000011",
+        "Private authorization key": "0x00000012",
+        "Public authorization key": "0x00000013"
+      }
+    },
+    {
+      "name": "PKCS#11 Function",
+      "tags": ["PKCS#11 Function"]
+    },
+    {
+      "name": "PKCS#11 Return Code",
+      "tags": ["PKCS#11 Return Code"]
+    },
+    {
+      "name": "Protection Level",
+      "values": {
+        "High": "0x00000001",
+        "Low": "0x00000002"
+      },
+      "tags": [
+        "Protection Level"
+      ]
+    },
+    {
+      "name": "Ticket Type",
+      "tags": ["Ticket Type"],
+      "values": {
+        "Login": "0x00000001"
+      }
+    },
+    {
+      "name": "Unique Identifier",
+      "tags": ["Unique Identifier","Link"],
+      "values": {
+        "ID Placeholder": "0x00000001",
+        "Certify": "0x00000002",
+        "Create": "0x00000003",
+        "Create Key Pair": "0x00000004",
+        "Create Key Pair Private Key": "0x00000005",
+        "Create Key Pair Public Key": "0x00000006",
+        "Create Split Key": "0x00000007",
+        "Derive Key": "0x00000008",
+        "Import": "0x00000009",
+        "Join Split Key": "0x0000000A",
+        "Locate": "0x0000000B",
+        "Register": "0x0000000C",
+        "Re-key": "0x0000000D",
+        "Re-certify": "0x0000000E",
+        "Re-key Key Pair": "0x0000000F",
+        "Re-key Key Pair Private Key": "0x00000010",
+        "Re-key Key Pair Public Key": "0x00000011"
+      }
+    }
+  ],
+  "masks": [
+    {
+      "name": "Protection Storage Mask",
+      "values": {
+        "Software": "0x00000001",
+        "Hardware": "0x00000002",
+        "On Processor": "0x00000004",
+        "On System": "0x00000008",
+        "Off System": "0x00000010",
+        "Hypervisor": "0x00000020",
+        "Operating System": "0x00000040",
+        "Container": "0x00000080",
+        "On Premises": "0x00000100",
+        "Off Premises": "0x00000200",
+        "Self Managed": "0x00000400",
+        "Outsourced": "0x00000800",
+        "Validated": "0x00001000",
+        "Same Jurisdiction": "0x00002000"
+      },
+      "tags": [
+        "Protection Storage Mask"
+      ]
+    }
+  ]
+}

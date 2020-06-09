@@ -179,7 +179,7 @@ var knownGoodSamples = []struct {
 		exp: "42 00 01 | 05 | 00 00 00 04 | 00 00 00 03 00 00 00 00",
 	},
 	{
-		v:   func() TTLV { return TTLV(hex2bytes("42 00 01 | 06 | 00 00 00 08 | 00 00 00 00 00 00 00 01")) }(),
+		v:   func() TTLV { return TTLV(Hex2bytes("42 00 01 | 06 | 00 00 00 08 | 00 00 00 00 00 00 00 01")) }(),
 		exp: "42 00 01 | 06 | 00 00 00 08 | 00 00 00 00 00 00 00 01",
 	},
 }
@@ -237,7 +237,7 @@ func TestMarshal(t *testing.T) {
 			tname = fmt.Sprintf("%T", sample.v)
 		}
 		t.Run(tname, func(t *testing.T) {
-			exp := hex2bytes(sample.exp)
+			exp := Hex2bytes(sample.exp)
 
 			var got []byte
 			var err error
@@ -1279,52 +1279,52 @@ func TestEncoder_EncodeValue(t *testing.T) {
 		{
 			name:     "intenum",
 			v:        Value{Tag: TagWrappingMethod, Value: int(WrappingMethodMACSign)},
-			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
+			expected: TTLV(Hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
 		},
 		{
 			name:     "int8enum",
 			v:        Value{Tag: TagWrappingMethod, Value: int8(WrappingMethodMACSign)},
-			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
+			expected: TTLV(Hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
 		},
 		{
 			name:     "int16enum",
 			v:        Value{Tag: TagWrappingMethod, Value: int16(WrappingMethodMACSign)},
-			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
+			expected: TTLV(Hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
 		},
 		{
 			name:     "int32enum",
 			v:        Value{Tag: TagWrappingMethod, Value: int32(WrappingMethodMACSign)},
-			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
+			expected: TTLV(Hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
 		},
 		{
 			name:     "int64enum",
 			v:        Value{Tag: TagWrappingMethod, Value: int64(WrappingMethodMACSign)},
-			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
+			expected: TTLV(Hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
 		},
 		{
 			name:     "uintenum",
 			v:        Value{Tag: TagWrappingMethod, Value: uint(WrappingMethodMACSign)},
-			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
+			expected: TTLV(Hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
 		},
 		{
 			name:     "uint8enum",
 			v:        Value{Tag: TagWrappingMethod, Value: uint8(WrappingMethodMACSign)},
-			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
+			expected: TTLV(Hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
 		},
 		{
 			name:     "uint16enum",
 			v:        Value{Tag: TagWrappingMethod, Value: uint16(WrappingMethodMACSign)},
-			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
+			expected: TTLV(Hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
 		},
 		{
 			name:     "uint32enum",
 			v:        Value{Tag: TagWrappingMethod, Value: uint32(WrappingMethodMACSign)},
-			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
+			expected: TTLV(Hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
 		},
 		{
 			name:     "uint64enum",
 			v:        Value{Tag: TagWrappingMethod, Value: uint64(WrappingMethodMACSign)},
-			expected: TTLV(hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
+			expected: TTLV(Hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
 		},
 	}
 
@@ -1439,7 +1439,7 @@ func TestEncoder_EncodeStructure(t *testing.T) {
 func TestTaggedValue_UnmarshalTTLV(t *testing.T) {
 	var tv Value
 
-	b := hex2bytes("42000d02000000040000000500000000")
+	b := Hex2bytes("42000d02000000040000000500000000")
 
 	err := Unmarshal(b, &tv)
 	require.NoError(t, err)

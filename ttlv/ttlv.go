@@ -969,3 +969,25 @@ func unmarshalBigInt(n *big.Int, data []byte) {
 		n.Sub(n, new(big.Int).Lsh(one, uint(len(data))*8))
 	}
 }
+
+// Hex2bytes converts hex string to bytes.  Any non-hex characters in the string are stripped first.
+// panics on error
+func Hex2bytes(s string) []byte {
+	// strip non hex bytes
+	s = strings.Map(func(r rune) rune {
+		switch {
+		case r >= '0' && r <= '9':
+		case r >= 'A' && r <= 'F':
+		case r >= 'a' && r <= 'f':
+		default:
+			return -1 // drop
+		}
+		return r
+	}, s)
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		panic(err)
+	}
+
+	return b
+}

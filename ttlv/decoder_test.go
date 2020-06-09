@@ -26,7 +26,7 @@ func TestUnmarshal_known(t *testing.T) {
 			}
 			v := reflect.New(typ).Interface()
 
-			err := Unmarshal(hex2bytes(sample.exp), v)
+			err := Unmarshal(Hex2bytes(sample.exp), v)
 			require.NoError(t, err)
 			switch tv := sample.v.(type) {
 			case *big.Int:

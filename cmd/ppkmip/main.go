@@ -6,9 +6,11 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/gemalto/kmip-go/ttlv"
+	"io"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -124,31 +126,62 @@ xml format:
 		}
 	}
 
-	var raw ttlv.TTLV
-
-	switch strings.ToLower(inFormat) {
-	case "json":
-		err := json.Unmarshal(buf.Bytes(), &raw)
-		if err != nil {
-			fail("error parsing JSON", err)
-		}
-
-	case "xml":
-		err := xml.Unmarshal(buf.Bytes(), &raw)
-		if err != nil {
-			fail("error parsing XML", err)
-		}
-	case "hex":
-		raw = ttlv.Hex2bytes(buf.String())
-	default:
-		fail("invalid input format: "+inFormat, nil)
-	}
-
+	outFormat = strings.ToLower(outFormat)
 	if outFormat == "" {
 		outFormat = "text"
 	}
 
-	switch strings.ToLower(outFormat) {
+	var count int
+
+	switch strings.ToLower(inFormat) {
+	case "json":
+		var raw ttlv.TTLV
+		decoder := json.NewDecoder(buf)
+		for {
+			err := decoder.Decode(&raw)
+			switch {
+			case errors.Is(err, io.EOF):
+				return
+			case err == nil:
+			default:
+				fail("error parsing JSON", err)
+			}
+			printTTLV(outFormat, raw, count)
+			count++
+		}
+
+	case "xml":
+		var raw ttlv.TTLV
+		decoder := xml.NewDecoder(buf)
+		for {
+			err := decoder.Decode(&raw)
+			switch {
+			case errors.Is(err, io.EOF):
+				return
+			case err == nil:
+			default:
+				fail("error parsing XML", err)
+			}
+			printTTLV(outFormat, raw, count)
+			count++
+		}
+	case "hex":
+		raw := ttlv.TTLV(ttlv.Hex2bytes(buf.String()))
+		for len(raw) > 0 {
+			printTTLV(outFormat, raw, count)
+			count++
+			raw = raw.Next()
+		}
+	default:
+		fail("invalid input format: "+inFormat, nil)
+	}
+}
+
+func printTTLV(outFormat string, raw ttlv.TTLV, count int) {
+	if count > 0 {
+		fmt.Println("")
+	}
+	switch outFormat {
 	case "text":
 		if err := ttlv.Print(os.Stdout, "", "  ", raw); err != nil {
 			fail("error printing", err)
@@ -158,28 +191,27 @@ xml format:
 		if err != nil {
 			fail("error printing JSON", err)
 		}
-		fmt.Println(string(s))
+		fmt.Print(string(s))
 	case "xml":
 		s, err := xml.MarshalIndent(raw, "", "  ")
 		if err != nil {
 			fail("error printing XML", err)
 		}
-		fmt.Println(string(s))
+		fmt.Print(string(s))
 	case "hex":
-		fmt.Println(hex.EncodeToString(raw))
+		fmt.Print(hex.EncodeToString(raw))
 	case "prettyhex":
 		if err := ttlv.PrintPrettyHex(os.Stdout, "", "  ", raw); err != nil {
 			fail("error printing", err)
 		}
 	}
-
 }
 
 func fail(msg string, err error) {
 	if err != nil {
-		fmt.Fprintln(os.Stderr, msg+":", err)
+		_, _ = fmt.Fprintln(os.Stderr, msg+":", err)
 	} else {
-		fmt.Fprintln(os.Stderr, msg)
+		_, _ = fmt.Fprintln(os.Stderr, msg)
 	}
 	os.Exit(1)
 }

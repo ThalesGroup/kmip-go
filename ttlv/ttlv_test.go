@@ -12,7 +12,6 @@ import (
 	"math"
 	"math/big"
 	"strconv"
-	"strings"
 	"testing"
 	"time"
 )
@@ -31,7 +30,7 @@ var sample = `
 		4200790100000040420008010000003842000A07000000044E616D650000000042000B010000002042005507000000067075626B657900004200540500000004000000010000000042000F010000005042005C05000000040000000E00000000420093080000000137000000000000004200790100000028420008010000002042000A0700000008782D6D796174747242000B07000000057465737432000000`
 
 func TestPrint(t *testing.T) {
-	b := hex2bytes(sample)
+	b := Hex2bytes(sample)
 	t.Log(TTLV(b).String())
 }
 
@@ -99,7 +98,7 @@ func TestTTLV(t *testing.T) {
 	for _, tc := range tests {
 		t.Run("", func(t *testing.T) {
 
-			b := hex2bytes(tc.bs)
+			b := Hex2bytes(tc.bs)
 			tt := TTLV(b)
 			assert.NoError(t, tt.Valid())
 			assert.Equal(t, tc.typ, tt.Type())
@@ -108,11 +107,11 @@ func TestTTLV(t *testing.T) {
 	}
 
 	// structure
-	b := hex2bytes("42 00 20 | 01 | 00 00 00 20 | 42 00 04 | 05 | 00 00 00 04 | 00 00 00 FE 00 00 00 00 | 42 00 05 | 02 | 00 00 00 04 | 00 00 00 FF 00 00 00 00")
+	b := Hex2bytes("42 00 20 | 01 | 00 00 00 20 | 42 00 04 | 05 | 00 00 00 04 | 00 00 00 FE 00 00 00 00 | 42 00 05 | 02 | 00 00 00 04 | 00 00 00 FF 00 00 00 00")
 	tt := TTLV(b)
 	assert.NoError(t, tt.Valid())
 	assert.Equal(t, TypeStructure, tt.Type())
-	exp := hex2bytes("42 00 04 | 05 | 00 00 00 04 | 00 00 00 FE 00 00 00 00 | 42 00 05 | 02 | 00 00 00 04 | 00 00 00 FF 00 00 00 00")
+	exp := Hex2bytes("42 00 04 | 05 | 00 00 00 04 | 00 00 00 FE 00 00 00 00 | 42 00 05 | 02 | 00 00 00 04 | 00 00 00 FF 00 00 00 00")
 	assert.Equal(t, TTLV(exp), tt.Value())
 
 	for _, test := range knownGoodSamples {
@@ -121,7 +120,7 @@ func TestTTLV(t *testing.T) {
 			name = fmt.Sprintf("%T:%v", test.v, test.v)
 		}
 		t.Run(name, func(t *testing.T) {
-			b := hex2bytes(test.exp)
+			b := Hex2bytes(test.exp)
 			tt := TTLV(b)
 			require.NoError(t, tt.Valid())
 
@@ -1082,26 +1081,4 @@ func TestTTLV_UnmarshalXML_errors(t *testing.T) {
 		})
 
 	}
-}
-
-// hex2bytes converts hex string to bytes.  Any non-hex characters in the string are stripped first.
-// panics on error
-func hex2bytes(s string) []byte {
-	// strip non hex bytes
-	s = strings.Map(func(r rune) rune {
-		switch {
-		case r >= '0' && r <= '9':
-		case r >= 'A' && r <= 'F':
-		case r >= 'a' && r <= 'f':
-		default:
-			return -1 // drop
-		}
-		return r
-	}, s)
-	b, err := hex.DecodeString(s)
-	if err != nil {
-		panic(err)
-	}
-
-	return b
 }

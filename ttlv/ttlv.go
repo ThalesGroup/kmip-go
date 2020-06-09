@@ -874,17 +874,19 @@ func (t TTLV) Next() TTLV {
 
 func (t TTLV) String() string {
 	var sb strings.Builder
-	Print(&sb, "", t)
+	Print(&sb, "", "  ", t)
 	return sb.String()
 }
 
-func Print(w io.Writer, indent string, t TTLV) (err error) {
+func Print(w io.Writer, prefix, indent string, t TTLV) (err error) {
+
+	currIndent := prefix
 
 	tag := t.Tag()
 	typ := t.Type()
 	l := t.Len()
 
-	fmt.Fprintf(w, "%s%v (%s/%d):", indent, tag, typ.String(), l)
+	fmt.Fprintf(w, "%s%v (%s/%d):", currIndent, tag, typ.String(), l)
 
 	if err = t.Valid(); err != nil {
 		fmt.Fprintf(w, " (%s)", err.Error())
@@ -904,11 +906,11 @@ func Print(w io.Writer, indent string, t TTLV) (err error) {
 	case TypeByteString:
 		fmt.Fprintf(w, " %#x", t.ValueByteString())
 	case TypeStructure:
-		indent += "  "
+		currIndent += indent
 		s := t.ValueStructure()
 		for s != nil {
 			fmt.Fprint(w, "\n")
-			if err = Print(w, indent, s); err != nil {
+			if err = Print(w, currIndent, indent, s); err != nil {
 				// an error means we've hit invalid bytes in the stream
 				// there are no markers to pick back up again, so we have to give up
 				return
@@ -925,6 +927,34 @@ func Print(w io.Writer, indent string, t TTLV) (err error) {
 		}
 	default:
 		fmt.Fprintf(w, " %v", t.Value())
+	}
+	return
+}
+
+func PrintPrettyHex(w io.Writer, prefix, indent string, t TTLV) (err error) {
+
+	currIndent := prefix
+	if t.Valid() != nil {
+		fmt.Fprintf(w, "??? %s", hex.EncodeToString(t))
+		return
+	}
+	fmt.Fprintf(w, "%s%s | %s | %s", currIndent, hex.EncodeToString(t[0:3]), hex.EncodeToString(t[3:4]), hex.EncodeToString(t[4:8]))
+
+	switch t.Type() {
+	case TypeStructure:
+		currIndent += indent
+		s := t.ValueStructure()
+		for s != nil {
+			fmt.Fprint(w, "\n")
+			if err = PrintPrettyHex(w, currIndent, indent, s); err != nil {
+				// an error means we've hit invalid bytes in the stream
+				// there are no markers to pick back up again, so we have to give up
+				return
+			}
+			s = s.Next()
+		}
+	default:
+		fmt.Fprintf(w, " | %s", hex.EncodeToString(t[lenHeader:t.FullLen()]))
 	}
 	return
 }
@@ -968,4 +998,26 @@ func unmarshalBigInt(n *big.Int, data []byte) {
 		// and 100000000 - 11111111 = 00000001
 		n.Sub(n, new(big.Int).Lsh(one, uint(len(data))*8))
 	}
+}
+
+// Hex2bytes converts hex string to bytes.  Any non-hex characters in the string are stripped first.
+// panics on error
+func Hex2bytes(s string) []byte {
+	// strip non hex bytes
+	s = strings.Map(func(r rune) rune {
+		switch {
+		case r >= '0' && r <= '9':
+		case r >= 'A' && r <= 'F':
+		case r >= 'a' && r <= 'f':
+		default:
+			return -1 // drop
+		}
+		return r
+	}, s)
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		panic(err)
+	}
+
+	return b
 }

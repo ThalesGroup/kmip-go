@@ -874,17 +874,19 @@ func (t TTLV) Next() TTLV {
 
 func (t TTLV) String() string {
 	var sb strings.Builder
-	Print(&sb, "", t)
+	Print(&sb, "", "  ", t)
 	return sb.String()
 }
 
-func Print(w io.Writer, indent string, t TTLV) (err error) {
+func Print(w io.Writer, prefix, indent string, t TTLV) (err error) {
+
+	currIndent := prefix
 
 	tag := t.Tag()
 	typ := t.Type()
 	l := t.Len()
 
-	fmt.Fprintf(w, "%s%v (%s/%d):", indent, tag, typ.String(), l)
+	fmt.Fprintf(w, "%s%v (%s/%d):", currIndent, tag, typ.String(), l)
 
 	if err = t.Valid(); err != nil {
 		fmt.Fprintf(w, " (%s)", err.Error())
@@ -904,11 +906,11 @@ func Print(w io.Writer, indent string, t TTLV) (err error) {
 	case TypeByteString:
 		fmt.Fprintf(w, " %#x", t.ValueByteString())
 	case TypeStructure:
-		indent += "  "
+		currIndent += indent
 		s := t.ValueStructure()
 		for s != nil {
 			fmt.Fprint(w, "\n")
-			if err = Print(w, indent, s); err != nil {
+			if err = Print(w, currIndent, indent, s); err != nil {
 				// an error means we've hit invalid bytes in the stream
 				// there are no markers to pick back up again, so we have to give up
 				return

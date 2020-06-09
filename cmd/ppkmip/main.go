@@ -123,7 +123,7 @@ Output:
 
 	switch strings.ToLower(outFormat) {
 	case "text":
-		if err := ttlv.Print(os.Stdout, "", raw); err != nil {
+		if err := ttlv.Print(os.Stdout, "", "  ", raw); err != nil {
 			fail("error printing", err)
 		}
 	case "json":

@@ -931,6 +931,34 @@ func Print(w io.Writer, prefix, indent string, t TTLV) (err error) {
 	return
 }
 
+func PrintPrettyHex(w io.Writer, prefix, indent string, t TTLV) (err error) {
+
+	currIndent := prefix
+	if t.Valid() != nil {
+		fmt.Fprintf(w, "??? %s", hex.EncodeToString(t))
+		return
+	}
+	fmt.Fprintf(w, "%s%s | %s | %s", currIndent, hex.EncodeToString(t[0:3]), hex.EncodeToString(t[3:4]), hex.EncodeToString(t[4:8]))
+
+	switch t.Type() {
+	case TypeStructure:
+		currIndent += indent
+		s := t.ValueStructure()
+		for s != nil {
+			fmt.Fprint(w, "\n")
+			if err = PrintPrettyHex(w, currIndent, indent, s); err != nil {
+				// an error means we've hit invalid bytes in the stream
+				// there are no markers to pick back up again, so we have to give up
+				return
+			}
+			s = s.Next()
+		}
+	default:
+		fmt.Fprintf(w, " | %s", hex.EncodeToString(t[lenHeader:t.FullLen()]))
+	}
+	return
+}
+
 var one = big.NewInt(1)
 
 func unpadBigInt(data []byte) []byte {

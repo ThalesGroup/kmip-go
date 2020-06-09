@@ -140,6 +140,10 @@ Output:
 		fmt.Println(string(s))
 	case "hex":
 		fmt.Println(hex.EncodeToString(raw))
+	case "prettyhex":
+		if err := ttlv.PrintPrettyHex(os.Stdout, "", "  ", raw); err != nil {
+			fail("error printing", err)
+		}
 	}
 
 }

@@ -6,6 +6,11 @@ TEST_FLAGS = -vet=-all
 
 all: generate fmt build test
 
+ppkmip: builddir
+	GOOS=darwin GOARCH=amd64 go build -o build/ppkmip-macos ./cmd/ppkmip
+	GOOS=windows GOARCH=amd64 go build -o build/ppkmip-windows.exe ./cmd/ppkmip
+	GOOS=linux GOARCH=amd64 go build -o build/ppkmip-linux ./cmd/ppkmip
+
 build:
 	go build $(BUILD_FLAGS) $(PACKAGES)
 

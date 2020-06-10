@@ -19,11 +19,16 @@ import (
 func main() {
 
 	flag.Usage = func() {
-		s := `Usage of ppkmip:
+		s := `ppkmip - kmip pretty printer
+
+Usage:  ppkmip [options] [input] 
 
 Pretty prints KMIP.  Can read KMIP in hex, json, or xml formats, 
 and print it out in pretty-printed json, xml, text, raw hex, or
 pretty printed hex.
+		
+The input argument should be a string.  If not present, input will
+be read from standard in.
 
 When reading hex input, any non-hex characters, such as whitespace or
 embedded formatting characters, will be ignored.  The 'hexpretty'
@@ -36,8 +41,9 @@ but not for machine parsing.  It can't be used as input.
 The json and xml input/output formats are compliant with the KMIP spec, and
 should be compatible with other KMIP tooling.
 		
-Example:
+Examples:
 		
+    ppkmip 420069010000002042006a0200000004000000010000000042006b02000000040000000000000000
     echo "420069010000002042006a0200000004000000010000000042006b02000000040000000000000000" | ppkmip
 
 Output (in 'text' format):
@@ -102,6 +108,8 @@ xml format:
 			fail("error reading input file", err)
 		}
 		buf = bytes.NewBuffer(file)
+	} else if inArg := flag.Arg(0); inArg != "" {
+		buf.WriteString(inArg)
 	} else {
 		scanner := bufio.NewScanner(os.Stdin)
 

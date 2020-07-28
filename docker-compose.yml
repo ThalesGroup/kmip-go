@@ -6,4 +6,4 @@ services:
     environment:
       CGO_ENABLED: 0
     volumes:
-    - ./build:/go/src/github.com/gemalto/kmip-go/build
+    - ./build:/project/build

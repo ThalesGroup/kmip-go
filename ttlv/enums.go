@@ -45,7 +45,7 @@ func IsBitMask(tag Tag) bool {
 }
 
 func ParseInteger(tag Tag, s string) (int32, error) {
-	if strings.IndexAny(s, "| ") < 0 {
+	if !strings.ContainsAny(s, "| ") {
 		return parseOneInteger(tag, s)
 	}
 	// split values, look up each, and recombine

@@ -25,6 +25,7 @@ type kmipBlock struct {
 	Value value    `xml:"value"`
 }
 
+// nolint:dupl,gochecknoinits
 func init() {
 	// register new 2.0 values
 	// KMIP 2.0 introduces a tag named "Attribute Reference", whose value is the enumeration of all Tags
@@ -75,6 +76,7 @@ func init() {
 		},
 	})
 
+	// Register all the new values for existing enums
 	ttlv.RegisterCredentialType(ttlv.CredentialType(0x00000004), "One Time Password")
 	ttlv.RegisterCredentialType(ttlv.CredentialType(0x00000005), "Hashed Password")
 	ttlv.RegisterCredentialType(ttlv.CredentialType(0x00000006), "Ticket")
@@ -190,7 +192,7 @@ func init() {
 	ttlv.RegisterResultReason(ttlv.ResultReason(0x00000035), "Non Unique Name Attribute")
 	ttlv.RegisterResultReason(ttlv.ResultReason(0x00000036), "Object Destroyed")
 	ttlv.RegisterResultReason(ttlv.ResultReason(0x00000037), "Object Not Found")
-	ttlv.RegisterResultReason(ttlv.ResultReason(0x00000039), "Not Authorised")
+	ttlv.RegisterResultReason(ttlv.ResultReason(0x00000039), "Not Authorized")
 	ttlv.RegisterResultReason(ttlv.ResultReason(0x0000003A), "Server Limit Exceeded")
 	ttlv.RegisterResultReason(ttlv.ResultReason(0x0000003B), "Unknown Enumeration")
 	ttlv.RegisterResultReason(ttlv.ResultReason(0x0000003C), "Unknown Message Extension")

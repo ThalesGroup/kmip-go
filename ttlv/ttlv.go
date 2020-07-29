@@ -16,15 +16,18 @@ import (
 	"time"
 )
 
-const lenTag = 3
-const lenLen = 4
-const lenInt = 4
-const lenDateTime = 8
-const lenInterval = 4
-const lenEnumeration = 4
-const lenLongInt = 8
-const lenBool = 8
-const lenHeader = lenTag + 1 + lenLen // tag + type + len
+//nolint:deadcode,varcheck
+const (
+	lenTag         = 3
+	lenLen         = 4
+	lenInt         = 4
+	lenLongInt     = 8
+	lenDateTime    = 8
+	lenInterval    = 4
+	lenEnumeration = 4
+	lenBool        = 8
+	lenHeader      = lenTag + 1 + lenLen // tag + type + len
+)
 
 var ErrValueTruncated = errors.New("value truncated")
 var ErrHeaderTruncated = errors.New("header truncated")
@@ -101,10 +104,8 @@ func (t TTLV) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 				if err := e.EncodeToken(xml.EndElement{Name: xml.Name{Local: "AttributeValue"}}); err != nil {
 					return err
 				}
-			} else {
-				if err := e.Encode(n); err != nil {
-					return err
-				}
+			} else if err := e.Encode(n); err != nil {
+				return err
 			}
 			n = n.Next()
 		}
@@ -210,7 +211,7 @@ func unmarshalXMLTval(buf *encBuf, tval *xmltval, attrTag Tag) error {
 		if err != nil {
 			return merry.Prependf(err, "%s: invalid Integer value", tag.String())
 		}
-		buf.encodeInt(tag, int32(i))
+		buf.encodeInt(tag, i)
 	case TypeLongInteger:
 		i, err := strconv.ParseInt(tval.Value, 10, 64)
 		if err != nil {
@@ -442,7 +443,7 @@ func (t *TTLV) unmarshalJSON(b []byte, attrTag Tag) error {
 			if err != nil {
 				return merry.Prependf(err, "%s: invalid Integer value", tag.String())
 			}
-			enc.encodeInt(tag, int32(i))
+			enc.encodeInt(tag, i)
 		case float64:
 			enc.encodeInt(tag, int32(tv))
 		}
@@ -515,7 +516,7 @@ func (t *TTLV) unmarshalJSON(b []byte, attrTag Tag) error {
 		s := enc.begin(tag, TypeStructure)
 		var attrTag Tag
 		for _, c := range children {
-			err := (*TTLV)(&scratch).unmarshalJSON(c, attrTag)
+			err := (&scratch).unmarshalJSON(c, attrTag)
 			if err != nil {
 				return err
 			}
@@ -810,7 +811,7 @@ func (t TTLV) Valid() error {
 	if t.Type() == TypeStructure {
 		inner := t.ValueStructure()
 		for {
-			if len(inner) <= 0 {
+			if len(inner) == 0 {
 				break
 			}
 			if err := inner.Valid(); err != nil {
@@ -878,7 +879,7 @@ func (t TTLV) String() string {
 	return sb.String()
 }
 
-func Print(w io.Writer, prefix, indent string, t TTLV) (err error) {
+func Print(w io.Writer, prefix, indent string, t TTLV) error {
 
 	currIndent := prefix
 
@@ -888,17 +889,17 @@ func Print(w io.Writer, prefix, indent string, t TTLV) (err error) {
 
 	fmt.Fprintf(w, "%s%v (%s/%d):", currIndent, tag, typ.String(), l)
 
-	if err = t.Valid(); err != nil {
+	if err := t.Valid(); err != nil {
 		fmt.Fprintf(w, " (%s)", err.Error())
 		switch err {
 		case ErrHeaderTruncated:
 			// print the err, and as much of the truncated header as we have
 			fmt.Fprintf(w, " %#x", []byte(t))
-			return
+			return err
 		case ErrInvalidLen, ErrValueTruncated, ErrInvalidTag:
 			// Something is wrong with the value.  Print the error, and the value
 			fmt.Fprintf(w, " %#x", t.ValueRaw())
-			return
+			return err
 		}
 	}
 
@@ -910,10 +911,10 @@ func Print(w io.Writer, prefix, indent string, t TTLV) (err error) {
 		s := t.ValueStructure()
 		for s != nil {
 			fmt.Fprint(w, "\n")
-			if err = Print(w, currIndent, indent, s); err != nil {
+			if err := Print(w, currIndent, indent, s); err != nil {
 				// an error means we've hit invalid bytes in the stream
 				// there are no markers to pick back up again, so we have to give up
-				return
+				return err
 			}
 			s = s.Next()
 		}
@@ -928,7 +929,7 @@ func Print(w io.Writer, prefix, indent string, t TTLV) (err error) {
 	default:
 		fmt.Fprintf(w, " %v", t.Value())
 	}
-	return
+	return nil
 }
 
 func PrintPrettyHex(w io.Writer, prefix, indent string, t TTLV) (err error) {

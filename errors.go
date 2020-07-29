@@ -7,10 +7,6 @@ import (
 	"github.com/gemalto/kmip-go/ttlv"
 )
 
-func Is(err error, originals ...error) bool {
-	return merry.Is(err, originals...)
-}
-
 func Details(err error) string {
 	return merry.Details(err)
 }
@@ -23,6 +19,7 @@ const (
 	errorKeyResultReason errKey = iota
 )
 
+//nolint:gochecknoinits
 func init() {
 	merry.RegisterDetail("Result Reason", errorKeyResultReason)
 }

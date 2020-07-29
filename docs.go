@@ -9,7 +9,4 @@
 // Encoder/Decoder: These types marshal and unmarshal TTLV to Go structs.  They work much like json.Encoder,
 // json.Decoder, xml.Encoder, and xml.Decoder.  kmip.Encoder can also be used to directly encode TTLV values from
 // primitive values.
-//
-//
-
 package kmip

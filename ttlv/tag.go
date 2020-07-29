@@ -72,12 +72,14 @@ func (t *Tag) UnmarshalText(text []byte) (err error) {
 	return
 }
 
-var minStandardTag uint32 = 0x00420000
-var maxStandardTag uint32 = 0x00430000
-var minCustomTag uint32 = 0x00540000
-var maxCustomTag uint32 = 0x00550000
+const (
+	minStandardTag uint32 = 0x00420000
+	maxStandardTag uint32 = 0x00430000
+	minCustomTag   uint32 = 0x00540000
+	maxCustomTag   uint32 = 0x00550000
+)
 
-func (t Tag) valid() bool {
+func (t Tag) Valid() bool {
 	switch {
 	case uint32(t) >= minStandardTag && uint32(t) < maxStandardTag:
 		return true

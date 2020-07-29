@@ -475,17 +475,17 @@ func (t *TemplateAttribute) MarshalTTLV(e *ttlv.Encoder, tag ttlv.Tag) error {
 			for idx, v := range m {
 				if v != DeletedMarker {
 					err := e.EncodeStructure(ttlv.TagAttribute, func(e *ttlv.Encoder) error {
-						err := e.EncodeValue(ttlv.TagAttributeName, name)
+						err := e.EncodeValue(ttlv.TagAttributeName, name) //nolint:scopelint
 						if err != nil {
 							return err
 						}
-						if idx != 0 {
-							err := e.EncodeValue(ttlv.TagAttributeIndex, idx)
+						if idx != 0 { //nolint:scopelint
+							err := e.EncodeValue(ttlv.TagAttributeIndex, idx) //nolint:scopelint
 							if err != nil {
 								return err
 							}
 						}
-						return e.EncodeValue(ttlv.TagAttributeValue, v)
+						return e.EncodeValue(ttlv.TagAttributeValue, v) //nolint:scopelint
 					})
 					if err != nil {
 						return err

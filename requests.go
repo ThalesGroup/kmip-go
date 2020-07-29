@@ -1,4 +1,9 @@
+//nolint
 package kmip
+
+// This is a WIP implementation of a KMIP server.  The code is mostly based on the http server in
+// the golang standard library.  It is functional, but not all of the features of the http server
+// have been ported over yet, and some of the stuff in here still refers to http stuff.
 
 import (
 	"bufio"
@@ -161,13 +166,13 @@ func (srv *Server) Shutdown(ctx context.Context) error {
 	//}
 }
 
-func (s *Server) closeListenersLocked() error {
+func (srv *Server) closeListenersLocked() error {
 	var err error
-	for ln := range s.listeners {
+	for ln := range srv.listeners {
 		if cerr := (*ln).Close(); cerr != nil && err == nil {
 			err = cerr
 		}
-		delete(s.listeners, ln)
+		delete(srv.listeners, ln)
 	}
 	return err
 }
@@ -182,25 +187,25 @@ func (s *Server) closeListenersLocked() error {
 // Listener from another caller.
 //
 // It reports whether the server is still up (not Shutdown or Closed).
-func (s *Server) trackListener(ln *net.Listener, add bool) bool {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	if s.listeners == nil {
-		s.listeners = make(map[*net.Listener]struct{})
+func (srv *Server) trackListener(ln *net.Listener, add bool) bool {
+	srv.mu.Lock()
+	defer srv.mu.Unlock()
+	if srv.listeners == nil {
+		srv.listeners = make(map[*net.Listener]struct{})
 	}
 	if add {
-		if s.shuttingDown() {
+		if srv.shuttingDown() {
 			return false
 		}
-		s.listeners[ln] = struct{}{}
+		srv.listeners[ln] = struct{}{}
 	} else {
-		delete(s.listeners, ln)
+		delete(srv.listeners, ln)
 	}
 	return true
 }
 
-func (s *Server) shuttingDown() bool {
-	return atomic.LoadInt32(&s.inShutdown) != 0
+func (srv *Server) shuttingDown() bool {
+	return atomic.LoadInt32(&srv.inShutdown) != 0
 }
 
 type conn struct {

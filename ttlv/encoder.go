@@ -403,8 +403,7 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 	case v.CanAddr():
 		pv := v.Addr()
 		pvtyp := pv.Type()
-		switch {
-		case pvtyp.Implements(marshalerType):
+		if pvtyp.Implements(marshalerType) {
 			if flags&fOmitEmpty != 0 && isEmptyValue(v) {
 				return nil
 			}
@@ -442,8 +441,10 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 			// TODO: is this true?
 			var fi2 *fieldInfo
 			if fi != nil {
-				fi2 = &(*fi)
-				fi2.flags = fi2.flags &^ fOmitEmpty
+				fi2 = &fieldInfo{}
+				// make a copy.
+				*fi2 = *fi
+				fi2.flags &^= fOmitEmpty
 			}
 			err := e.encode(tag, v.Index(i), fi2)
 			if err != nil {
@@ -520,14 +521,14 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 				// Encoders can only get a pointer to field values if the field
 				// value is `addressable`.  Addressability is explained in the docs for reflect.Value#CanAddr().
 				// Using reflection to turn a reflect.Value() back into an interface{}
-				// can make a potentially addressable value (like the field of an addressible struct)
+				// can make a potentially addressable value (like the field of an addressable struct)
 				// into an unaddressable value (reflect.Value#Interface{} always returns an unaddressable
 				// copy).
 
 				// push the currField
 				currField := e.currField
 				e.currField = field.name
-				err := e.encode(TagNone, fv, &field)
+				err := e.encode(TagNone, fv, &field) //nolint:gosec,scopelint
 				// pop the currField
 				e.currField = currField
 				if err != nil {
@@ -565,7 +566,7 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 		}
 		e.encodeInt64(tag, int64(u))
 	case reflect.Int64:
-		e.encodeInt64(tag, int64(v.Int()))
+		e.encodeInt64(tag, v.Int())
 	case reflect.Bool:
 		e.encBuf.encodeBool(tag, v.Bool())
 	default:
@@ -593,9 +594,8 @@ func tagForMarshal(v reflect.Value, ti typeInfo, fi *fieldInfo) Tag {
 	// else infer from the value's type name
 	if fi != nil {
 		return fi.tag
-	} else {
-		return ti.inferredTag
 	}
+	return ti.inferredTag
 }
 
 // encBuf encodes basic KMIP types into TTLV
@@ -748,12 +748,13 @@ func getTypeInfo(typ reflect.Type) (ti typeInfo, err error) {
 
 var errSkip = errors.New("skip")
 
-func getFieldInfo(typ reflect.Type, sf reflect.StructField) (fi fieldInfo, err error) {
+func getFieldInfo(typ reflect.Type, sf reflect.StructField) (fieldInfo, error) {
+
+	var fi fieldInfo
 
 	// skip anonymous and unexported fields
 	if sf.Anonymous || /*unexported:*/ sf.PkgPath != "" {
-		err = errSkip
-		return
+		return fi, errSkip
 	}
 
 	fi.name = sf.Name
@@ -769,13 +770,13 @@ func getFieldInfo(typ reflect.Type, sf reflect.StructField) (fi fieldInfo, err e
 			switch value {
 			case "-":
 				// skip
-				err = errSkip
-				return
+				return fi, errSkip
 			case "":
 			default:
+				var err error
 				fi.explicitTag, err = ParseTag(value)
 				if err != nil {
-					return
+					return fi, err
 				}
 			}
 		} else {
@@ -800,9 +801,10 @@ func getFieldInfo(typ reflect.Type, sf reflect.StructField) (fi fieldInfo, err e
 	// extract type info for the field.  The KMIP tag
 	// for this field is derived from either the field name,
 	// the field tags, or the field type.
+	var err error
 	fi.ti, err = getTypeInfo(sf.Type)
 	if err != nil {
-		return
+		return fi, err
 	}
 
 	if fi.ti.tagField != nil && fi.ti.tagField.explicitTag != TagNone {
@@ -823,9 +825,7 @@ func getFieldInfo(typ reflect.Type, sf reflect.StructField) (fi fieldInfo, err e
 	if fi.tag == TagNone {
 		fi.tag, _ = ParseTag(fi.name)
 	}
-
-	return
-
+	return fi, nil
 }
 
 func (ti *typeInfo) getFieldsInfo() error {

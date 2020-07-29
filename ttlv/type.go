@@ -19,11 +19,11 @@ func ParseType(s string) (Type, error) {
 		b, err := hex.DecodeString(s[2:])
 		return Type(b[0]), err
 	}
-	if v, ok := _TypeNameToValueMap[s]; ok {
+	v, ok := _TypeNameToValueMap[s]
+	if ok {
 		return v, nil
-	} else {
-		return v, merry.Errorf("invalid type \"%s\"", s)
 	}
+	return v, merry.Errorf("invalid type \"%s\"", s)
 }
 
 // 2 and 9.1.1.2

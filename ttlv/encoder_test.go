@@ -544,7 +544,7 @@ func TestEncoder_EncodeValue(t *testing.T) {
 		},
 		{
 			name:     "ptrtonil",
-			v:        func() *string { var s *string; s = nil; return s }(),
+			v:        func() *string { var s *string; s = nil; return s }(), // nolint:gosimple
 			expected: nil,
 		},
 		{
@@ -554,7 +554,7 @@ func TestEncoder_EncodeValue(t *testing.T) {
 		},
 		{
 			name:     "nilinterface",
-			v:        func() io.Writer { var i io.Writer; i = nil; return i }(),
+			v:        func() io.Writer { var i io.Writer; i = nil; return i }(), // nolint:gosimple
 			expected: nil,
 		},
 		{

@@ -16,6 +16,10 @@ import (
 	"strings"
 )
 
+const FormatJSON = "json"
+const FormatXML = "xml"
+const FormatHex = "hex"
+
 func main() {
 
 	flag.Usage = func() {
@@ -126,11 +130,11 @@ xml format:
 		// auto detect input format
 		switch buf.Bytes()[0] {
 		case '[', '{':
-			inFormat = "json"
+			inFormat = FormatJSON
 		case '<':
-			inFormat = "xml"
+			inFormat = FormatXML
 		default:
-			inFormat = "hex"
+			inFormat = FormatHex
 		}
 	}
 
@@ -142,7 +146,7 @@ xml format:
 	var count int
 
 	switch strings.ToLower(inFormat) {
-	case "json":
+	case FormatJSON:
 		var raw ttlv.TTLV
 		decoder := json.NewDecoder(buf)
 		for {
@@ -158,7 +162,7 @@ xml format:
 			count++
 		}
 
-	case "xml":
+	case FormatXML:
 		var raw ttlv.TTLV
 		decoder := xml.NewDecoder(buf)
 		for {
@@ -173,7 +177,7 @@ xml format:
 			printTTLV(outFormat, raw, count)
 			count++
 		}
-	case "hex":
+	case FormatHex:
 		raw := ttlv.TTLV(ttlv.Hex2bytes(buf.String()))
 		for len(raw) > 0 {
 			printTTLV(outFormat, raw, count)

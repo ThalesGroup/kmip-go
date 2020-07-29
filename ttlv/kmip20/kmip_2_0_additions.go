@@ -3,27 +3,9 @@
 package kmip20
 
 import (
-	"bytes"
-	"encoding/xml"
 	"github.com/gemalto/kmip-go/ttlv"
-	"io"
-	"io/ioutil"
 	"strings"
 )
-
-type value struct {
-	Any ttlv.TTLV `xml:",any"`
-}
-
-type attrs struct {
-	Any []ttlv.TTLV `xml:",any"`
-}
-
-type kmipBlock struct {
-	Name  xml.Name `xml:"KMIP"`
-	Attrs attrs    `xml:"attr"`
-	Value value    `xml:"value"`
-}
 
 // nolint:dupl,gochecknoinits
 func init() {
@@ -208,35 +190,4 @@ func init() {
 	ttlv.RegisterResultReason(ttlv.ResultReason(0x00000046), "PKCS#11 Invalid Function ")
 	ttlv.RegisterResultReason(ttlv.ResultReason(0x00000047), "PKCS#11 Invalid Interface")
 
-}
-
-func Parse() error {
-
-	b, err := ioutil.ReadFile("objects-kmip20.xml")
-	if err != nil {
-		return err
-	}
-
-	decoder := xml.NewDecoder(bytes.NewReader(b))
-
-	for {
-		var block kmipBlock
-		err = decoder.Decode(&block)
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return err
-		}
-
-		//fmt.Println("Value:")
-		//fmt.Println(block.Value.Any.String())
-		//fmt.Println()
-		//fmt.Printf("Attrs (len %d):\n", len(block.Attrs.Any))
-		//for _, v := range block.Attrs.Any {
-		//	fmt.Println(v.String())
-		//}
-	}
-
-	return nil
 }

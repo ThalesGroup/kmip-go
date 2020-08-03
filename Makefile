@@ -18,6 +18,9 @@ ppkmip: builddir
 	GOOS=windows GOARCH=amd64 go build -o build/ppkmip-windows.exe ./cmd/ppkmip
 	GOOS=linux GOARCH=amd64 go build -o build/ppkmip-linux ./cmd/ppkmip
 
+kmipgen:
+	go install ./cmd/kmipgen
+
 lint:
 	golangci-lint run
 
@@ -75,8 +78,7 @@ update:
 
 # install tools used by the build.  typically only needs to be run once
 # to initialize a workspace.
-tools: buildtools
-	go install ./cmd/kmipgen
+tools: kmipgen
 	go get -u golang.org/x/tools/cmd/cover
 	sh -c "$$(wget -O - -q https://install.goreleaser.com/github.com/golangci/golangci-lint.sh || echo exit 2)" -- -b $(shell go env GOPATH)/bin $(GOLANGCI_LINT_VERSION)
 

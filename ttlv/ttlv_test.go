@@ -50,7 +50,7 @@ func TestTTLV(t *testing.T) {
 	}{
 		{
 			bs:  "42 00 20 | 02 | 00 00 00 04 | 00 00 00 08 00 00 00 00",
-			exp: int(8),
+			exp: int32(8),
 			typ: TypeInteger,
 		},
 		{

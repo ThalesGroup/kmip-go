@@ -1431,7 +1431,7 @@ func TestTaggedValue_UnmarshalTTLV(t *testing.T) {
 	err := Unmarshal(b, &tv)
 	require.NoError(t, err)
 
-	assert.Equal(t, Value{Tag: TagBatchCount, Value: 5}, tv)
+	assert.Equal(t, Value{Tag: TagBatchCount, Value: int32(5)}, tv)
 
 	s := Value{Tag: TagAttributeValue, Value: Values{
 		Value{Tag: TagNameType, Value: "red"},
@@ -1471,7 +1471,7 @@ func TestTaggedValue_MarshalTTLV(t *testing.T) {
 
 	assert.Equal(t, TagBatchCount, ttlv.Tag())
 	assert.Equal(t, TypeInteger, ttlv.Type())
-	assert.Equal(t, 5, ttlv.ValueInteger())
+	assert.Equal(t, int32(5), ttlv.ValueInteger())
 
 	buf := bytes.NewBuffer(nil)
 	enc := NewEncoder(buf)
@@ -1481,7 +1481,7 @@ func TestTaggedValue_MarshalTTLV(t *testing.T) {
 	ttlv = TTLV(buf.Bytes())
 	assert.Equal(t, TagBatchCount, ttlv.Tag())
 	assert.Equal(t, TypeInteger, ttlv.Type())
-	assert.Equal(t, 5, ttlv.ValueInteger())
+	assert.Equal(t, int32(5), ttlv.ValueInteger())
 
 	fmt.Println(hex.EncodeToString(buf.Bytes()))
 
@@ -1494,7 +1494,7 @@ func TestTaggedValue_MarshalTTLV(t *testing.T) {
 	ttlv = TTLV(buf.Bytes())
 	assert.Equal(t, TagAttributeValue, ttlv.Tag())
 	assert.Equal(t, TypeInteger, ttlv.Type())
-	assert.Equal(t, 5, ttlv.ValueInteger())
+	assert.Equal(t, int32(5), ttlv.ValueInteger())
 
 	tv.Value = Values{
 		{Tag: TagComment, Value: "red"},

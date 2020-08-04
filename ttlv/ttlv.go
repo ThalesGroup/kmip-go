@@ -100,7 +100,7 @@ func (t TTLV) MarshalXML(e *xml.Encoder, _ xml.StartElement) error {
 				if n.Type() == TypeEnumeration {
 					valAttr.Value = DefaultRegistry.FormatEnum(attrTag, n.ValueEnumeration())
 				} else {
-					valAttr.Value = DefaultRegistry.FormatInt(attrTag, int32(n.ValueInteger()))
+					valAttr.Value = DefaultRegistry.FormatInt(attrTag, n.ValueInteger())
 				}
 				err := e.EncodeToken(xml.StartElement{
 					Name: xml.Name{Local: TagAttributeValue.String()},
@@ -127,9 +127,9 @@ func (t TTLV) MarshalXML(e *xml.Encoder, _ xml.StartElement) error {
 
 	case TypeInteger:
 		if enum := DefaultRegistry.EnumForTag(t.Tag()); enum != nil {
-			out.Value = strings.Replace(FormatInt(int32(t.ValueInteger()), enum), "|", " ", -1)
+			out.Value = strings.Replace(FormatInt(t.ValueInteger(), enum), "|", " ", -1)
 		} else {
-			out.Value = strconv.Itoa(t.ValueInteger())
+			out.Value = strconv.Itoa(int(t.ValueInteger()))
 		}
 	case TypeBoolean:
 		out.Value = strconv.FormatBool(t.ValueBoolean())
@@ -577,10 +577,10 @@ func (t TTLV) MarshalJSON() ([]byte, error) {
 	case TypeInteger:
 		if enum := DefaultRegistry.EnumForTag(t.Tag()); enum != nil {
 			sb.WriteString(`"`)
-			sb.WriteString(FormatInt(int32(t.ValueInteger()), enum))
+			sb.WriteString(FormatInt(t.ValueInteger(), enum))
 			sb.WriteString(`"`)
 		} else {
-			sb.WriteString(strconv.Itoa(t.ValueInteger()))
+			sb.WriteString(strconv.Itoa(int(t.ValueInteger())))
 		}
 	case TypeLongInteger:
 		v := t.ValueLongInteger()
@@ -636,10 +636,10 @@ func (t TTLV) MarshalJSON() ([]byte, error) {
 				sb.WriteString(`{"tag":"AttributeValue","type":"Integer","value":`)
 				if enum := DefaultRegistry.EnumForTag(attrTag); enum != nil {
 					sb.WriteString(`"`)
-					sb.WriteString(FormatInt(int32(c.ValueInteger()), enum))
+					sb.WriteString(FormatInt(c.ValueInteger(), enum))
 					sb.WriteString(`"`)
 				} else {
-					sb.WriteString(strconv.Itoa(c.ValueInteger()))
+					sb.WriteString(strconv.Itoa(int(c.ValueInteger())))
 				}
 				sb.WriteString(`}`)
 			default:
@@ -792,8 +792,8 @@ func (t TTLV) Value() interface{} {
 	panic(fmt.Sprintf("invalid type: %x", byte(t.Type())))
 }
 
-func (t TTLV) ValueInteger() int {
-	return int(binary.BigEndian.Uint32(t.ValueRaw()))
+func (t TTLV) ValueInteger() int32 {
+	return int32(binary.BigEndian.Uint32(t.ValueRaw()))
 }
 
 func (t TTLV) ValueLongInteger() int64 {
@@ -963,7 +963,7 @@ func Print(w io.Writer, prefix, indent string, t TTLV) error {
 		fmt.Fprint(w, " ", DefaultRegistry.FormatEnum(tag, t.ValueEnumeration()))
 	case TypeInteger:
 		if enum := DefaultRegistry.EnumForTag(tag); enum != nil {
-			fmt.Fprint(w, " ", FormatInt(int32(t.ValueInteger()), enum))
+			fmt.Fprint(w, " ", FormatInt(t.ValueInteger(), enum))
 		} else {
 			fmt.Fprintf(w, " %v", t.Value())
 		}

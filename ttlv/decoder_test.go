@@ -325,7 +325,7 @@ func TestUnmarshal(t *testing.T) {
 			b, err := Marshal(Value{Tag: TagBatchCount, Value: test.in})
 			require.NoError(t, err)
 
-			t.Log(TTLV(b).String())
+			t.Log(b.String())
 
 			v := reflect.New(reflect.TypeOf(test.ptr).Elem())
 			expected := test.expected
@@ -365,10 +365,10 @@ func TestUnmarshal(t *testing.T) {
 				require.NoError(t, err)
 
 				if !test.skipExactRoundtripTest {
-					assert.Equal(t, TTLV(b).String(), TTLV(bb).String())
+					assert.Equal(t, b.String(), bb.String())
 				}
 
-				t.Log(TTLV(bb).String())
+				t.Log(bb.String())
 
 				vv := reflect.New(reflect.TypeOf(test.ptr).Elem())
 				err = Unmarshal(bb, vv.Interface())

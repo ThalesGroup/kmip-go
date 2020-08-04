@@ -30,13 +30,33 @@ var sample = `
 		4200790100000040420008010000003842000A07000000044E616D650000000042000B010000002042005507000000067075626B657900004200540500000004000000010000000042000F010000005042005C05000000040000000E00000000420093080000000137000000000000004200790100000028420008010000002042000A0700000008782D6D796174747242000B07000000057465737432000000`
 
 func TestPrint(t *testing.T) {
-	b := Hex2bytes("420069010000002042006a0200000004000000010000000042006b02000000040000000000000000")
+	b := Hex2bytes(sample)
 	buf := &bytes.Buffer{}
 	err := Print(buf, "", "  ", b)
 	require.NoError(t, err)
-	assert.Equal(t, `ProtocolVersion (Structure/32):
-  ProtocolVersionMajor (Integer/4): 1
-  ProtocolVersionMinor (Integer/4): 0`, buf.String())
+	assert.Equal(t, `RequestMessage (Structure/280):
+  RequestHeader (Structure/72):
+    ProtocolVersion (Structure/32):
+      ProtocolVersionMajor (Integer/4): 1
+      ProtocolVersionMinor (Integer/4): 0
+    BatchOrderOption (Boolean/8): true
+    BatchCount (Integer/4): 2
+  BatchItem (Structure/104):
+    Operation (Enumeration/4): Locate
+    UniqueBatchItemID (ByteString/1): 0x36
+    RequestPayload (Structure/64):
+      Attribute (Structure/56):
+        AttributeName (TextString/4): Name
+        AttributeValue (Structure/32):
+          NameValue (TextString/6): pubkey
+          NameType (Enumeration/4): UninterpretedTextString
+  BatchItem (Structure/80):
+    Operation (Enumeration/4): ModifyAttribute
+    UniqueBatchItemID (ByteString/1): 0x37
+    RequestPayload (Structure/40):
+      Attribute (Structure/32):
+        AttributeName (TextString/8): x-myattr
+        AttributeValue (TextString/5): test2`, buf.String())
 
 	// Should tolerate invalid ttlv value
 	b = Hex2bytes("620069010000002042006a0200000004000000010000000042006b02000000040000000000000000")
@@ -54,13 +74,33 @@ func TestPrint(t *testing.T) {
 }
 
 func TestPrintPrettyHex(t *testing.T) {
-	b := Hex2bytes("420069010000002042006a0200000004000000010000000042006b02000000040000000000000000")
+	b := Hex2bytes(sample)
 	buf := &bytes.Buffer{}
 	err := PrintPrettyHex(buf, "", "  ", b)
 	require.NoError(t, err)
-	assert.Equal(t, `420069 | 01 | 00000020
-  42006a | 02 | 00000004 | 0000000100000000
-  42006b | 02 | 00000004 | 0000000000000000`, buf.String())
+	assert.Equal(t, `420078 | 01 | 00000118
+  420077 | 01 | 00000048
+    420069 | 01 | 00000020
+      42006a | 02 | 00000004 | 0000000100000000
+      42006b | 02 | 00000004 | 0000000000000000
+    420010 | 06 | 00000008 | 0000000000000001
+    42000d | 02 | 00000004 | 0000000200000000
+  42000f | 01 | 00000068
+    42005c | 05 | 00000004 | 0000000800000000
+    420093 | 08 | 00000001 | 3600000000000000
+    420079 | 01 | 00000040
+      420008 | 01 | 00000038
+        42000a | 07 | 00000004 | 4e616d6500000000
+        42000b | 01 | 00000020
+          420055 | 07 | 00000006 | 7075626b65790000
+          420054 | 05 | 00000004 | 0000000100000000
+  42000f | 01 | 00000050
+    42005c | 05 | 00000004 | 0000000e00000000
+    420093 | 08 | 00000001 | 3700000000000000
+    420079 | 01 | 00000028
+      420008 | 01 | 00000020
+        42000a | 07 | 00000008 | 782d6d7961747472
+        42000b | 07 | 00000005 | 7465737432000000`, buf.String())
 
 	// Should tolerate invalid ttlv value
 	b = Hex2bytes("620069010000002042006a0200000004000000010000000042006b02000000040000000000000000")
@@ -210,7 +250,7 @@ func TestTTLV_UnmarshalTTLV(t *testing.T) {
 	enc := NewEncoder(buf)
 	require.NoError(t, enc.EncodeValue(TagComment, "red"))
 
-	err := ttlv.UnmarshalTTLV(nil, TTLV(buf.Bytes()))
+	err := ttlv.UnmarshalTTLV(nil, buf.Bytes())
 	require.NoError(t, err)
 
 	require.NotNil(t, ttlv)
@@ -224,7 +264,7 @@ func TestTTLV_UnmarshalTTLV(t *testing.T) {
 	// copy some marker bytes into the end.  after unmarshaling, the marker bytes should
 	// be intact, since they are in the end part of the buffer
 	copy(ttlv[buf.Len():], []byte("whitewhale"))
-	err = ttlv.UnmarshalTTLV(nil, TTLV(buf.Bytes()))
+	err = ttlv.UnmarshalTTLV(nil, buf.Bytes())
 
 	require.NoError(t, err)
 	require.Equal(t, TTLV(buf.Bytes()), ttlv)
@@ -236,7 +276,7 @@ func TestTTLV_UnmarshalTTLV(t *testing.T) {
 	// everything still works
 
 	ttlv = make(TTLV, buf.Len()-2)
-	err = ttlv.UnmarshalTTLV(nil, TTLV(buf.Bytes()))
+	err = ttlv.UnmarshalTTLV(nil, buf.Bytes())
 
 	require.NoError(t, err)
 	require.Equal(t, TTLV(buf.Bytes()), ttlv)
@@ -594,7 +634,7 @@ func TestTTLV_UnmarshalJSON(t *testing.T) {
 				err = json.Unmarshal([]byte(input), &ttlv)
 				require.NoError(t, err)
 
-				assert.Equal(t, TTLV(expTTLV), ttlv)
+				assert.Equal(t, expTTLV, ttlv)
 			}
 
 		})
@@ -641,7 +681,7 @@ func TestTTLV_MarshalJSON(t *testing.T) {
 			exp: func() string {
 				ttlv, err := Marshal(Value{Tag: TagBatchCount, Value: int64(1) << 53})
 				require.NoError(t, err)
-				return `{"tag":"BatchCount","type":"LongInteger","value":"0x` + hex.EncodeToString(TTLV(ttlv).ValueRaw()) + `"}`
+				return `{"tag":"BatchCount","type":"LongInteger","value":"0x` + hex.EncodeToString(ttlv.ValueRaw()) + `"}`
 			}(),
 		},
 		{
@@ -654,7 +694,7 @@ func TestTTLV_MarshalJSON(t *testing.T) {
 			exp: func() string {
 				ttlv, err := Marshal(Value{Tag: TagBatchCount, Value: big.NewInt(int64(1) << 53)})
 				require.NoError(t, err)
-				return `{"tag":"BatchCount","type":"BigInteger","value":"0x` + hex.EncodeToString(TTLV(ttlv).ValueRaw()) + `"}`
+				return `{"tag":"BatchCount","type":"BigInteger","value":"0x` + hex.EncodeToString(ttlv.ValueRaw()) + `"}`
 			}(),
 		},
 		{
@@ -744,8 +784,7 @@ func TestTTLV_MarshalJSON(t *testing.T) {
 		t.Run(testcase.name, func(t *testing.T) {
 			b, err := Marshal(testcase.in)
 			require.NoError(t, err)
-			ttlv := TTLV(b)
-			j, err := json.Marshal(ttlv)
+			j, err := json.Marshal(b)
 			require.NoError(t, err)
 			require.JSONEq(t, testcase.exp, string(j))
 		})
@@ -859,8 +898,7 @@ func TestTTLV_MarshalXML(t *testing.T) {
 		t.Run(testcase.name, func(t *testing.T) {
 			b, err := Marshal(testcase.in)
 			require.NoError(t, err)
-			ttlv := TTLV(b)
-			j, err := xml.Marshal(ttlv)
+			j, err := xml.Marshal(b)
 			require.NoError(t, err)
 			require.Equal(t, testcase.exp, string(j))
 		})
@@ -1028,7 +1066,7 @@ func TestTTLV_UnmarshalXML(t *testing.T) {
 				err = xml.Unmarshal([]byte(input), &ttlv)
 				require.NoError(t, err)
 
-				assert.Equal(t, TTLV(expTTLV), ttlv)
+				assert.Equal(t, expTTLV, ttlv)
 			}
 
 		})

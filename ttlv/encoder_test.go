@@ -187,7 +187,7 @@ var knownGoodSamples = []struct {
 
 type MarshalerStruct struct{}
 
-func (MarshalerStruct) MarshalTTLV(e *Encoder, tag Tag) error {
+func (MarshalerStruct) MarshalTTLV(e *Encoder, _ Tag) error {
 	return e.EncodeStructure(TagBatchCount, func(e *Encoder) error {
 		e.EncodeInteger(TagActivationDate, 4)
 		e.EncodeInteger(TagAlternativeName, 5)
@@ -1464,7 +1464,7 @@ func TestTaggedValue_MarshalTTLV(t *testing.T) {
 	b, err = Marshal(&tv)
 	require.NoError(t, err)
 
-	ttlv := TTLV(b)
+	ttlv := b
 
 	assert.Equal(t, TagBatchCount, ttlv.Tag())
 	assert.Equal(t, TypeInteger, ttlv.Type())
@@ -1475,7 +1475,7 @@ func TestTaggedValue_MarshalTTLV(t *testing.T) {
 	err = enc.EncodeValue(TagAttributeValue, tv)
 	require.NoError(t, err)
 
-	ttlv = TTLV(buf.Bytes())
+	ttlv = buf.Bytes()
 	assert.Equal(t, TagBatchCount, ttlv.Tag())
 	assert.Equal(t, TypeInteger, ttlv.Type())
 	assert.Equal(t, int32(5), ttlv.ValueInteger())
@@ -1488,7 +1488,7 @@ func TestTaggedValue_MarshalTTLV(t *testing.T) {
 	err = enc.EncodeValue(TagAttributeValue, tv)
 	require.NoError(t, err)
 
-	ttlv = TTLV(buf.Bytes())
+	ttlv = buf.Bytes()
 	assert.Equal(t, TagAttributeValue, ttlv.Tag())
 	assert.Equal(t, TypeInteger, ttlv.Type())
 	assert.Equal(t, int32(5), ttlv.ValueInteger())
@@ -1500,7 +1500,7 @@ func TestTaggedValue_MarshalTTLV(t *testing.T) {
 	b, err = Marshal(tv)
 	require.NoError(t, err)
 
-	ttlv = TTLV(b)
+	ttlv = b
 
 	assert.Equal(t, TypeStructure, ttlv.Type())
 
@@ -1550,7 +1550,7 @@ type BatchItem struct {
 	D                     time.Duration
 }
 
-func (b *BatchItem) MarshalTTLV(e *Encoder, tag Tag) error {
+func (b *BatchItem) MarshalTTLV(e *Encoder, _ Tag) error {
 	return e.EncodeStructure(TagBatchItem, func(e *Encoder) error {
 		e.EncodeInteger(TagBatchCount, int32(b.BatchCount))
 		if b.Attribute != nil {

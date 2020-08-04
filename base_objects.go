@@ -28,39 +28,6 @@ type Attribute struct {
 	AttributeValue interface{}
 }
 
-func (a *Attribute) UnmarshalTTLV(d *ttlv.Decoder, ttlvV ttlv.TTLV) error {
-	if len(ttlvV) == 0 {
-		return nil
-	}
-
-	if a == nil {
-		*a = Attribute{}
-	}
-
-	// cast a to a different type, to avoid recursive calls to UnmarshalTTLV
-	type attribute Attribute
-	err := d.DecodeValue((*attribute)(a), ttlvV)
-	if err != nil {
-		return err
-	}
-
-	av := a.AttributeValue.(ttlv.TTLV)
-
-	switch av.Type() {
-	case ttlv.TypeEnumeration:
-		tag, _ := ttlv.ParseTag(a.AttributeName)
-		if tag != ttlv.TagNone {
-			a.AttributeValue = ttlv.EnumToTyped(tag, ttlvV.ValueEnumeration())
-		} else {
-			a.AttributeValue = av.Value()
-		}
-	default:
-		a.AttributeValue = av.Value()
-	}
-
-	return nil
-}
-
 // Credential 2.1.2 Table 3
 //
 // A Credential is a structure (see Table 3) used for client identification purposes and is not managed by the

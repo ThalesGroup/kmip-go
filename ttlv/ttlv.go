@@ -35,9 +35,18 @@ var ErrInvalidLen = errors.New("invalid length")
 var ErrInvalidType = errors.New("invalid KMIP type")
 var ErrInvalidTag = errors.New("invalid tag")
 
+// TTLV is a byte slice that begins with a TTLV encoded block.  The methods of TTLV operate on the
+// TTLV value located at the beginning of the slice.  Any bytes in the slice after
+// the end of the TTLV are ignored.  Use TTLV.Next() to return a new slice starting
+// after the current value.
+//
+// TTLV knows how to marshal/unmarshal to XML and JSON, following the KMIP specification
+// for those encodings.  Wherever possible, canonical names for tags, enum values, and mask
+// values will be used, if those values have been registered.  Otherwise, compliant
+// hex value encoding is used.
 type TTLV []byte
 
-func (t TTLV) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+func (t TTLV) MarshalXML(e *xml.Encoder, _ xml.StartElement) error {
 	if len(t) == 0 {
 		return nil
 	}
@@ -82,9 +91,17 @@ func (t TTLV) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 			// to their string variants
 			if n.Tag() == TagAttributeName {
 				// try to map the attribute name to a tag
-				attrTag, _ = ParseTag(kmiputil.NormalizeName(n.ValueTextString()))
+				attrTag, _ = DefaultRegistry.ParseTag(kmiputil.NormalizeName(n.ValueTextString()))
 			}
 			if n.Tag() == TagAttributeValue && (n.Type() == TypeEnumeration || n.Type() == TypeInteger) {
+				valAttr := xml.Attr{
+					Name: xml.Name{Local: "value"},
+				}
+				if n.Type() == TypeEnumeration {
+					valAttr.Value = DefaultRegistry.FormatEnum(attrTag, n.ValueEnumeration())
+				} else {
+					valAttr.Value = DefaultRegistry.FormatInt(attrTag, int32(n.ValueInteger()))
+				}
 				err := e.EncodeToken(xml.StartElement{
 					Name: xml.Name{Local: TagAttributeValue.String()},
 					Attr: []xml.Attr{
@@ -92,10 +109,7 @@ func (t TTLV) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 							Name:  xml.Name{Local: "type"},
 							Value: n.Type().String(),
 						},
-						{
-							Name:  xml.Name{Local: "value"},
-							Value: EnumToString(attrTag, n.ValueEnumeration()),
-						},
+						valAttr,
 					},
 				})
 				if err != nil {
@@ -112,8 +126,8 @@ func (t TTLV) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 		return e.EncodeToken(xml.EndElement{Name: out.XMLName})
 
 	case TypeInteger:
-		if IsBitMask(t.Tag()) {
-			out.Value = strings.Replace(EnumToString(t.Tag(), t.ValueEnumeration()), "|", " ", -1)
+		if enum := DefaultRegistry.EnumForTag(t.Tag()); enum != nil {
+			out.Value = strings.Replace(FormatInt(int32(t.ValueInteger()), enum), "|", " ", -1)
 		} else {
 			out.Value = strconv.Itoa(t.ValueInteger())
 		}
@@ -124,7 +138,7 @@ func (t TTLV) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	case TypeBigInteger:
 		out.Value = hex.EncodeToString(t.ValueRaw())
 	case TypeEnumeration:
-		out.Value = EnumToString(t.Tag(), t.ValueEnumeration())
+		out.Value = DefaultRegistry.FormatEnum(t.Tag(), t.ValueEnumeration())
 	case TypeTextString:
 		out.Value = t.ValueTextString()
 	case TypeByteString:
@@ -146,31 +160,39 @@ type xmltval struct {
 	Children []*xmltval `xml:",any"`
 }
 
+func syntaxError(tag Tag, tp Type, err error) error {
+	return merry.Prependf(err, "%s: invalid %s", tag.String(), tp.String())
+}
+
 func unmarshalXMLTval(buf *encBuf, tval *xmltval, attrTag Tag) error {
 	if tval.Tag == "" {
 		tval.Tag = tval.XMLName.Local
 	}
 
-	tag, err := ParseTag(tval.Tag)
+	tag, err := DefaultRegistry.ParseTag(tval.Tag)
 	if err != nil {
-		return err
+		return merry.Prepend(err, "invalid tag")
 	}
 
 	var tp Type
 	if tval.Type == "" {
 		tp = TypeStructure
 	} else {
-		tp, err = ParseType(tval.Type)
+		tp, err = DefaultRegistry.ParseType(tval.Type)
 		if err != nil {
-			return err
+			return merry.Prepend(err, "invalid type")
 		}
+	}
+
+	syntaxError := func(err error) error {
+		return syntaxError(tag, tp, merry.HereSkipping(err, 1))
 	}
 
 	switch tp {
 	case TypeBoolean:
 		b, err := strconv.ParseBool(tval.Value)
 		if err != nil {
-			return merry.Prependf(err, "%s: invalid Boolean value: must be 0, 1, true, or false", tag.String())
+			return syntaxError(merry.Prepend(err, "must be 0, 1, true, or false"))
 		}
 		buf.encodeBool(tag, b)
 	case TypeTextString:
@@ -179,23 +201,23 @@ func unmarshalXMLTval(buf *encBuf, tval *xmltval, attrTag Tag) error {
 		// TODO: consider allowing this, just strip off the 0x prefix
 		// it's not to spec, but its a simple accommodation
 		if strings.HasPrefix(tval.Value, "0x") {
-			return merry.Errorf("%s: invalid ByteString value: should not have 0x prefix", tag.String())
+			return syntaxError(errors.New("should not have 0x prefix"))
 		}
 		b, err := hex.DecodeString(tval.Value)
 		if err != nil {
-			return merry.Prependf(err, "%s: invalid ByteString value", tag.String())
+			return syntaxError(err)
 		}
 		buf.encodeByteString(tag, b)
 	case TypeInterval:
 		u, err := strconv.ParseUint(tval.Value, 10, 64)
 		if err != nil {
-			return merry.Prependf(err, "%s: invalid Interval value: must be number", tag.String())
+			return syntaxError(merry.Prepend(err, "must be a number"))
 		}
 		buf.encodeInterval(tag, time.Duration(u)*time.Second)
 	case TypeDateTime, TypeDateTimeExtended:
 		d, err := time.Parse(time.RFC3339Nano, tval.Value)
 		if err != nil {
-			return merry.Prependf(err, "%s: invalid DateTime value: must be ISO8601 format", tag.String())
+			return syntaxError(merry.Prepend(err, "must be ISO8601 format"))
 		}
 		if tp == TypeDateTime {
 			buf.encodeDateTime(tag, d)
@@ -207,29 +229,29 @@ func unmarshalXMLTval(buf *encBuf, tval *xmltval, attrTag Tag) error {
 		if tag == TagAttributeValue && attrTag != TagNone {
 			enumTag = attrTag
 		}
-		i, err := ParseInteger(enumTag, strings.Replace(tval.Value, " ", "|", -1))
+		i, err := DefaultRegistry.ParseInt(enumTag, strings.Replace(tval.Value, " ", "|", -1))
 		if err != nil {
-			return merry.Prependf(err, "%s: invalid Integer value", tag.String())
+			return syntaxError(err)
 		}
 		buf.encodeInt(tag, i)
 	case TypeLongInteger:
 		i, err := strconv.ParseInt(tval.Value, 10, 64)
 		if err != nil {
-			return merry.Prependf(err, "%s: invalid LongInteger value: must be number", tag.String())
+			return syntaxError(merry.Prepend(err, "must be number"))
 		}
 		buf.encodeLongInt(tag, i)
 	case TypeBigInteger:
 		// TODO: consider allowing this, just strip off the 0x prefix
 		// it's not to spec, but its a simple accommodation
 		if strings.HasPrefix(tval.Value, "0x") {
-			return merry.Errorf("%s: invalid BigInteger value: should not have 0x prefix", tag.String())
+			return syntaxError(merry.New("should not have 0x prefix"))
 		}
 		b, err := hex.DecodeString(tval.Value)
 		if err != nil {
-			return merry.Prependf(err, "%s: invalid BigInteger value", tag.String())
+			return syntaxError(err)
 		}
 		if len(b)%8 != 0 {
-			return merry.Errorf("%s: invalid BigInteger value: must be multiple of 8 bytes (16 hex characters)", tag.String())
+			return syntaxError(errors.New("must be multiple of 8 bytes"))
 		}
 		n := &big.Int{}
 		unmarshalBigInt(n, b)
@@ -239,9 +261,9 @@ func unmarshalXMLTval(buf *encBuf, tval *xmltval, attrTag Tag) error {
 		if tag == TagAttributeValue && attrTag != TagNone {
 			enumTag = attrTag
 		}
-		e, err := ParseEnum(enumTag, tval.Value)
+		e, err := DefaultRegistry.ParseEnum(enumTag, tval.Value)
 		if err != nil {
-			return merry.Prependf(err, "%s: invalid Enumeration value", tag.String())
+			return syntaxError(err)
 		}
 		buf.encodeEnum(tag, e)
 	case TypeStructure:
@@ -258,7 +280,7 @@ func unmarshalXMLTval(buf *encBuf, tval *xmltval, attrTag Tag) error {
 			if ttlv.Tag() == TagAttributeName {
 				// try to parse the value as a tag name, which may be used later
 				// when unmarshaling the AttributeValue
-				attrTag, _ = ParseTag(kmiputil.NormalizeName(ttlv.ValueTextString()))
+				attrTag, _ = DefaultRegistry.ParseTag(kmiputil.NormalizeName(ttlv.ValueTextString()))
 			}
 		}
 		buf.end(i)
@@ -306,9 +328,9 @@ func (t *TTLV) unmarshalJSON(b []byte, attrTag Tag) error {
 		return err
 	}
 
-	tag, err := ParseTag(ttl.Tag)
+	tag, err := DefaultRegistry.ParseTag(ttl.Tag)
 	if err != nil {
-		return err
+		return merry.Prepend(err, "invalid tag")
 	}
 
 	var tp Type
@@ -316,9 +338,9 @@ func (t *TTLV) unmarshalJSON(b []byte, attrTag Tag) error {
 	if ttl.Type == "" {
 		tp = TypeStructure
 	} else {
-		tp, err = ParseType(ttl.Type)
+		tp, err = DefaultRegistry.ParseType(ttl.Type)
 		if err != nil {
-			return err
+			return merry.Prepend(err, "invalid type")
 		}
 		// for all types besides Structure, unmarshal
 		// value into interface{}
@@ -326,6 +348,10 @@ func (t *TTLV) unmarshalJSON(b []byte, attrTag Tag) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	syntaxError := func(err error) error {
+		return syntaxError(tag, tp, merry.HereSkipping(err, 1))
 	}
 
 	// performance note: for some types, like int, long int, and interval,
@@ -340,13 +366,13 @@ func (t *TTLV) unmarshalJSON(b []byte, attrTag Tag) error {
 	case TypeBoolean:
 		switch tv := v.(type) {
 		default:
-			return merry.Errorf("%s: invalid Boolean value: must be boolean or hex string", tag.String())
+			return syntaxError(errors.New("must be boolean or hex string"))
 		case bool:
 			enc.encodeBool(tag, tv)
 		case string:
 			switch tv {
 			default:
-				return merry.Errorf("%s: invalid Boolean value: hex string for Boolean value must be either 0x0000000000000001 (true) or 0x0000000000000000 (false)", tag.String())
+				return syntaxError(errors.New("hex string for Boolean value must be either 0x0000000000000001 (true) or 0x0000000000000000 (false)"))
 			case "0x0000000000000001":
 				enc.encodeBool(tag, true)
 			case "0x0000000000000000":
@@ -356,62 +382,54 @@ func (t *TTLV) unmarshalJSON(b []byte, attrTag Tag) error {
 	case TypeTextString:
 		switch tv := v.(type) {
 		default:
-			return merry.Errorf("%s: invalid TextString value: must be string", tag.String())
+			return syntaxError(errors.New("must be string"))
 		case string:
 			enc.encodeTextString(tag, tv)
 		}
 	case TypeByteString:
 		switch tv := v.(type) {
 		default:
-			return merry.Errorf("%s: invalid ByteString value: must be hex string", tag.String())
+			return syntaxError(errors.New("must be hex string"))
 		case string:
 			// TODO: consider allowing this, just strip off the 0x prefix
 			// it's not to spec, but its a simple accommodation
 			if strings.HasPrefix(tv, "0x") {
-				return merry.Errorf("%s: invalid ByteString value: should not have 0x prefix", tag.String())
+				return syntaxError(errors.New("should not have 0x prefix"))
 			}
 			b, err := hex.DecodeString(tv)
 			if err != nil {
-				return merry.Prependf(err, "%s: invalid ByteString value", tag.String())
+				return syntaxError(err)
 			}
 			enc.encodeByteString(tag, b)
 		}
 	case TypeInterval:
 		switch tv := v.(type) {
 		default:
-			return merry.Errorf("%s: invalid Interval value: must be number or hex string", tag.String())
+			return syntaxError(errors.New("must be number or hex string"))
 		case string:
-			if len(tv) >= 2 && tv[:2] != "0x" {
-				return merry.Errorf("%s: invalid Interval value: hex value must start with 0x", tag.String())
-			}
-			b, err := hex.DecodeString(tv[2:])
+			b, err := kmiputil.ParseHexValue(tv, 4)
 			if err != nil {
-				return merry.Prependf(err, "%s: invalid Interval value", tag.String())
+				return syntaxError(err)
 			}
-			if len(b) != 4 {
-				return merry.Errorf("%s: invalid Interval value: must be 4 bytes (8 hex characters)", tag.String())
+			if b == nil {
+				return syntaxError(errors.New("hex value must start with 0x"))
 			}
-			v := binary.BigEndian.Uint32(b)
-			enc.encodeInterval(tag, time.Duration(v)*time.Second)
+			enc.encodeInterval(tag, time.Duration(kmiputil.DecodeUint32(b))*time.Second)
 		case float64:
 			enc.encodeInterval(tag, time.Duration(tv)*time.Second)
 		}
 	case TypeDateTime, TypeDateTimeExtended:
 		switch tv := v.(type) {
 		default:
-			return merry.Errorf("%s: invalid DateTime value: must be string", tag.String())
+			return syntaxError(errors.New("must be string"))
 		case string:
 			var tm time.Time
-			if tv[:2] == "0x" {
-				b, err := hex.DecodeString(tv[2:])
-				if err != nil {
-					return merry.Prependf(err, "%s: invalid DateTime value", tag.String())
-				}
-				if len(b) != 8 {
-					return merry.Errorf("%s: invalid DateTime value: must be 8 bytes (16 hex characters)", tag.String())
-				}
-
-				u := binary.BigEndian.Uint64(b)
+			b, err := kmiputil.ParseHexValue(tv, 8)
+			if err != nil {
+				return syntaxError(err)
+			}
+			if b != nil {
+				u := kmiputil.DecodeUint64(b)
 				if tp == TypeDateTime {
 					tm = time.Unix(int64(u), 0)
 				} else {
@@ -421,7 +439,7 @@ func (t *TTLV) unmarshalJSON(b []byte, attrTag Tag) error {
 				var err error
 				tm, err = time.Parse(time.RFC3339Nano, tv)
 				if err != nil {
-					return merry.Prependf(err, "%s: invalid DateTime value: must be ISO8601 format, parsing error", tag.String())
+					return syntaxError(merry.Prepend(err, "must be ISO8601 format"))
 				}
 			}
 			if tp == TypeDateTime {
@@ -433,15 +451,15 @@ func (t *TTLV) unmarshalJSON(b []byte, attrTag Tag) error {
 	case TypeInteger:
 		switch tv := v.(type) {
 		default:
-			return merry.Errorf("%s: invalid Integer value: must be number, hex string, or mask value name", tag.String())
+			return syntaxError(errors.New("must be number, hex string, or mask value name"))
 		case string:
 			enumTag := tag
 			if tag == TagAttributeValue && attrTag != TagNone {
 				enumTag = attrTag
 			}
-			i, err := ParseInteger(enumTag, tv)
+			i, err := DefaultRegistry.ParseInt(enumTag, tv)
 			if err != nil {
-				return merry.Prependf(err, "%s: invalid Integer value", tag.String())
+				return syntaxError(err)
 			}
 			enc.encodeInt(tag, i)
 		case float64:
@@ -450,37 +468,33 @@ func (t *TTLV) unmarshalJSON(b []byte, attrTag Tag) error {
 	case TypeLongInteger:
 		switch tv := v.(type) {
 		default:
-			return merry.Errorf("%s: invalid LongInteger value: must be number or hex string", tag.String())
+			return syntaxError(errors.New("must be number or hex string"))
 		case string:
-			if len(tv) >= 2 && tv[:2] != "0x" {
-				return merry.Errorf("%s: invalid LongInteger value: hex value must start with 0x", tag.String())
-			}
-			b, err := hex.DecodeString(tv[2:])
+			b, err := kmiputil.ParseHexValue(tv, 8)
 			if err != nil {
-				return merry.Prependf(err, "%s: invalid LongInteger value", tag.String())
+				return syntaxError(err)
 			}
-			if len(b) != 8 {
-				return merry.Errorf("%s: invalid LongInteger value: must be 8 bytes (16 hex characters)", tag.String())
+			if b == nil {
+				return syntaxError(errors.New("hex value must start with 0x"))
 			}
-			v := binary.BigEndian.Uint64(b)
-			enc.encodeLongInt(tag, int64(v))
+			enc.encodeLongInt(tag, int64(kmiputil.DecodeUint64(b)))
 		case float64:
 			enc.encodeLongInt(tag, int64(tv))
 		}
 	case TypeBigInteger:
 		switch tv := v.(type) {
 		default:
-			return merry.Errorf("%s: invalid BigInteger value: must be number or hex string", tag.String())
+			return syntaxError(errors.New("must be number or hex string"))
 		case string:
-			if len(tv) >= 2 && tv[:2] != "0x" {
-				return merry.Errorf("%s: invalid BigInteger value: hex value must start with 0x", tag.String())
+			if !strings.HasPrefix(tv, "0x") {
+				return syntaxError(errors.New("hex value must start with 0x"))
 			}
 			b, err := hex.DecodeString(tv[2:])
 			if err != nil {
-				return merry.Prependf(err, "%s: invalid BigInteger value", tag.String())
+				return syntaxError(err)
 			}
 			if len(b)%8 != 0 {
-				return merry.Errorf("%s: invalid BigInteger value: must be multiple of 8 bytes (16 hex characters)", tag.String())
+				return syntaxError(errors.New("must be multiple of 8 bytes (16 hex characters)"))
 			}
 			i := &big.Int{}
 			unmarshalBigInt(i, unpadBigInt(b))
@@ -491,15 +505,15 @@ func (t *TTLV) unmarshalJSON(b []byte, attrTag Tag) error {
 	case TypeEnumeration:
 		switch tv := v.(type) {
 		default:
-			return merry.Errorf("%s: invalid Enumeration value: must be number or string", tag.String())
+			return syntaxError(errors.New("must be number or string"))
 		case string:
 			enumTag := tag
 			if tag == TagAttributeValue && attrTag != TagNone {
 				enumTag = attrTag
 			}
-			u, err := ParseEnum(enumTag, tv)
+			u, err := DefaultRegistry.ParseEnum(enumTag, tv)
 			if err != nil {
-				return merry.Prependf(err, "%s: invalid Enumeration value", tag.String())
+				return syntaxError(err)
 			}
 			enc.encodeEnum(tag, u)
 		case float64:
@@ -510,7 +524,7 @@ func (t *TTLV) unmarshalJSON(b []byte, attrTag Tag) error {
 		var children []json.RawMessage
 		err := json.Unmarshal(ttl.Value, &children)
 		if err != nil {
-			return err
+			return syntaxError(err)
 		}
 		var scratch TTLV
 		s := enc.begin(tag, TypeStructure)
@@ -518,16 +532,16 @@ func (t *TTLV) unmarshalJSON(b []byte, attrTag Tag) error {
 		for _, c := range children {
 			err := (&scratch).unmarshalJSON(c, attrTag)
 			if err != nil {
-				return err
+				return syntaxError(err)
 			}
 			if TagAttributeName == scratch.Tag() {
-				attrTag, _ = ParseTag(kmiputil.NormalizeName(scratch.ValueTextString()))
+				attrTag, _ = DefaultRegistry.ParseTag(kmiputil.NormalizeName(scratch.ValueTextString()))
 			}
 			_, _ = enc.Write(scratch)
 		}
 		enc.end(s)
 	}
-	*t = TTLV(enc.Bytes())
+	*t = enc.Bytes()
 	return nil
 }
 
@@ -558,12 +572,12 @@ func (t TTLV) MarshalJSON() ([]byte, error) {
 		}
 	case TypeEnumeration:
 		sb.WriteString(`"`)
-		sb.WriteString(EnumToString(t.Tag(), t.ValueEnumeration()))
+		sb.WriteString(DefaultRegistry.FormatEnum(t.Tag(), t.ValueEnumeration()))
 		sb.WriteString(`"`)
 	case TypeInteger:
-		if IsBitMask(t.Tag()) {
+		if enum := DefaultRegistry.EnumForTag(t.Tag()); enum != nil {
 			sb.WriteString(`"`)
-			sb.WriteString(EnumToString(t.Tag(), t.ValueEnumeration()))
+			sb.WriteString(FormatInt(int32(t.ValueInteger()), enum))
 			sb.WriteString(`"`)
 		} else {
 			sb.WriteString(strconv.Itoa(t.ValueInteger()))
@@ -610,18 +624,24 @@ func (t TTLV) MarshalJSON() ([]byte, error) {
 			// to their string variants
 			if c.Tag() == TagAttributeName {
 				// try to map the attribute name to a tag
-				attrTag, _ = ParseTag(kmiputil.NormalizeName(c.ValueTextString()))
+				attrTag, _ = DefaultRegistry.ParseTag(kmiputil.NormalizeName(c.ValueTextString()))
 			}
 
 			switch {
 			case c.Tag() == TagAttributeValue && c.Type() == TypeEnumeration:
 				sb.WriteString(`{"tag":"AttributeValue","type":"Enumeration","value":"`)
-				sb.WriteString(EnumToString(attrTag, c.ValueEnumeration()))
+				sb.WriteString(DefaultRegistry.FormatEnum(attrTag, c.ValueEnumeration()))
 				sb.WriteString(`"}`)
 			case c.Tag() == TagAttributeValue && c.Type() == TypeInteger:
-				sb.WriteString(`{"tag":"AttributeValue","type":"Integer","value":"`)
-				sb.WriteString(EnumToString(attrTag, c.ValueEnumeration()))
-				sb.WriteString(`"}`)
+				sb.WriteString(`{"tag":"AttributeValue","type":"Integer","value":`)
+				if enum := DefaultRegistry.EnumForTag(attrTag); enum != nil {
+					sb.WriteString(`"`)
+					sb.WriteString(FormatInt(int32(c.ValueInteger()), enum))
+					sb.WriteString(`"`)
+				} else {
+					sb.WriteString(strconv.Itoa(c.ValueInteger()))
+				}
+				sb.WriteString(`}`)
 			default:
 				v, err := c.MarshalJSON()
 				if err != nil {
@@ -649,7 +669,10 @@ func (t TTLV) MarshalJSON() ([]byte, error) {
 	return []byte(sb.String()), nil
 }
 
-func (t *TTLV) UnmarshalTTLV(d *Decoder, ttlv TTLV) error {
+// UnmarshalTTLV implements ttlv.Unmarshaler.  Unmarshaling a TTLV
+// into another TTLV will allocate a new slice, and copy the bytes
+// from the source TTLV into the new slice.
+func (t *TTLV) UnmarshalTTLV(_ *Decoder, ttlv TTLV) error {
 	if ttlv == nil {
 		*t = nil
 		return nil
@@ -666,6 +689,8 @@ func (t *TTLV) UnmarshalTTLV(d *Decoder, ttlv TTLV) error {
 	return nil
 }
 
+// Tag returns the KMIP Tag encoded in the TTLV header.
+// Returns empty value if TTLV header is truncated.
 func (t TTLV) Tag() Tag {
 	// don't panic if header is truncated
 	if len(t) < 3 {
@@ -674,6 +699,8 @@ func (t TTLV) Tag() Tag {
 	return Tag(uint32(t[2]) | uint32(t[1])<<8 | uint32(t[0])<<16)
 }
 
+// Type returns the KMIP Type encoded in the TTLV header.
+// Returns empty value if TTLV header is truncated.
 func (t TTLV) Type() Type {
 	// don't panic if header is truncated
 	if len(t) < 4 {
@@ -682,6 +709,14 @@ func (t TTLV) Type() Type {
 	return Type(t[3])
 }
 
+// Len returns the length encoded in the TTLV header.
+// Note: This is only the length of the value segment of the TTLV, not
+// the full length of the entire TTLV block.  See FullLen()
+//
+// It's also only reading
+// the header, so it does not validate that the byte slice is really
+// that long, or whether the length matches the value type.
+// Returns empty value if TTLV header is truncated.
 func (t TTLV) Len() int {
 	// don't panic if header is truncated
 	if len(t) < lenHeader {
@@ -690,6 +725,10 @@ func (t TTLV) Len() int {
 	return int(binary.BigEndian.Uint32(t[4:8]))
 }
 
+// FullLen returns the expected length of the entire TTLV block (header + value), based
+// on the type and len encoded in the header.
+//
+// panics if type encoded in header is invalid or unrecognized.
 func (t TTLV) FullLen() int {
 	switch t.Type() {
 	case TypeInterval, TypeDateTime, TypeDateTimeExtended, TypeBoolean, TypeEnumeration, TypeLongInteger, TypeInteger:
@@ -723,6 +762,8 @@ func (t TTLV) ValueRaw() []byte {
 	return t[lenHeader : lenHeader+l]
 }
 
+// Value returns the value of the TTLV, converted to an idiomatic
+// go type.
 func (t TTLV) Value() interface{} {
 	switch t.Type() {
 	case TypeInterval:
@@ -919,10 +960,10 @@ func Print(w io.Writer, prefix, indent string, t TTLV) error {
 			s = s.Next()
 		}
 	case TypeEnumeration:
-		fmt.Fprint(w, " ", EnumToString(tag, t.ValueEnumeration()))
+		fmt.Fprint(w, " ", DefaultRegistry.FormatEnum(tag, t.ValueEnumeration()))
 	case TypeInteger:
-		if IsBitMask(tag) {
-			fmt.Fprint(w, " ", EnumToString(tag, t.ValueEnumeration()))
+		if enum := DefaultRegistry.EnumForTag(tag); enum != nil {
+			fmt.Fprint(w, " ", FormatInt(int32(t.ValueInteger()), enum))
 		} else {
 			fmt.Fprintf(w, " %v", t.Value())
 		}

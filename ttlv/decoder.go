@@ -243,7 +243,7 @@ func (dec *Decoder) unmarshalStructure(ttlv TTLV, val reflect.Value) error {
 	for n := ttlv.ValueStructure(); n != nil; n = n.Next() {
 		fldIdx := -1
 		for i := range fields {
-			if fields[i].flags&fAny != 0 {
+			if fields[i].flags.any() {
 				// if this is the first any field found, keep track
 				// of it as the current candidate match, but
 				// keep looking for a tag match

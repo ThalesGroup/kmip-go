@@ -3,8 +3,6 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"encoding/binary"
-	"encoding/hex"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -171,19 +169,12 @@ type inputs struct {
 func parseUint32(v interface{}) (uint32, error) {
 	switch n := v.(type) {
 	case string:
-
-		if strings.HasPrefix(n, "0x") {
-			b, err := hex.DecodeString(n[2:])
-			if err != nil {
-				return 0, merry.Prepend(err, "invalid hex string")
-			}
-			if len(b) > 4 {
-				return 0, merry.New("invalid hex string: must be max 4 bytes (8 hex characters)")
-			}
-			if len(b) < 4 {
-				b = append(make([]byte, 4-len(b)), b...)
-			}
-			return binary.BigEndian.Uint32(b), nil
+		b, err := kmiputil.ParseHexValue(n, 4)
+		if err != nil {
+			return 0, err
+		}
+		if b != nil {
+			return kmiputil.DecodeUint32(b), nil
 		}
 
 		i, err := strconv.ParseUint(n, 10, 32)
@@ -278,14 +269,6 @@ func prepareInput(s *Specifications) (*inputs, error) {
 		in.Masks = append(in.Masks, ev)
 	}
 
-	if len(s.Enums) > 0 || len(s.Masks) > 0 {
-		in.Imports = append(in.Imports, "fmt")
-	}
-
-	if len(s.Masks) > 0 {
-		in.Imports = append(in.Imports, "sort", "strings")
-	}
-
 	return &in, nil
 }
 
@@ -341,67 +324,68 @@ import (
 {{with .Enums}}{{range .}}{{template "enumeration" .}}{{end}}{{end}}
 
 {{with .Masks}}{{range .}}{{template "mask" .}}{{end}}{{end}}
+
+func RegisterGeneratedDefinitions(r *{{ttlvPackage}}Registry) {
+
+	tags := map[{{ttlvPackage}}Tag]string {
+{{range .Tags}}        Tag{{.Name}}: "{{.FullName}}",
+{{end}}
+	}
+
+	for v, name := range tags {
+    	r.RegisterTag(v, name)
+	}
+
+	enums := map[string]{{ttlvPackage}}Enum {
+{{range .Enums}}{{ $typeName := .TypeName }}{{range .Tags}}        "{{.}}": {{$typeName}}Enum,
+{{end}}{{end}}
+{{range .Masks}}{{ $typeName := .TypeName }}{{range .Tags}}        "{{.}}": {{$typeName}}Enum,
+{{end}}{{end}}
+	}
+
+	for tagName, enum := range enums {
+		tag, err := {{ttlvPackage}}DefaultRegistry.ParseTag(tagName)
+    	if err != nil {
+      		panic(err)
+    	}
+		e := enum
+    	r.RegisterEnum(tag, &e)
+	}	
+}
 `
 
 const tags = `
 const (
 {{range .}}	Tag{{.Name}} {{ttlvPackage}}Tag = {{.Value | printf "%#06x"}}
 {{end}})
-
-func init() { 
-{{range .}} {{ttlvPackage}}RegisterTag({{ttlvPackage}}Tag({{.Value | printf "%#06x"}}), "{{.FullName}}")
-{{end}}}
 `
 
-const baseTmpl = `
-{{ $typeName := .TypeName }}
-
-// {{.Comment}}
+const baseTmpl = `{{ $typeName := .TypeName }}// {{.Comment}}
 type {{.TypeName}} uint32
 
 const ({{range .Vals}}
 	{{$typeName}}{{.Name}} {{$typeName}} = {{.Value | printf "%#08x"}}{{end}}
 )
 
-var _{{.TypeName}}NameToValueMap = map[string]{{.TypeName}} { {{range .Vals}}
-	"{{.Name}}": {{$typeName}}{{.Name}},{{end}}
-}
+var {{.TypeName}}Enum {{ttlvPackage}}Enum
 
-var _{{.TypeName}}ValueToNameMap = map[{{.TypeName}}]string { {{range .Vals}}
-	{{$typeName}}{{.Name}}: "{{.Name}}",{{end}}
+func init() {
+	m := map[{{.TypeName}}]string {
+{{range .Vals}}        {{$typeName}}{{.Name}}: "{{.Name}}",
+{{end}}
+	}
+
+	{{.TypeName}}Enum = {{if .BitMask}}{{ttlvPackage}}NewBitmask{{else}}{{ttlvPackage}}NewEnum{{end}}()
+    for v, name := range m {
+    	{{.TypeName}}Enum.RegisterValue(uint32(v), name)
+	}
 }
 
 func ({{.Var}} {{.TypeName}}) MarshalText() (text []byte, err error) {
 	return []byte({{.Var}}.String()), nil
-}
+}`
 
-{{ if .Tags }}
-{{ $bitMask := .BitMask }}
-func init() { 
-	var tag {{ttlvPackage}}Tag
-	var err error
-	{{range .Tags}}
-	tag, err = {{ttlvPackage}}ParseTag("{{.}}")
-	if err != nil {
-		panic(err)
-	}
-	{{ttlvPackage}}Register{{if $bitMask}}BitMask{{else}}Enum{{end}}(tag, {{ttlvPackage}}EnumTypeDef{
-		Parse: func(s string) (uint32, bool) {
-			v, ok := _{{$typeName}}NameToValueMap[s] 
-			return uint32(v), ok
-		},
-		String: func(v uint32) string {
-			return {{$typeName}}(v).String()		
-		},
-		Typed: func(v uint32) interface{} {
-			return {{$typeName}}(v)
-		},
-	}){{end}}
-}{{end}}
-`
-
-const enumerationTmpl = `
-// {{.Name}} Enumeration
+const enumerationTmpl = `// {{.Name}} Enumeration
 {{template "base" . }}
 
 func ({{.Var}} {{.TypeName}}) MarshalTTLV(enc *{{ttlvPackage}}Encoder, tag {{ttlvPackage}}Tag) error {
@@ -409,69 +393,22 @@ func ({{.Var}} {{.TypeName}}) MarshalTTLV(enc *{{ttlvPackage}}Encoder, tag {{ttl
 	return nil
 }
 
-func Register{{.TypeName}}({{.Var}} {{.TypeName}}, name string) {
-	name = {{ttlvPackage}}NormalizeName(name)
-	_{{.TypeName}}NameToValueMap[name] = {{.Var}}
-	_{{.TypeName}}ValueToNameMap[{{.Var}}] = name
-}
-
 func ({{.Var}} {{.TypeName}}) String() string {
-	if s, ok := _{{.TypeName}}ValueToNameMap[{{.Var}}]; ok {
-		return s
-	}
-	return fmt.Sprintf("%#08x", uint32({{.Var}}))
+	return {{ttlvPackage}}FormatEnum(uint32({{.Var}}), &{{.TypeName}}Enum)
 }
 
 `
 
-const maskTmpl = `
-// {{.Name}} Bit Mask
+const maskTmpl = `// {{.Name}} Bit Mask
 {{template "base" . }}
 
-func Register{{.TypeName}}({{.Var}} {{.TypeName}}, name string) {
-	name = {{ttlvPackage}}NormalizeName(name)
-	_{{.TypeName}}NameToValueMap[name] = {{.Var}}
-	_{{.TypeName}}ValueToNameMap[{{.Var}}] = name
-	_{{.TypeName}}SortedValues = append(_{{.TypeName}}SortedValues, int({{.Var}}))
-	sort.Ints(_{{.TypeName}}SortedValues)
-}
-
-var _{{.TypeName}}SortedValues []int
-
-func init() {
-	for {{.Var}} := range _{{.TypeName}}ValueToNameMap {
-		_{{.TypeName}}SortedValues = append(_{{.TypeName}}SortedValues, int({{.Var}}))
-		sort.Ints(_{{.TypeName}}SortedValues)
-	}
+func ({{.Var}} {{.TypeName}}) MarshalTTLV(enc *{{ttlvPackage}}Encoder, tag {{ttlvPackage}}Tag) error {
+	enc.EncodeInt(tag, int32({{.Var}}))
+	return nil
 }
 
 func ({{.Var}} {{.TypeName}}) String() string {
-	r := int({{.Var}})
+	return {{ttlvPackage}}FormatInt(int32({{.Var}}), &{{.TypeName}}Enum)
+}
 
-	var sb strings.Builder
-	var appending bool
-	for _, v := range _{{.TypeName}}SortedValues {
-		if v & r == v {
-			if name :=_{{.TypeName}}ValueToNameMap[{{.TypeName}}(v)]; name != "" {
-				if appending {
-					sb.WriteString("|")
-				} else {
-					appending = true
-				}
-				sb.WriteString(name)
-				r ^= v
-			}
-
-		}
-		if r == 0 {
-			break
-		}
-	}
-	if r != 0 {
-		if appending {
-			sb.WriteString("|")
-		}
-		fmt.Fprintf(&sb, "%#08x", uint32(r))
-	}
-	return sb.String()
-}`
+`

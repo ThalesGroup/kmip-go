@@ -3,7 +3,6 @@ package ttlv
 import (
 	"bytes"
 	"encoding/binary"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/ansel1/merry"
@@ -73,11 +72,19 @@ func (v EnumValue) MarshalTTLV(e *Encoder, tag Tag) error {
 // the form of a native go type.
 //
 // Value supports marshaling and unmarshaling, allowing a mapping between encoded TTLV
-// bytes and native go types.
+// bytes and native go types.  It's useful in tests, or where you want to construct
+// an arbitrary TTLV structure in code without declaring a bespoke type, e.g.:
 //
-// TTLV Structure types are mapped to the Values go type.  When marshaling, if the Value
+//     v := ttlv.Value{Tag: TagBatchCount, Value: Values{
+//				Value{Tag: TagComment, Value: "red"},
+//				Value{Tag: TagComment, Value: "blue"},
+//				Value{Tag: TagComment, Value: "green"},
+//          }
+//     t, err := ttlv.Marshal(v)
+//
+// KMIP Structure types are mapped to the Values go type.  When marshaling, if the Value
 // field is set to a Values{}, the resulting TTLV will be TypeStructure.  When unmarshaling
-// a TTLV with TypeStructure, the Value field will contain a Values{}.
+// a TTLV with TypeStructure, the Value field will be set to a Values{}.
 type Value struct {
 	Tag   Tag
 	Value interface{}
@@ -243,22 +250,6 @@ func (e *Encoder) marshalingError(tag Tag, t reflect.Type, cause error) merry.Er
 	return merry.WrapSkipping(err, 1).WithCause(cause)
 }
 
-func (e *Encoder) encodeInt32(tag Tag, i int32) {
-	if IsEnumeration(tag) {
-		e.encBuf.encodeEnum(tag, uint32(i))
-		return
-	}
-	e.encBuf.encodeInt(tag, i)
-}
-
-func (e *Encoder) encodeInt64(tag Tag, i int64) {
-	if IsEnumeration(tag) {
-		e.encBuf.encodeEnum(tag, uint32(i))
-		return
-	}
-	e.encBuf.encodeLongInt(tag, i)
-}
-
 var byteType = reflect.TypeOf(byte(0))
 var marshalerType = reflect.TypeOf((*Marshaler)(nil)).Elem()
 var unmarshalerType = reflect.TypeOf((*Unmarshaler)(nil)).Elem()
@@ -323,47 +314,6 @@ func isEmptyValue(v reflect.Value) bool {
 	return false
 }
 
-func (e *Encoder) encodeReflectEnum(tag Tag, v reflect.Value) error {
-	switch v.Kind() {
-	case reflect.String:
-		// TODO: if there is a one-to-one relationship between an enum and a tag, we could have
-		// a registry allowing us to translate named enum values to encodings.  For now, string values
-		// can only be encoded as an enum if they are hex strings starting with 0x
-		s := v.String()
-		if !strings.HasPrefix(s, "0x") {
-			return e.marshalingError(tag, v.Type(), ErrInvalidHexString).Append("string enum values must be hex strings starting with 0x")
-		}
-		s = s[2:]
-		if len(s) != 8 {
-			return e.marshalingError(tag, v.Type(), ErrInvalidHexString).Appendf("invalid length, must be 8 (4 bytes), got %d", len(s))
-		}
-		b, err := hex.DecodeString(s)
-		if err != nil {
-			return e.marshalingError(tag, v.Type(), merry.WithCause(ErrInvalidHexString, err))
-		}
-
-		u := binary.BigEndian.Uint32(b)
-		e.encBuf.encodeEnum(tag, u)
-		return nil
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		i := v.Uint()
-		if i > math.MaxUint32 {
-			return e.marshalingError(tag, v.Type(), ErrIntOverflow)
-		}
-		e.encBuf.encodeEnum(tag, uint32(i))
-		return nil
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		i := v.Int()
-		if i > math.MaxUint32 {
-			return e.marshalingError(tag, v.Type(), ErrIntOverflow)
-		}
-		e.encBuf.encodeEnum(tag, uint32(i))
-		return nil
-	default:
-		return e.marshalingError(tag, v.Type(), ErrUnsupportedEnumTypeError)
-	}
-}
-
 func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 
 	// if pointer or interface
@@ -396,7 +346,7 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 	// check for Marshaler
 	switch {
 	case typ.Implements(marshalerType):
-		if flags&fOmitEmpty != 0 && isEmptyValue(v) {
+		if flags.omitEmpty() && isEmptyValue(v) {
 			return nil
 		}
 		return v.Interface().(Marshaler).MarshalTTLV(e, tag)
@@ -404,7 +354,7 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 		pv := v.Addr()
 		pvtyp := pv.Type()
 		if pvtyp.Implements(marshalerType) {
-			if flags&fOmitEmpty != 0 && isEmptyValue(v) {
+			if flags.omitEmpty() && isEmptyValue(v) {
 				return nil
 			}
 			return pv.Interface().(Marshaler).MarshalTTLV(e, tag)
@@ -422,7 +372,7 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 	}
 
 	// skip if value is empty and tags include omitempty
-	if flags&fOmitEmpty != 0 && isEmptyValue(v) {
+	if flags.omitEmpty() && isEmptyValue(v) {
 		return nil
 	}
 
@@ -458,14 +408,72 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 		return e.marshalingError(tag, v.Type(), ErrNoTag)
 	}
 
-	// handle the enum flag
-	if flags&fEnum != 0 {
-		return e.encodeReflectEnum(tag, v)
+	// handle enums and bitmasks
+	//
+	// If the field has the "enum" or "bitmask" flag, or the tag is registered as an enum or bitmask,
+	// attempt to interpret the go value as such.
+	//
+	// If the field is explicitly flag, return an error if the value can't be interpreted.  Otherwise
+	// ignore errors and let processing fallthrough to the type-based encoding.
+	enumMap := DefaultRegistry.EnumForTag(tag)
+	if flags.enum() || flags.bitmask() || enumMap != nil {
+		switch typ.Kind() {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32:
+			i := v.Int()
+			if flags.bitmask() || (enumMap != nil && enumMap.Bitmask()) {
+				e.encBuf.encodeInt(tag, int32(i))
+			} else {
+				e.encBuf.encodeEnum(tag, uint32(i))
+			}
+			return nil
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32:
+			i := v.Uint()
+			if flags.bitmask() || (enumMap != nil && enumMap.Bitmask()) {
+				e.encBuf.encodeInt(tag, int32(i))
+			} else {
+				e.encBuf.encodeEnum(tag, uint32(i))
+			}
+			return nil
+		case reflect.String:
+			s := v.String()
+			if flags.bitmask() || (enumMap != nil && enumMap.Bitmask()) {
+				i, err := ParseInt(s, enumMap)
+				if err == nil {
+					e.encBuf.encodeInt(tag, i)
+					return nil
+				}
+				// only throw an error if the field is explicitly marked as a bitmask
+				// otherwise just ignore it, and let it encode as a string later on.
+				if flags.bitmask() {
+					// if we couldn't parse the string as an enum value
+					return e.marshalingError(tag, typ, err)
+				}
+
+			} else {
+				i, err := ParseEnum(s, enumMap)
+				if err == nil {
+					e.encBuf.encodeEnum(tag, i)
+					return nil
+				}
+				// only throw an error if the field is explicitly marked as an enum
+				// otherwise just ignore it, and let it encode as a string later on.
+				if flags.enum() {
+					// if we couldn't parse the string as an enum value
+					return e.marshalingError(tag, typ, err)
+				}
+
+			}
+		default:
+			if flags.enum() || flags.bitmask() {
+				return e.marshalingError(tag, typ, ErrUnsupportedEnumTypeError).Append(typ.String())
+			}
+		}
 	}
 
+	// handle special types
 	switch typ {
 	case timeType:
-		if flags&fDateTimeExtended != 0 {
+		if flags.dateTimeExt() {
 			e.encBuf.encodeDateTimeExtended(tag, v.Interface().(time.Time))
 		} else {
 			e.encBuf.encodeDateTime(tag, v.Interface().(time.Time))
@@ -483,6 +491,7 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 		return nil
 	}
 
+	// handle the rest of the kinds
 	switch typ.Kind() {
 	case reflect.Struct:
 		// push current struct onto stack
@@ -550,23 +559,28 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32:
 		i := v.Int()
 		if i > math.MaxInt32 {
-			return merry.Here(ErrIntOverflow).Prepend(tag.String())
+			return e.marshalingError(tag, typ, ErrIntOverflow)
 		}
-		e.encodeInt32(tag, int32(i))
+		e.encBuf.encodeInt(tag, int32(i))
+		return nil
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32:
 		u := v.Uint()
 		if u > math.MaxInt32 {
-			return merry.Here(ErrIntOverflow).Prepend(tag.String())
+			return e.marshalingError(tag, typ, ErrIntOverflow)
 		}
-		e.encodeInt32(tag, int32(u))
+		e.encBuf.encodeInt(tag, int32(u))
+		return nil
 	case reflect.Uint64:
 		u := v.Uint()
 		if u > math.MaxInt64 {
-			return merry.Here(ErrLongIntOverflow).Prepend(tag.String())
+			return e.marshalingError(tag, typ, ErrLongIntOverflow)
 		}
-		e.encodeInt64(tag, int64(u))
+		e.encBuf.encodeLongInt(tag, int64(u))
+		return nil
+
 	case reflect.Int64:
-		e.encodeInt64(tag, v.Int())
+		e.encBuf.encodeLongInt(tag, v.Int())
+		return nil
 	case reflect.Bool:
 		e.encBuf.encodeBool(tag, v.Bool())
 	default:
@@ -740,7 +754,7 @@ func (h *encBuf) encodeByteString(tag Tag, b []byte) {
 }
 
 func getTypeInfo(typ reflect.Type) (ti typeInfo, err error) {
-	ti.inferredTag, _ = ParseTag(typ.Name())
+	ti.inferredTag, _ = DefaultRegistry.ParseTag(typ.Name())
 	ti.typ = typ
 	err = ti.getFieldsInfo()
 	return ti, err
@@ -774,19 +788,21 @@ func getFieldInfo(typ reflect.Type, sf reflect.StructField) (fieldInfo, error) {
 			case "":
 			default:
 				var err error
-				fi.explicitTag, err = ParseTag(value)
+				fi.explicitTag, err = DefaultRegistry.ParseTag(value)
 				if err != nil {
 					return fi, err
 				}
 			}
 		} else {
-			switch value {
+			switch strings.ToLower(value) {
 			case "enum":
 				fi.flags |= fEnum
 			case "omitempty":
 				fi.flags |= fOmitEmpty
-			case "dateTimeExtended":
+			case "datetimeextended":
 				fi.flags |= fDateTimeExtended
+			case "bitmask":
+				fi.flags |= fBitBask
 			case "any":
 				anyField = true
 				fi.flags |= fAny
@@ -823,7 +839,7 @@ func getFieldInfo(typ reflect.Type, sf reflect.StructField) (fieldInfo, error) {
 		fi.tag = fi.explicitTag
 	}
 	if fi.tag == TagNone {
-		fi.tag, _ = ParseTag(fi.name)
+		fi.tag, _ = DefaultRegistry.ParseTag(fi.name)
 	}
 	return fi, nil
 }
@@ -851,7 +867,7 @@ func (ti *typeInfo) getFieldsInfo() error {
 	// verify that multiple fields don't have the same tag
 	names := map[Tag]string{}
 	for _, f := range ti.valueFields {
-		if f.flags&fAny != 0 {
+		if f.flags.any() {
 			// ignore any fields
 			continue
 		}
@@ -874,14 +890,35 @@ type typeInfo struct {
 	valueFields []fieldInfo
 }
 
-type fieldFlags int
-
 const (
 	fOmitEmpty fieldFlags = 1 << iota
 	fEnum
 	fDateTimeExtended
 	fAny
+	fBitBask
 )
+
+type fieldFlags int
+
+func (f fieldFlags) omitEmpty() bool {
+	return f&fOmitEmpty != 0
+}
+
+func (f fieldFlags) any() bool {
+	return f&fAny != 0
+}
+
+func (f fieldFlags) dateTimeExt() bool {
+	return f&fDateTimeExtended != 0
+}
+
+func (f fieldFlags) enum() bool {
+	return f&fEnum != 0
+}
+
+func (f fieldFlags) bitmask() bool {
+	return f&fBitBask != 0
+}
 
 type fieldInfo struct {
 	structType       reflect.Type

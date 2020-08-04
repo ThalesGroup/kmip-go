@@ -1,33 +1,27 @@
 package ttlv
 
-import (
-	"encoding/hex"
-	"fmt"
-	"github.com/ansel1/merry"
-	"github.com/gemalto/kmip-go/internal/kmiputil"
-	"strings"
-)
+func RegisterTypes(r *Registry) {
+	var m = map[string]Type{
+		"BigInteger":       TypeBigInteger,
+		"Boolean":          TypeBoolean,
+		"ByteString":       TypeByteString,
+		"DateTime":         TypeDateTime,
+		"Enumeration":      TypeEnumeration,
+		"Integer":          TypeInteger,
+		"Interval":         TypeInterval,
+		"LongInteger":      TypeLongInteger,
+		"Structure":        TypeStructure,
+		"TextString":       TypeTextString,
+		"DateTimeExtended": TypeDateTimeExtended,
+	}
 
-func RegisterType(typ Type, name string) {
-	name = kmiputil.NormalizeName(name)
-	_TypeNameToValueMap[name] = typ
-	_TypeValueToNameMap[typ] = name
+	for name, v := range m {
+		r.RegisterType(v, name)
+	}
 }
 
-func ParseType(s string) (Type, error) {
-	if strings.HasPrefix(s, "0x") && len(s) == 4 {
-		b, err := hex.DecodeString(s[2:])
-		return Type(b[0]), err
-	}
-	v, ok := _TypeNameToValueMap[s]
-	if ok {
-		return v, nil
-	}
-	return v, merry.Errorf("invalid type \"%s\"", s)
-}
-
+// Type describes the type of a KMIP TTLV.
 // 2 and 9.1.1.2
-
 type Type byte
 
 const (
@@ -44,39 +38,12 @@ const (
 	TypeDateTimeExtended Type = 0x0B
 )
 
-var _TypeNameToValueMap = map[string]Type{
-	"BigInteger":       TypeBigInteger,
-	"Boolean":          TypeBoolean,
-	"ByteString":       TypeByteString,
-	"DateTime":         TypeDateTime,
-	"Enumeration":      TypeEnumeration,
-	"Integer":          TypeInteger,
-	"Interval":         TypeInterval,
-	"LongInteger":      TypeLongInteger,
-	"Structure":        TypeStructure,
-	"TextString":       TypeTextString,
-	"DateTimeExtended": TypeDateTimeExtended,
-}
-
-var _TypeValueToNameMap = map[Type]string{
-	TypeBigInteger:       "BigInteger",
-	TypeBoolean:          "Boolean",
-	TypeByteString:       "ByteString",
-	TypeDateTime:         "DateTime",
-	TypeEnumeration:      "Enumeration",
-	TypeInteger:          "Integer",
-	TypeInterval:         "Interval",
-	TypeLongInteger:      "LongInteger",
-	TypeStructure:        "Structure",
-	TypeTextString:       "TextString",
-	TypeDateTimeExtended: "DateTimeExtended",
-}
-
+// String returns the canonical name of the type.  If the type
+// name isn't registered, it returns the hex value of the type,
+// e.g. "0x01" (TypeStructure).  The value of String() is suitable
+// for use in the JSON or XML encoding of TTLV.
 func (t Type) String() string {
-	if s, ok := _TypeValueToNameMap[t]; ok {
-		return s
-	}
-	return fmt.Sprintf("%#02x", byte(t))
+	return DefaultRegistry.FormatType(t)
 }
 
 func (t Type) MarshalText() (text []byte, err error) {
@@ -84,6 +51,6 @@ func (t Type) MarshalText() (text []byte, err error) {
 }
 
 func (t *Type) UnmarshalText(text []byte) (err error) {
-	*t, err = ParseType(string(text))
+	*t, err = DefaultRegistry.ParseType(string(text))
 	return
 }

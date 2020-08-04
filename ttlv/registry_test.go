@@ -82,22 +82,6 @@ func TestParseInteger(t *testing.T) {
 			in:  "0x00000001|0x00000040",
 		},
 		{
-			out: CryptographicUsageMaskSign | CryptographicUsageMaskVerify,
-			in:  "1|2",
-		},
-		{
-			out: CryptographicUsageMaskSign | CryptographicUsageMaskVerify | CryptographicUsageMaskEncrypt,
-			in:  "1 2 4",
-		},
-		{
-			out: CryptographicUsageMaskSign | CryptographicUsageMaskVerify | CryptographicUsageMaskEncrypt,
-			in:  " 1   2      4  ",
-		},
-		{
-			out: CryptographicUsageMaskSign | CryptographicUsageMaskVerify | CryptographicUsageMaskEncrypt,
-			in:  " 1 || 2|||   4  ",
-		},
-		{
 			out: CryptographicUsageMaskSign | CryptographicUsageMaskExport | CryptographicUsageMask(0x00100000),
 			in:  "Sign|Export|0x00100000",
 		},
@@ -109,7 +93,7 @@ func TestParseInteger(t *testing.T) {
 
 	for _, testcase := range tests {
 		t.Run(testcase.in, func(t *testing.T) {
-			mask, e := ParseInteger(TagCryptographicUsageMask, testcase.in)
+			mask, e := DefaultRegistry.ParseInt(TagCryptographicUsageMask, testcase.in)
 			require.NoError(t, e)
 			assert.Equal(t, int32(testcase.out), mask)
 		})

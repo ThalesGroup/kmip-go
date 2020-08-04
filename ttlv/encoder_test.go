@@ -406,7 +406,7 @@ func TestEncoder_EncodeValue_errors(t *testing.T) {
 			testName = fmt.Sprintf("%T", test.v)
 		}
 		t.Run(testName, func(t *testing.T) {
-			err := enc.EncodeValue(TagCancellationResult, test.v)
+			err := enc.EncodeValue(TagComment, test.v)
 			require.Error(t, err)
 			t.Log(Details(err))
 			require.True(t, Is(err, test.expErr), Details(err))
@@ -525,17 +525,20 @@ func TestEncoder_EncodeValue(t *testing.T) {
 		// text strings
 		{
 			v:        "red",
-			expected: Value{Tag: TagCancellationResult, Value: "red"},
+			tag:      TagComment,
+			expected: Value{Tag: TagComment, Value: "red"},
 		},
 		{
 			name:     "array",
 			v:        [1]string{"red"},
-			expected: Value{Tag: TagCancellationResult, Value: "red"},
+			tag:      TagComment,
+			expected: Value{Tag: TagComment, Value: "red"},
 		},
 		{
 			name:     "strptr",
+			tag:      TagComment,
 			v:        func() *string { s := "red"; return &s }(),
-			expected: Value{Tag: TagCancellationResult, Value: "red"},
+			expected: Value{Tag: TagComment, Value: "red"},
 		},
 		{
 			name:     "zeroptr",
@@ -1189,24 +1192,20 @@ func TestEncoder_EncodeValue(t *testing.T) {
 				Int8    int8   `ttlv:"CompromiseDate,enum"`
 				Int16   int16  `ttlv:"CompromiseOccurrenceDate,enum"`
 				Int32   int32  `ttlv:"ContactInformation,enum"`
-				Int64   int64  `ttlv:"CorrelationValue,enum"`
 				Uint    uint   `ttlv:"CounterLength,enum"`
 				Uint8   uint8  `ttlv:"Credential,enum"`
 				Uint16  uint16 `ttlv:"CredentialType,enum"`
 				Uint32  uint32 `ttlv:"CredentialValue,enum"`
-				Uint64  uint64 `ttlv:"CriticalityIndicator,enum"`
 			}{
 				Comment: "0x00000001",
 				Int:     2,
 				Int8:    3,
 				Int16:   4,
 				Int32:   5,
-				Int64:   6,
 				Uint:    7,
 				Uint8:   8,
 				Uint16:  9,
 				Uint32:  10,
-				Uint64:  11,
 			},
 			expected: Value{Tag: TagCancellationResult, Value: Values{
 				Value{Tag: TagComment, Value: EnumValue(1)},
@@ -1214,12 +1213,10 @@ func TestEncoder_EncodeValue(t *testing.T) {
 				Value{Tag: TagCompromiseDate, Value: EnumValue(3)},
 				Value{Tag: TagCompromiseOccurrenceDate, Value: EnumValue(4)},
 				Value{Tag: TagContactInformation, Value: EnumValue(5)},
-				Value{Tag: TagCorrelationValue, Value: EnumValue(6)},
 				Value{Tag: TagCounterLength, Value: EnumValue(7)},
 				Value{Tag: TagCredential, Value: EnumValue(8)},
 				Value{Tag: TagCredentialType, Value: EnumValue(9)},
 				Value{Tag: TagCredentialValue, Value: EnumValue(10)},
-				Value{Tag: TagCriticalityIndicator, Value: EnumValue(11)},
 			}},
 		},
 		{
@@ -1297,11 +1294,6 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			expected: TTLV(Hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
 		},
 		{
-			name:     "int64enum",
-			v:        Value{Tag: TagWrappingMethod, Value: int64(WrappingMethodMACSign)},
-			expected: TTLV(Hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
-		},
-		{
 			name:     "uintenum",
 			v:        Value{Tag: TagWrappingMethod, Value: uint(WrappingMethodMACSign)},
 			expected: TTLV(Hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
@@ -1319,11 +1311,6 @@ func TestEncoder_EncodeValue(t *testing.T) {
 		{
 			name:     "uint32enum",
 			v:        Value{Tag: TagWrappingMethod, Value: uint32(WrappingMethodMACSign)},
-			expected: TTLV(Hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
-		},
-		{
-			name:     "uint64enum",
-			v:        Value{Tag: TagWrappingMethod, Value: uint64(WrappingMethodMACSign)},
 			expected: TTLV(Hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
 		},
 	}

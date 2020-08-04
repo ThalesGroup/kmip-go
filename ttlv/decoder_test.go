@@ -349,8 +349,8 @@ func TestUnmarshal(t *testing.T) {
 			require.Equal(t, expected, v.Elem().Interface())
 
 			// if out type is not a slice, add a test for unmarshaling into
-			// a slice of that type, which should work to.  e.g.  you should
-			// be able to unmarshal a bool into either a bool or a slice of bools
+			// a slice of that type, which should work too.  e.g.  you should
+			// be able to unmarshal a bool into either bool or []bool
 
 			if !test.skipSliceOfTest {
 				t.Run("sliceof", func(t *testing.T) {

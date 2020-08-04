@@ -3,6 +3,7 @@ package ttlv
 import (
 	"bytes"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -188,9 +189,9 @@ type MarshalerStruct struct{}
 
 func (MarshalerStruct) MarshalTTLV(e *Encoder, tag Tag) error {
 	return e.EncodeStructure(TagBatchCount, func(e *Encoder) error {
-		e.EncodeInt(TagActivationDate, 4)
-		e.EncodeInt(TagAlternativeName, 5)
-		e.EncodeInt(TagBatchCount, 3)
+		e.EncodeInteger(TagActivationDate, 4)
+		e.EncodeInteger(TagAlternativeName, 5)
+		e.EncodeInteger(TagBatchCount, 3)
 		err := e.EncodeStructure(TagArchiveDate, func(e *Encoder) error {
 			return e.EncodeValue(TagBatchCount, 3)
 		})
@@ -380,10 +381,6 @@ func TestEncoder_EncodeValue_errors(t *testing.T) {
 			expErr: ErrIntOverflow,
 		},
 		{
-			v:      uint64(math.MaxInt64 + 1),
-			expErr: ErrLongIntOverflow,
-		},
-		{
 			v: struct {
 				CustomAttribute struct {
 					AttributeValue complex128
@@ -409,7 +406,7 @@ func TestEncoder_EncodeValue_errors(t *testing.T) {
 			err := enc.EncodeValue(TagComment, test.v)
 			require.Error(t, err)
 			t.Log(Details(err))
-			require.True(t, Is(err, test.expErr), Details(err))
+			require.True(t, errors.Is(err, test.expErr), Details(err))
 		})
 	}
 }
@@ -1374,7 +1371,7 @@ func TestEncoder_EncodeStructure(t *testing.T) {
 		{
 			name: "Encode Bool",
 			f: func(e *Encoder) error {
-				e.EncodeBool(TagActivationDate, true)
+				e.EncodeBoolean(TagActivationDate, true)
 				return nil
 			},
 			expected: Value{
@@ -1555,7 +1552,7 @@ type BatchItem struct {
 
 func (b *BatchItem) MarshalTTLV(e *Encoder, tag Tag) error {
 	return e.EncodeStructure(TagBatchItem, func(e *Encoder) error {
-		e.EncodeInt(TagBatchCount, int32(b.BatchCount))
+		e.EncodeInteger(TagBatchCount, int32(b.BatchCount))
 		if b.Attribute != nil {
 			if err := b.Attribute.MarshalTTLV(e, TagAttribute); err != nil {
 				return err
@@ -1568,8 +1565,8 @@ func (b *BatchItem) MarshalTTLV(e *Encoder, tag Tag) error {
 				return err
 			}
 		}
-		e.EncodeLongInt(TagCertificate, b.Certificate)
-		e.EncodeBigInt(TagCertificateIdentifier, b.CertificateIdentifier)
+		e.EncodeLongInteger(TagCertificate, b.Certificate)
+		e.EncodeBigInteger(TagCertificateIdentifier, b.CertificateIdentifier)
 		e.EncodeDateTime(TagCertificateIssuer, b.CertificateIssuer)
 		for _, v := range b.CertificateRequest {
 			if err := e.EncodeValue(TagCertificateRequest, v); err != nil {
@@ -1577,7 +1574,7 @@ func (b *BatchItem) MarshalTTLV(e *Encoder, tag Tag) error {
 			}
 		}
 		e.EncodeByteString(TagCompromiseDate, b.CompromiseDate)
-		e.EncodeBool(TagCredential, b.Credential)
+		e.EncodeBoolean(TagCredential, b.Credential)
 		e.EncodeInterval(TagD, b.D)
 
 		return nil
@@ -1637,7 +1634,7 @@ func BenchmarkEncoder_EncodeByteString(b *testing.B) {
 func BenchmarkEncoder_EncodeInt(b *testing.B) {
 	enc := NewEncoder(ioutil.Discard)
 	for i := 0; i < b.N; i++ {
-		enc.EncodeInt(TagCertificateIssuer, 8)
+		enc.EncodeInteger(TagCertificateIssuer, 8)
 		require.NoError(b, enc.Flush())
 
 	}

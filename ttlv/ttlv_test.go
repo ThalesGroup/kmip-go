@@ -30,8 +30,52 @@ var sample = `
 		4200790100000040420008010000003842000A07000000044E616D650000000042000B010000002042005507000000067075626B657900004200540500000004000000010000000042000F010000005042005C05000000040000000E00000000420093080000000137000000000000004200790100000028420008010000002042000A0700000008782D6D796174747242000B07000000057465737432000000`
 
 func TestPrint(t *testing.T) {
-	b := Hex2bytes(sample)
-	t.Log(TTLV(b).String())
+	b := Hex2bytes("420069010000002042006a0200000004000000010000000042006b02000000040000000000000000")
+	buf := &bytes.Buffer{}
+	err := Print(buf, "", "  ", b)
+	require.NoError(t, err)
+	assert.Equal(t, `ProtocolVersion (Structure/32):
+  ProtocolVersionMajor (Integer/4): 1
+  ProtocolVersionMinor (Integer/4): 0`, buf.String())
+
+	// Should tolerate invalid ttlv value
+	b = Hex2bytes("620069010000002042006a0200000004000000010000000042006b02000000040000000000000000")
+	buf.Reset()
+	err = Print(buf, "", "  ", b)
+	assert.Error(t, err)
+	assert.Equal(t, `0x620069 (Structure/32): (invalid tag) 0x42006a0200000004000000010000000042006b02000000040000000000000000`, buf.String())
+
+	// Should tolerate invalid value with valid header
+	b = Hex2bytes("42006b0200000004000000000000")
+	buf.Reset()
+	err = Print(buf, "", "  ", b)
+	assert.Error(t, err)
+	assert.Equal(t, `ProtocolVersionMinor (Integer/4): (value truncated) 0x00000000`, buf.String())
+}
+
+func TestPrintPrettyHex(t *testing.T) {
+	b := Hex2bytes("420069010000002042006a0200000004000000010000000042006b02000000040000000000000000")
+	buf := &bytes.Buffer{}
+	err := PrintPrettyHex(buf, "", "  ", b)
+	require.NoError(t, err)
+	assert.Equal(t, `420069 | 01 | 00000020
+  42006a | 02 | 00000004 | 0000000100000000
+  42006b | 02 | 00000004 | 0000000000000000`, buf.String())
+
+	// Should tolerate invalid ttlv value
+	b = Hex2bytes("620069010000002042006a0200000004000000010000000042006b02000000040000000000000000")
+	buf.Reset()
+	err = PrintPrettyHex(buf, "", "  ", b)
+	require.NoError(t, err)
+	assert.Equal(t, `620069010000002042006a0200000004000000010000000042006b02000000040000000000000000`, buf.String())
+
+	// Should tolerate invalid value with valid header
+	b = Hex2bytes("42006b0200000004000000000000")
+	buf.Reset()
+	err = PrintPrettyHex(buf, "", "  ", b)
+	require.NoError(t, err)
+	assert.Equal(t, `42006b | 02 | 00000004
+000000000000`, buf.String())
 }
 
 func TestTTLV(t *testing.T) {

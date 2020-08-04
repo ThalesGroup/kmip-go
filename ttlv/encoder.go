@@ -14,41 +14,82 @@ import (
 	"time"
 )
 
-type DateTimeExtended struct {
-	time.Time
-}
-
-func (t *DateTimeExtended) UnmarshalTTLV(d *Decoder, ttlv TTLV) error {
-	if len(ttlv) == 0 {
-		return nil
-	}
-
-	if t == nil {
-		*t = DateTimeExtended{}
-	}
-
-	err := d.DecodeValue(&t.Time, ttlv)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (t DateTimeExtended) MarshalTTLV(e *Encoder, tag Tag) error {
-	e.EncodeDateTimeExtended(tag, t.Time)
-	return nil
-}
-
 const structFieldTag = "ttlv"
 
 var ErrIntOverflow = fmt.Errorf("value exceeds max int value %d", math.MaxInt32)
-var ErrLongIntOverflow = fmt.Errorf("value exceeds max long int value %d", math.MaxInt64)
 var ErrUnsupportedEnumTypeError = errors.New("unsupported type for enums, must be string, or int types")
 var ErrUnsupportedTypeError = errors.New("marshaling/unmarshaling is not supported for this type")
 var ErrNoTag = errors.New("unable to determine tag for field")
 var ErrTagConflict = errors.New("tag conflict")
 
-func Marshal(v interface{}) ([]byte, error) {
+// Marshal encodes a golang value into a KMIP value.
+//
+// An error will be returned if v is an invalid pointer.
+//
+// Currently, Marshal does not support anonymous fields.
+// Private fields are ignored.
+//
+// Marshal maps the golang value to a KMIP tag, type, and value
+// encoding.  To determine the KMIP tag, Marshal uses the same rules
+// as Unmarshal.
+//
+// The appropriate type and encoding are inferred from the golang type
+// and from the inferred KMIP tag, according to these rules:
+//
+// 1. If the value is a TTLV, it is copied byte for byte
+// 2. If the value implements Marshaler, call that
+// 3. If the struct field has an "omitempty" flag, and the value is
+//    zero, skip the field:
+//
+//        type Foo struct {
+//            Comment string `ttlv:,omitempty`
+//        }
+//
+// 4. If the value is a slice (except []byte)  or array, marshal all
+//    values concatenated
+// 5. If a tag has not been inferred at this point, return *MarshalerError with
+//    cause ErrNoTag
+// 6. If the Tag is registered as an enum, or has the "enum" struct tag flag, attempt
+//    to marshal as an Enumeration.  int, int8, int16, int32, and their uint counterparts
+//    can be marshaled as an Enumeration.  A string can be marshaled to an Enumeration
+//    if the string contains a number, a 4 byte (8 char) hex string with the prefix "0x",
+//    or the canonical name of an enum value registered to this tag.  Examples:
+//
+//         type Foo struct {
+//             CancellationResult string    // will encode as an Enumeration because
+//                                          // the tag CancellationResult is registered
+//                                          // as an enum.
+//             C int `ttlv:"Comment,enum"   // The tag Comment is not registered as an enum
+//                                          // but the enum flag will force this to encode
+//                                          // as an enumeration.
+//         }
+//
+//   If the string can't be interpreted as an enum value, it will be encoded as a TextString.  If
+//   the "enum" struct flag is set, the value *must* successfully encode to an Enumeration using
+//   above rules, or an error is returned.
+// 7. If the Tag is registered as a bitmask, or has the "bitmask" struct tag flag, attempt
+//    to marshal to an Integer, following the same rules as for Enumerations.  The ParseInt()
+//    function is used to parse string values.
+// 9. time.Time marshals to DateTime.  If the field has the "datetimeextended" struct flag,
+//    marshal as DateTimeExtended.  Example:
+//
+//         type Foo struct {
+//             ActivationDate time.Time  `ttlv:",datetimeextended"`
+//         }
+//
+// 10. big.Int marshals to BigInteger
+// 11. time.Duration marshals to Interval
+// 12. string marshals to TextString
+// 13. []byte marshals to ByteString
+// 14. all int and uint variants except int64 and uint64 marshal to Integer.  If the golang
+//     value overflows the KMIP value, *MarshalerError with cause ErrIntOverflow is returned
+// 15. int64 and uint64 marshal to LongInteger
+// 16. bool marshals to Boolean
+// 17. structs marshal to Structure.  Each field of the struct will be marshaled into the
+//     values of the Structure according to the above rules.
+//
+// Any other golang type will return *MarshalerError with cause ErrUnsupportedTypeError
+func Marshal(v interface{}) (TTLV, error) {
 	buf := bytes.NewBuffer(nil)
 	err := NewEncoder(buf).Encode(v)
 	if err != nil {
@@ -57,105 +98,30 @@ func Marshal(v interface{}) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+// Marshaler knows how to encode itself to TTLV.
+// The implementation should use the primitive methods of the encoder,
+// such as EncodeInteger(), etc.
+//
+// The tag inferred by the Encoder from the field or type information is
+// passed as an argument, but the implementation can choose to ignore it.
 type Marshaler interface {
 	MarshalTTLV(e *Encoder, tag Tag) error
-}
-
-type EnumValue uint32
-
-func (v EnumValue) MarshalTTLV(e *Encoder, tag Tag) error {
-	e.EncodeEnumeration(tag, uint32(v))
-	return nil
-}
-
-// Value is a go-typed mapping for a TTLV value.  It holds a tag, and the value in
-// the form of a native go type.
-//
-// Value supports marshaling and unmarshaling, allowing a mapping between encoded TTLV
-// bytes and native go types.  It's useful in tests, or where you want to construct
-// an arbitrary TTLV structure in code without declaring a bespoke type, e.g.:
-//
-//     v := ttlv.Value{Tag: TagBatchCount, Value: Values{
-//				Value{Tag: TagComment, Value: "red"},
-//				Value{Tag: TagComment, Value: "blue"},
-//				Value{Tag: TagComment, Value: "green"},
-//          }
-//     t, err := ttlv.Marshal(v)
-//
-// KMIP Structure types are mapped to the Values go type.  When marshaling, if the Value
-// field is set to a Values{}, the resulting TTLV will be TypeStructure.  When unmarshaling
-// a TTLV with TypeStructure, the Value field will be set to a Values{}.
-type Value struct {
-	Tag   Tag
-	Value interface{}
-}
-
-// UnmarshalTTLV implements Unmarshaler
-func (t *Value) UnmarshalTTLV(d *Decoder, ttlv TTLV) error {
-	t.Tag = ttlv.Tag()
-	switch ttlv.Type() {
-	case TypeStructure:
-		var v Values
-
-		ttlv = ttlv.ValueStructure()
-		for ttlv.Valid() == nil {
-			err := d.DecodeValue(&v, ttlv)
-			if err != nil {
-				return err
-			}
-			ttlv = ttlv.Next()
-		}
-
-		t.Value = v
-	default:
-		t.Value = ttlv.Value()
-	}
-	return nil
-}
-
-// MarshalTTLV implements Marshaler
-func (t Value) MarshalTTLV(e *Encoder, tag Tag) error {
-	// if tag is set, override the suggested tag
-	if t.Tag != TagNone {
-		tag = t.Tag
-	}
-
-	if tvs, ok := t.Value.(Values); ok {
-		return e.EncodeStructure(tag, func(e *Encoder) error {
-			for _, v := range tvs {
-				if err := e.Encode(v); err != nil {
-					return err
-				}
-			}
-			return nil
-		})
-	}
-
-	return e.EncodeValue(tag, t.Value)
-}
-
-// Values is a slice of Value objects.  It represents the body of a TTLV with a type of Structure.
-type Values []Value
-
-type Encoder struct {
-	encodeDepth int
-	w           io.Writer
-	encBuf      encBuf
-
-	// these fields store where the encoder is when marshaling a nested struct.  its
-	// used to construct error messages.
-	currStruct string
-	currField  string
 }
 
 func NewEncoder(w io.Writer) *Encoder {
 	return &Encoder{w: w}
 }
 
+// Encode a single value and flush to the writer.  The tag will be inferred from
+// the value.  If no tag can be inferred, an error is returned.
+// See Marshal for encoding rules.
 func (e *Encoder) Encode(v interface{}) error {
 	return e.EncodeValue(TagNone, v)
 }
 
+// EncodeValue encodes a single value with the given tag and flushes it
+// to the writer.
+// See Marshal for encoding rules.
 func (e *Encoder) EncodeValue(tag Tag, v interface{}) error {
 	err := e.encode(tag, reflect.ValueOf(v), nil)
 	if err != nil {
@@ -164,6 +130,9 @@ func (e *Encoder) EncodeValue(tag Tag, v interface{}) error {
 	return e.Flush()
 }
 
+// EncodeStructure encodes a Structure with the given tag to the writer.
+// The function argument should encode the enclosed values inside the Structure.
+// Call Flush() to write the data to the writer.
 func (e *Encoder) EncodeStructure(tag Tag, f func(e *Encoder) error) error {
 	e.encodeDepth++
 	i := e.encBuf.begin(tag, TypeStructure)
@@ -173,15 +142,18 @@ func (e *Encoder) EncodeStructure(tag Tag, f func(e *Encoder) error) error {
 	return err
 }
 
+// EncodeEnumeration, along with the other Encode<Type> methods, encodes a
+// single KMIP value with the given tag to an internal buffer.  These methods
+// do not flush the data to the writer: call Flush() to flush the buffer.
 func (e *Encoder) EncodeEnumeration(tag Tag, v uint32) {
 	e.encBuf.encodeEnum(tag, v)
 }
 
-func (e *Encoder) EncodeInt(tag Tag, v int32) {
+func (e *Encoder) EncodeInteger(tag Tag, v int32) {
 	e.encBuf.encodeInt(tag, v)
 }
 
-func (e *Encoder) EncodeLongInt(tag Tag, v int64) {
+func (e *Encoder) EncodeLongInteger(tag Tag, v int64) {
 	e.encBuf.encodeLongInt(tag, v)
 }
 
@@ -197,11 +169,11 @@ func (e *Encoder) EncodeDateTimeExtended(tag Tag, v time.Time) {
 	e.encBuf.encodeDateTimeExtended(tag, v)
 }
 
-func (e *Encoder) EncodeBigInt(tag Tag, v *big.Int) {
+func (e *Encoder) EncodeBigInteger(tag Tag, v *big.Int) {
 	e.encBuf.encodeBigInt(tag, v)
 }
 
-func (e *Encoder) EncodeBool(tag Tag, v bool) {
+func (e *Encoder) EncodeBoolean(tag Tag, v bool) {
 	e.encBuf.encodeBool(tag, v)
 }
 
@@ -213,6 +185,7 @@ func (e *Encoder) EncodeByteString(tag Tag, v []byte) {
 	e.encBuf.encodeByteString(tag, v)
 }
 
+// Flush flushes the internal encoding buffer to the writer.
 func (e *Encoder) Flush() error {
 	if e.encodeDepth > 0 {
 		return nil
@@ -223,10 +196,13 @@ func (e *Encoder) Flush() error {
 }
 
 type MarshalerError struct {
-	Type   reflect.Type
+	// Type is the golang type of the value being marshaled
+	Type reflect.Type
+	// Struct is the name of the enclosing struct if the marshaled value is a field.
 	Struct string
-	Field  string
-	Tag    Tag
+	// Field is the name of the field being marshaled
+	Field string
+	Tag   Tag
 }
 
 func (e *MarshalerError) Error() string {
@@ -572,9 +548,6 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 		return nil
 	case reflect.Uint64:
 		u := v.Uint()
-		if u > math.MaxInt64 {
-			return e.marshalingError(tag, typ, ErrLongIntOverflow)
-		}
 		e.encBuf.encodeLongInt(tag, int64(u))
 		return nil
 

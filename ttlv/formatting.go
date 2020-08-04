@@ -110,6 +110,11 @@ func FormatInt(i int32, enumMap EnumMap) string {
 // ParseEnum parses a string into a uint32 according to the rules
 // in the KMIP Profiles regarding encoding enumeration values.
 // See FormatEnum for examples of the formats which can be parsed.
+// It will also parse numeric strings.  Examples:
+//
+//     ParseEnum("UnableToCancel", registry.EnumForTag(TagCancellationResult))
+// 	   ParseEnum("0x00000002")
+// 	   ParseEnum("2")
 //
 // Returns ErrInvalidHexString if the string is invalid hex, or
 // if the hex value is less than 1 byte or more than 4 bytes (ignoring
@@ -234,9 +239,22 @@ func ParseType(s string, enumMap EnumMap) (Type, error) {
 	return 0, merry.Here(ErrUnregisteredEnumName).Append(s)
 }
 
+// EnumMap defines a set of named enumeration values.  Names should be
+// in the canonical format described in the KMIP spec (see NormalizeName())
+//
+// Value enumerations are used for encoding and decoding KMIP Enumeration values,
+// KMIP Integer bitmask values, Types, and Tags.
 type EnumMap interface {
+	// Name returns the canonical name for a value.  If the name is not
+	// registered, it returns "", false
 	Name(v uint32) (string, bool)
+	// Value returns the value registered for the name argument.  If there is
+	// no name registered for this value, it returns 0, false
 	Value(name string) (uint32, bool)
+	// Values returns the complete set of registered values.  The order
+	// they are returned in will be the order they are encoded in when
+	// encoding bitmasks as strings.
 	Values() []uint32
+	// Bitmask returns true if this is an enumeration of bitmask flags.
 	Bitmask() bool
 }

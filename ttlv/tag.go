@@ -24,6 +24,8 @@ const (
 	maxCustomTag   uint32 = 0x00550000
 )
 
+// Valid checks whether the tag's numeric value is valid according to
+// the ranges in the spec.
 func (t Tag) Valid() bool {
 	switch {
 	case uint32(t) >= minStandardTag && uint32(t) < maxStandardTag:

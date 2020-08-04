@@ -1,9 +1,11 @@
 package ttlv
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"os"
 )
 
 func Example_json() {
@@ -34,4 +36,24 @@ func Example_xml() {
 	// Output:
 	// Operation (Enumeration/4): Activate
 	// <Operation type="Enumeration" value="Activate"></Operation>
+}
+
+func ExamplePrintPrettyHex() {
+	b, _ := hex.DecodeString("420069010000002042006a0200000004000000010000000042006b02000000040000000000000000")
+	_ = PrintPrettyHex(os.Stdout, "", "  ", b)
+
+	// Output:
+	// 420069 | 01 | 00000020
+	//   42006a | 02 | 00000004 | 0000000100000000
+	//   42006b | 02 | 00000004 | 0000000000000000
+}
+
+func ExamplePrint() {
+	b, _ := hex.DecodeString("420069010000002042006a0200000004000000010000000042006b02000000040000000000000000")
+	_ = Print(os.Stdout, "", "  ", b)
+
+	// Output:
+	// ProtocolVersion (Structure/32):
+	//   ProtocolVersionMajor (Integer/4): 1
+	//   ProtocolVersionMinor (Integer/4): 0
 }

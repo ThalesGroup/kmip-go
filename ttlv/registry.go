@@ -67,6 +67,19 @@ func NewBitmask() Enum {
 	}
 }
 
+// RegisterValue adds a mapping of a uint32 value to a name.  The name will be
+// processed by NormalizeName to produce the canonical enum value name as described
+// in the KMIP spec.
+func (e *Enum) RegisterValue(v uint32, name string) {
+	nn := NormalizeName(name)
+	if e.valuesToName == nil {
+		e.valuesToName = map[uint32]string{}
+		e.nameToValue = map[string]uint32{}
+	}
+	e.valuesToName[v] = nn
+	e.nameToValue[nn] = v
+}
+
 func (e *Enum) Name(v uint32) (string, bool) {
 	if e == nil {
 		return "", false
@@ -93,20 +106,6 @@ func (e *Enum) Values() []uint32 {
 	return values
 }
 
-// RegisterValue adds a mapping of a uint32 value to a name.  The name will be
-// processed by NormalizeName to produce the canonical enum value name as described
-// in the KMIP spec.
-func (e *Enum) RegisterValue(v uint32, name string) {
-	nn := NormalizeName(name)
-	if e.valuesToName == nil {
-		e.valuesToName = map[uint32]string{}
-		e.nameToValue = map[string]uint32{}
-	}
-	e.valuesToName[v] = nn
-	e.nameToValue[nn] = v
-}
-
-// IsBitmask returns whether the value is a bitmask.
 func (e *Enum) Bitmask() bool {
 	if e == nil {
 		return false
@@ -114,6 +113,9 @@ func (e *Enum) Bitmask() bool {
 	return e.bitMask
 }
 
+// Registry holds all the known tags, types, enums and bitmaps declared in
+// a KMIP spec.  It's used throughout the package to map values their canonical
+// names.
 type Registry struct {
 	enums map[Tag]EnumMap
 	tags  Enum
@@ -135,6 +137,8 @@ func (r *Registry) RegisterEnum(t Tag, def EnumMap) {
 	r.enums[t] = def
 }
 
+// EnumForTag returns the enum map registered for a tag.  Returns
+// nil if no map is registered for this tag.
 func (r *Registry) EnumForTag(t Tag) EnumMap {
 	if r.enums == nil {
 		return nil

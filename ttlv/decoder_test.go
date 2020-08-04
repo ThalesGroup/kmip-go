@@ -2,6 +2,7 @@ package ttlv
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"github.com/ansel1/merry"
 	"github.com/stretchr/testify/assert"
@@ -160,19 +161,14 @@ func TestUnmarshal(t *testing.T) {
 			skipExactRoundtripTest: true,
 		},
 		{
-			in:                     CredentialTypeAttestation,
-			ptr:                    new(int64),
-			expected:               int64(CredentialTypeAttestation),
-			skipExactRoundtripTest: true,
+			in:  CredentialTypeAttestation,
+			ptr: new(int64),
+			err: ErrUnsupportedTypeError,
 		},
 		{
-			in:  Value{Tag: TagBatchCount, Value: "red"},
-			ptr: new(interface{}),
-			expected: func() interface{} {
-				b, err := Marshal(Value{Tag: TagBatchCount, Value: "red"})
-				require.NoError(t, err)
-				return TTLV(b)
-			}(),
+			in:       Value{Tag: TagBatchCount, Value: "red"},
+			ptr:      new(interface{}),
+			expected: "red",
 		},
 		{
 			name: "structtypeerror",
@@ -341,7 +337,7 @@ func TestUnmarshal(t *testing.T) {
 
 			if test.err != nil {
 				require.Error(t, err, "got value instead: %#v", v.Elem().Interface())
-				require.True(t, Is(err, test.err), Details(err))
+				require.True(t, errors.Is(err, test.err), Details(err))
 				return
 			}
 

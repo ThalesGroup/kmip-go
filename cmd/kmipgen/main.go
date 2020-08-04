@@ -403,7 +403,7 @@ const maskTmpl = `// {{.Name}} Bit Mask
 {{template "base" . }}
 
 func ({{.Var}} {{.TypeName}}) MarshalTTLV(enc *{{ttlvPackage}}Encoder, tag {{ttlvPackage}}Tag) error {
-	enc.EncodeInt(tag, int32({{.Var}}))
+	enc.EncodeInteger(tag, int32({{.Var}}))
 	return nil
 }
 

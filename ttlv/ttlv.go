@@ -46,6 +46,272 @@ var ErrInvalidTag = errors.New("invalid tag")
 // hex value encoding is used.
 type TTLV []byte
 
+// Tag returns the KMIP Tag encoded in the TTLV header.
+// Returns empty value if TTLV header is truncated.
+func (t TTLV) Tag() Tag {
+	// don't panic if header is truncated
+	if len(t) < 3 {
+		return Tag(0)
+	}
+	return Tag(uint32(t[2]) | uint32(t[1])<<8 | uint32(t[0])<<16)
+}
+
+// Type returns the KMIP Type encoded in the TTLV header.
+// Returns empty value if TTLV header is truncated.
+func (t TTLV) Type() Type {
+	// don't panic if header is truncated
+	if len(t) < 4 {
+		return Type(0)
+	}
+	return Type(t[3])
+}
+
+// Len returns the length encoded in the TTLV header.
+// Note: The value segment of the TTLV may be longer since
+// some value types encode with padding.
+// See FullLen()
+//
+// Len only reads the header, so it does not validate if the value
+// segment's length matches the length in the header.  See Valid().
+//
+// Returns empty value if TTLV header is truncated.
+func (t TTLV) Len() int {
+	// don't panic if header is truncated
+	if len(t) < lenHeader {
+		return 0
+	}
+	return int(binary.BigEndian.Uint32(t[4:8]))
+}
+
+// FullLen returns the expected length of the entire TTLV block (header + value), based
+// on the type and len encoded in the header.
+//
+// Does not check whether the actual value segment matches
+// the expected length.  See Valid().
+//
+// panics if type encoded in header is invalid or unrecognized.
+func (t TTLV) FullLen() int {
+	switch t.Type() {
+	case TypeInterval, TypeDateTime, TypeDateTimeExtended, TypeBoolean, TypeEnumeration, TypeLongInteger, TypeInteger:
+		return lenHeader + 8
+	case TypeByteString, TypeTextString:
+		l := t.Len() + lenHeader
+		if m := l % 8; m > 0 {
+			return l + (8 - m)
+		}
+		return l
+	case TypeBigInteger, TypeStructure:
+		return t.Len() + lenHeader
+	}
+	panic(fmt.Sprintf("invalid type: %x", byte(t.Type())))
+}
+
+// ValueRaw returns the raw bytes of the value segment of the TTLV.
+// It relies on the length segment of the TTLV to know how many bytes
+// to read.  If the length segment's value is greater than the length of
+// the TTLV slice, all the remaining bytes in the slice will be returned,
+// but it will not panic.
+func (t TTLV) ValueRaw() []byte {
+	// don't panic if the value is truncated
+	l := t.Len()
+	if l == 0 {
+		return nil
+	}
+	if len(t) < lenHeader+l {
+		return t[lenHeader:]
+	}
+	return t[lenHeader : lenHeader+l]
+}
+
+// Value returns the value of the TTLV, converted to an idiomatic
+// go type.
+func (t TTLV) Value() interface{} {
+	switch t.Type() {
+	case TypeInterval:
+		return t.ValueInterval()
+	case TypeDateTime:
+		return t.ValueDateTime()
+	case TypeDateTimeExtended:
+		return t.ValueDateTimeExtended()
+	case TypeByteString:
+		return t.ValueByteString()
+	case TypeTextString:
+		return t.ValueTextString()
+	case TypeBoolean:
+		return t.ValueBoolean()
+	case TypeEnumeration:
+		return t.ValueEnumeration()
+	case TypeBigInteger:
+		return t.ValueBigInteger()
+	case TypeLongInteger:
+		return t.ValueLongInteger()
+	case TypeInteger:
+		return t.ValueInteger()
+	case TypeStructure:
+		return t.ValueStructure()
+	}
+	panic(fmt.Sprintf("invalid type: %x", byte(t.Type())))
+}
+
+// ValueInteger, and the other Value<Type>() variants attempt to decode
+// the value segment of the TTLV into a golang value.  These methods do
+// not check the type of the TTLV.  If the value in the TTLV isn't actually
+// encoded as expected, the result is undetermined, and it may panic.
+func (t TTLV) ValueInteger() int32 {
+	return int32(binary.BigEndian.Uint32(t.ValueRaw()))
+}
+
+func (t TTLV) ValueLongInteger() int64 {
+	return int64(binary.BigEndian.Uint64(t.ValueRaw()))
+}
+
+func (t TTLV) ValueBigInteger() *big.Int {
+	i := new(big.Int)
+	unmarshalBigInt(i, unpadBigInt(t.ValueRaw()))
+	return i
+}
+
+func (t TTLV) ValueEnumeration() uint32 {
+	return binary.BigEndian.Uint32(t.ValueRaw())
+}
+
+func (t TTLV) ValueBoolean() bool {
+	return t.ValueRaw()[7] != 0
+}
+
+func (t TTLV) ValueTextString() string {
+	// conveniently, KMIP strings are UTF-8 encoded, as are
+	// golang strings
+	return string(t.ValueRaw())
+}
+
+func (t TTLV) ValueByteString() []byte {
+	return t.ValueRaw()
+}
+
+func (t TTLV) ValueDateTime() time.Time {
+	i := t.ValueLongInteger()
+	if t.Type() == TypeDateTimeExtended {
+		return time.Unix(0, i*1000).UTC()
+	}
+	return time.Unix(i, 0).UTC()
+}
+
+func (t TTLV) ValueDateTimeExtended() DateTimeExtended {
+	i := t.ValueLongInteger()
+	if t.Type() == TypeDateTimeExtended {
+		return DateTimeExtended{Time: time.Unix(0, i*1000).UTC()}
+	}
+	return DateTimeExtended{Time: time.Unix(i, 0).UTC()}
+}
+
+func (t TTLV) ValueInterval() time.Duration {
+	return time.Duration(binary.BigEndian.Uint32(t.ValueRaw())) * time.Second
+}
+
+// ValueStructure returns the raw bytes of the value segment of the TTLV
+// as a new TTLV.  The value segment of a TTLV Structure is just a concatenation
+// of more TTLV values.
+func (t TTLV) ValueStructure() TTLV {
+	return t.ValueRaw()
+}
+
+// Valid checks whether a TTLV value is valid.  It checks whether the value segment
+// is long enough to hold the encoded type.  If the type is Structure, it recursively
+// checks all the enclosed TTLV values.
+//
+// Returns nil if valid.
+func (t TTLV) Valid() error {
+	if err := t.ValidHeader(); err != nil {
+		return err
+	}
+
+	if len(t) < t.FullLen() {
+		return ErrValueTruncated
+	}
+
+	if t.Type() == TypeStructure {
+		inner := t.ValueStructure()
+		for {
+			if len(inner) == 0 {
+				break
+			}
+			if err := inner.Valid(); err != nil {
+				return merry.Prepend(err, t.Tag().String())
+			}
+			inner = inner.Next()
+		}
+	}
+
+	return nil
+}
+
+func (t TTLV) validTag() bool {
+	switch t[0] {
+	case 0x42, 0x54: // valid
+		return true
+	}
+	return false
+}
+
+// ValidHeader checks whether the header is valid.  It ensures the
+// value is long enough to hold a full header, whether the tag
+// value is within valid ranges, whether the type is recognized,
+// and whether the encoded length is valid for the encoded type.
+//
+// Returns nil if valid.
+func (t TTLV) ValidHeader() error {
+	if l := len(t); l < lenHeader {
+		return ErrHeaderTruncated
+	}
+
+	if !t.validTag() {
+		return ErrInvalidTag
+	}
+
+	switch t.Type() {
+	case TypeStructure, TypeTextString, TypeByteString:
+		// any length is valid
+	case TypeInteger, TypeEnumeration, TypeInterval:
+		if t.Len() != lenInt {
+			return ErrInvalidLen
+		}
+	case TypeLongInteger, TypeBoolean, TypeDateTime, TypeDateTimeExtended:
+		if t.Len() != lenLongInt {
+			return ErrInvalidLen
+		}
+	case TypeBigInteger:
+		if (t.Len() % 8) != 0 {
+			return ErrInvalidLen
+		}
+	default:
+		return ErrInvalidType
+	}
+	return nil
+
+}
+
+func (t TTLV) Next() TTLV {
+	if t.Valid() != nil {
+		return nil
+	}
+	n := t[t.FullLen():]
+	if len(n) == 0 {
+		return nil
+	}
+	return n
+}
+
+// String renders the TTLV in a human-friendly format using Print().
+func (t TTLV) String() string {
+	var sb strings.Builder
+	if err := Print(&sb, "", "  ", t); err != nil {
+		// should never happen
+		panic(err)
+	}
+	return sb.String()
+}
+
 func (t TTLV) MarshalXML(e *xml.Encoder, _ xml.StartElement) error {
 	if len(t) == 0 {
 		return nil
@@ -689,237 +955,13 @@ func (t *TTLV) UnmarshalTTLV(_ *Decoder, ttlv TTLV) error {
 	return nil
 }
 
-// Tag returns the KMIP Tag encoded in the TTLV header.
-// Returns empty value if TTLV header is truncated.
-func (t TTLV) Tag() Tag {
-	// don't panic if header is truncated
-	if len(t) < 3 {
-		return Tag(0)
-	}
-	return Tag(uint32(t[2]) | uint32(t[1])<<8 | uint32(t[0])<<16)
-}
-
-// Type returns the KMIP Type encoded in the TTLV header.
-// Returns empty value if TTLV header is truncated.
-func (t TTLV) Type() Type {
-	// don't panic if header is truncated
-	if len(t) < 4 {
-		return Type(0)
-	}
-	return Type(t[3])
-}
-
-// Len returns the length encoded in the TTLV header.
-// Note: This is only the length of the value segment of the TTLV, not
-// the full length of the entire TTLV block.  See FullLen()
+// Print pretty prints the TTLV value in a human-readable format.  This
+// format cannot be parsed back into TTLV.
 //
-// It's also only reading
-// the header, so it does not validate that the byte slice is really
-// that long, or whether the length matches the value type.
-// Returns empty value if TTLV header is truncated.
-func (t TTLV) Len() int {
-	// don't panic if header is truncated
-	if len(t) < lenHeader {
-		return 0
-	}
-	return int(binary.BigEndian.Uint32(t[4:8]))
-}
-
-// FullLen returns the expected length of the entire TTLV block (header + value), based
-// on the type and len encoded in the header.
-//
-// panics if type encoded in header is invalid or unrecognized.
-func (t TTLV) FullLen() int {
-	switch t.Type() {
-	case TypeInterval, TypeDateTime, TypeDateTimeExtended, TypeBoolean, TypeEnumeration, TypeLongInteger, TypeInteger:
-		return lenHeader + 8
-	case TypeByteString, TypeTextString:
-		l := t.Len() + lenHeader
-		if m := l % 8; m > 0 {
-			return l + (8 - m)
-		}
-		return l
-	case TypeBigInteger, TypeStructure:
-		return t.Len() + lenHeader
-	}
-	panic(fmt.Sprintf("invalid type: %x", byte(t.Type())))
-}
-
-// ValueRaw returns the raw bytes of the value segment of the TTLV.
-// It relies on the length segment of the TTLV to know how many bytes
-// to read.  If the length segment's value is greater than the length of
-// the TTLV slice, all the remaining bytes in the slice will be returned,
-// but it will not panic.
-func (t TTLV) ValueRaw() []byte {
-	// don't panic if the value is truncated
-	l := t.Len()
-	if l == 0 {
-		return nil
-	}
-	if len(t) < lenHeader+l {
-		return t[lenHeader:]
-	}
-	return t[lenHeader : lenHeader+l]
-}
-
-// Value returns the value of the TTLV, converted to an idiomatic
-// go type.
-func (t TTLV) Value() interface{} {
-	switch t.Type() {
-	case TypeInterval:
-		return t.ValueInterval()
-	case TypeDateTime:
-		return t.ValueDateTime()
-	case TypeDateTimeExtended:
-		return DateTimeExtended{t.ValueDateTime()}
-	case TypeByteString:
-		return t.ValueByteString()
-	case TypeTextString:
-		return t.ValueTextString()
-	case TypeBoolean:
-		return t.ValueBoolean()
-	case TypeEnumeration:
-		return t.ValueEnumeration()
-	case TypeBigInteger:
-		return t.ValueBigInteger()
-	case TypeLongInteger:
-		return t.ValueLongInteger()
-	case TypeInteger:
-		return t.ValueInteger()
-	case TypeStructure:
-		return t.ValueStructure()
-	}
-	panic(fmt.Sprintf("invalid type: %x", byte(t.Type())))
-}
-
-func (t TTLV) ValueInteger() int32 {
-	return int32(binary.BigEndian.Uint32(t.ValueRaw()))
-}
-
-func (t TTLV) ValueLongInteger() int64 {
-	return int64(binary.BigEndian.Uint64(t.ValueRaw()))
-}
-
-func (t TTLV) ValueBigInteger() *big.Int {
-	i := new(big.Int)
-	unmarshalBigInt(i, unpadBigInt(t.ValueRaw()))
-	return i
-}
-
-func (t TTLV) ValueEnumeration() uint32 {
-	return binary.BigEndian.Uint32(t.ValueRaw())
-}
-
-func (t TTLV) ValueBoolean() bool {
-	return t.ValueRaw()[7] != 0
-}
-
-func (t TTLV) ValueTextString() string {
-	// conveniently, KMIP strings are UTF-8 encoded, as are
-	// golang strings
-	return string(t.ValueRaw())
-}
-
-func (t TTLV) ValueByteString() []byte {
-	return t.ValueRaw()
-}
-
-func (t TTLV) ValueDateTime() time.Time {
-	i := t.ValueLongInteger()
-	if t.Type() == TypeDateTimeExtended {
-		return time.Unix(0, i*1000).UTC()
-	}
-	return time.Unix(i, 0).UTC()
-}
-
-func (t TTLV) ValueInterval() time.Duration {
-	return time.Duration(binary.BigEndian.Uint32(t.ValueRaw())) * time.Second
-}
-
-func (t TTLV) ValueStructure() TTLV {
-	return t.ValueRaw()
-}
-
-func (t TTLV) Valid() error {
-	if err := t.ValidHeader(); err != nil {
-		return err
-	}
-
-	if len(t) < t.FullLen() {
-		return ErrValueTruncated
-	}
-
-	if t.Type() == TypeStructure {
-		inner := t.ValueStructure()
-		for {
-			if len(inner) == 0 {
-				break
-			}
-			if err := inner.Valid(); err != nil {
-				return merry.Prepend(err, t.Tag().String())
-			}
-			inner = inner.Next()
-		}
-	}
-
-	return nil
-}
-
-func (t TTLV) validTag() bool {
-	switch t[0] {
-	case 0x42, 0x54: // valid
-		return true
-	}
-	return false
-}
-
-func (t TTLV) ValidHeader() error {
-	if l := len(t); l < lenHeader {
-		return ErrHeaderTruncated
-	}
-
-	switch t.Type() {
-	case TypeStructure, TypeTextString, TypeByteString:
-		// any length is valid
-	case TypeInteger, TypeEnumeration, TypeInterval:
-		if t.Len() != lenInt {
-			return ErrInvalidLen
-		}
-	case TypeLongInteger, TypeBoolean, TypeDateTime, TypeDateTimeExtended:
-		if t.Len() != lenLongInt {
-			return ErrInvalidLen
-		}
-	case TypeBigInteger:
-		if (t.Len() % 8) != 0 {
-			return ErrInvalidLen
-		}
-	default:
-		return ErrInvalidType
-	}
-	if !t.validTag() {
-		return ErrInvalidTag
-	}
-	return nil
-
-}
-
-func (t TTLV) Next() TTLV {
-	if t.Valid() != nil {
-		return nil
-	}
-	n := t[t.FullLen():]
-	if len(n) == 0 {
-		return nil
-	}
-	return n
-}
-
-func (t TTLV) String() string {
-	var sb strings.Builder
-	Print(&sb, "", "  ", t)
-	return sb.String()
-}
-
+// Print is safe to call on any TTLV value, even one which is valid,
+// not correctly encoded, or not actually TTLV bytes.  Print will
+// try and print as much of the value as it can decode, and return
+// a parsing error.
 func Print(w io.Writer, prefix, indent string, t TTLV) error {
 
 	currIndent := prefix
@@ -928,30 +970,41 @@ func Print(w io.Writer, prefix, indent string, t TTLV) error {
 	typ := t.Type()
 	l := t.Len()
 
-	fmt.Fprintf(w, "%s%v (%s/%d):", currIndent, tag, typ.String(), l)
+	if _, err := fmt.Fprintf(w, "%s%v (%s/%d):", currIndent, tag, typ.String(), l); err != nil {
+		return err
+	}
 
-	if err := t.Valid(); err != nil {
-		fmt.Fprintf(w, " (%s)", err.Error())
-		switch err {
-		case ErrHeaderTruncated:
-			// print the err, and as much of the truncated header as we have
-			fmt.Fprintf(w, " %#x", []byte(t))
-			return err
-		case ErrInvalidLen, ErrValueTruncated, ErrInvalidTag:
-			// Something is wrong with the value.  Print the error, and the value
-			fmt.Fprintf(w, " %#x", t.ValueRaw())
+	if verr := t.Valid(); verr != nil {
+		if _, err := fmt.Fprintf(w, " (%s)", verr.Error()); err != nil {
 			return err
 		}
+		switch verr {
+		case ErrHeaderTruncated:
+			// print the err, and as much of the truncated header as we have
+			if _, err := fmt.Fprintf(w, " %#x", []byte(t)); err != nil {
+				return err
+			}
+		default:
+			// Something is wrong with the value.  Print the error, and the value
+			if _, err := fmt.Fprintf(w, " %#x", t.ValueRaw()); err != nil {
+				return err
+			}
+		}
+		return verr
 	}
 
 	switch typ {
 	case TypeByteString:
-		fmt.Fprintf(w, " %#x", t.ValueByteString())
+		if _, err := fmt.Fprintf(w, " %#x", t.ValueByteString()); err != nil {
+			return err
+		}
 	case TypeStructure:
 		currIndent += indent
 		s := t.ValueStructure()
 		for s != nil {
-			fmt.Fprint(w, "\n")
+			if _, err := fmt.Fprint(w, "\n"); err != nil {
+				return err
+			}
 			if err := Print(w, currIndent, indent, s); err != nil {
 				// an error means we've hit invalid bytes in the stream
 				// there are no markers to pick back up again, so we have to give up
@@ -960,45 +1013,74 @@ func Print(w io.Writer, prefix, indent string, t TTLV) error {
 			s = s.Next()
 		}
 	case TypeEnumeration:
-		fmt.Fprint(w, " ", DefaultRegistry.FormatEnum(tag, t.ValueEnumeration()))
+		if _, err := fmt.Fprint(w, " ", DefaultRegistry.FormatEnum(tag, t.ValueEnumeration())); err != nil {
+			return err
+		}
 	case TypeInteger:
 		if enum := DefaultRegistry.EnumForTag(tag); enum != nil {
-			fmt.Fprint(w, " ", FormatInt(t.ValueInteger(), enum))
+			if _, err := fmt.Fprint(w, " ", FormatInt(t.ValueInteger(), enum)); err != nil {
+				return err
+			}
 		} else {
-			fmt.Fprintf(w, " %v", t.Value())
+			if _, err := fmt.Fprintf(w, " %v", t.Value()); err != nil {
+				return err
+			}
 		}
 	default:
-		fmt.Fprintf(w, " %v", t.Value())
+		if _, err := fmt.Fprintf(w, " %v", t.Value()); err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-func PrintPrettyHex(w io.Writer, prefix, indent string, t TTLV) (err error) {
+// PrintPrettyHex pretty prints the TTLV value as hex values, with spacers between
+// the segments of the TTLV.  Like Print, this is safe to call even on invalid TTLV
+// values.  An error will only be returned if there is a problem with the writer.
+func PrintPrettyHex(w io.Writer, prefix, indent string, t TTLV) error {
 
 	currIndent := prefix
-	if t.Valid() != nil {
-		fmt.Fprintf(w, "??? %s", hex.EncodeToString(t))
-		return
-	}
-	fmt.Fprintf(w, "%s%s | %s | %s", currIndent, hex.EncodeToString(t[0:3]), hex.EncodeToString(t[3:4]), hex.EncodeToString(t[4:8]))
+	b := []byte(t)
 
-	switch t.Type() {
-	case TypeStructure:
-		currIndent += indent
-		s := t.ValueStructure()
-		for s != nil {
-			fmt.Fprint(w, "\n")
-			if err = PrintPrettyHex(w, currIndent, indent, s); err != nil {
-				// an error means we've hit invalid bytes in the stream
-				// there are no markers to pick back up again, so we have to give up
-				return
-			}
-			s = s.Next()
-		}
-	default:
-		fmt.Fprintf(w, " | %s", hex.EncodeToString(t[lenHeader:t.FullLen()]))
+	if t.ValidHeader() != nil {
+		// print the entire value as hex, un-indented
+		_, err := fmt.Fprint(w, hex.EncodeToString(t))
+		return err
 	}
-	return
+
+	if t.Valid() != nil {
+		// print the header, then dump the rest of the value on the next line
+		_, err := fmt.Fprintf(w, "%s%x | %x | %x\n%x", currIndent, b[0:3], b[3:4], b[4:8], b[8:])
+		return err
+	}
+
+	if t.Type() != TypeStructure {
+		// print the entire value
+		_, err := fmt.Fprintf(w, "%s%x | %x | %x | %x", currIndent, b[0:3], b[3:4], b[4:8], b[lenHeader:t.FullLen()])
+		return err
+	}
+
+	// for structures, print the header, then print the body
+	// indented
+	if _, err := fmt.Fprintf(w, "%s%x | %x | %x", currIndent, b[0:3], b[3:4], b[4:8]); err != nil {
+		return err
+	}
+
+	currIndent += indent
+	s := t.ValueStructure()
+	for s != nil {
+		if _, werr := fmt.Fprint(w, "\n"); werr != nil {
+			return werr
+		}
+		if err := PrintPrettyHex(w, currIndent, indent, s); err != nil {
+			// an error means we've hit invalid bytes in the stream
+			// there are no markers to pick back up again, so we have to give up
+			return err
+		}
+		s = s.Next()
+	}
+	return nil
+
 }
 
 var one = big.NewInt(1)

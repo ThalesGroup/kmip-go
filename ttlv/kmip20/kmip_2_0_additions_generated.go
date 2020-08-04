@@ -1898,7 +1898,7 @@ func (p ProtectionStorageMask) MarshalText() (text []byte, err error) {
 }
 
 func (p ProtectionStorageMask) MarshalTTLV(enc *ttlv.Encoder, tag ttlv.Tag) error {
-	enc.EncodeInt(tag, int32(p))
+	enc.EncodeInteger(tag, int32(p))
 	return nil
 }
 

@@ -3143,7 +3143,7 @@ func (c CryptographicUsageMask) MarshalText() (text []byte, err error) {
 }
 
 func (c CryptographicUsageMask) MarshalTTLV(enc *Encoder, tag Tag) error {
-	enc.EncodeInt(tag, int32(c))
+	enc.EncodeInteger(tag, int32(c))
 	return nil
 }
 
@@ -3179,7 +3179,7 @@ func (s StorageStatusMask) MarshalText() (text []byte, err error) {
 }
 
 func (s StorageStatusMask) MarshalTTLV(enc *Encoder, tag Tag) error {
-	enc.EncodeInt(tag, int32(s))
+	enc.EncodeInteger(tag, int32(s))
 	return nil
 }
 

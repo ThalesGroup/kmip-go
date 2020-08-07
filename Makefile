@@ -54,7 +54,7 @@ cover: builddir
 # build environment.
 docker:
 	docker-compose build --pull builder
-	docker-compose run --rm builder make all testreport
+	docker-compose run --rm builder make all cover
 
 # opens a shell into the build environment container.  Useful for troubleshooting the
 # containerized build.

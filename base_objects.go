@@ -1,6 +1,7 @@
 package kmip
 
 import (
+	"github.com/gemalto/kmip-go/kmip14"
 	"github.com/gemalto/kmip-go/ttlv"
 	"math/big"
 )
@@ -37,7 +38,7 @@ type Attribute struct {
 // TODO: add an unmarshal impl to Credential to handle decoding the right kind
 // of credential based on the credential type value
 type Credential struct {
-	CredentialType  ttlv.CredentialType
+	CredentialType  kmip14.CredentialType
 	CredentialValue interface{}
 }
 
@@ -78,7 +79,7 @@ type DeviceCredentialValue struct {
 // Attestation Measurement or Attestation Assertion fields.
 type AttestationCredentialValue struct {
 	Nonce                  Nonce
-	AttestationType        ttlv.AttestationType
+	AttestationType        kmip14.AttestationType
 	AttestationMeasurement []byte `ttlv:",omitempty"`
 	AttestationAssertion   []byte `ttlv:",omitempty"`
 }
@@ -115,12 +116,12 @@ type AttestationCredentialValue struct {
 //
 // TODO: Unmarshaler impl which unmarshals correct KeyValue type.
 type KeyBlock struct {
-	KeyFormatType      ttlv.KeyFormatType
-	KeyCompressionType ttlv.KeyCompressionType `ttlv:",omitempty"`
+	KeyFormatType      kmip14.KeyFormatType
+	KeyCompressionType kmip14.KeyCompressionType `ttlv:",omitempty"`
 	// KeyValue should be either []byte or KeyValue
-	KeyValue               interface{}                 `ttlv:",omitempty"` // should be either a []byte or KeyValue
-	CryptographicAlgorithm ttlv.CryptographicAlgorithm `ttlv:",omitempty"`
-	CryptographicLength    int                         `ttlv:",omitempty"`
+	KeyValue               interface{}                   `ttlv:",omitempty"` // should be either a []byte or KeyValue
+	CryptographicAlgorithm kmip14.CryptographicAlgorithm `ttlv:",omitempty"`
+	CryptographicLength    int                           `ttlv:",omitempty"`
 	KeyWrappingData        *KeyWrappingData
 }
 
@@ -185,12 +186,12 @@ type KeyValue struct {
 // · No Encoding (i.e., the wrapped un-encoded value of the Byte String Key Material field in the Key Value structure).
 // · TTLV Encoding (i.e., the wrapped TTLV-encoded Key Value structure).
 type KeyWrappingData struct {
-	WrappingMethod             ttlv.WrappingMethod
+	WrappingMethod             kmip14.WrappingMethod
 	EncryptionKeyInformation   *EncryptionKeyInformation
 	MACSignatureKeyInformation *MACSignatureKeyInformation
 	MACSignature               []byte
 	IVCounterNonce             []byte
-	EncodingOption             ttlv.EncodingOption `ttlv:",omitempty" default:"TTLVEncoding"`
+	EncodingOption             kmip14.EncodingOption `ttlv:",omitempty" default:"TTLVEncoding"`
 }
 
 // EncryptionKeyInformation 2.1.5 Table 10
@@ -298,7 +299,7 @@ type TransparentDHPublicKey struct {
 // If the Key Format Type in the Key Block is Transparent ECDSA Private Key, then Key Material is a
 // structure as shown in Table 21.
 type TransparentECDSAPrivateKey struct {
-	RecommendedCurve ttlv.RecommendedCurve
+	RecommendedCurve kmip14.RecommendedCurve
 	D                *big.Int `validate:"required"`
 }
 
@@ -311,7 +312,7 @@ type TransparentECDSAPrivateKey struct {
 // If the Key Format Type in the Key Block is Transparent ECDSA Public Key, then Key Material is a
 // structure as shown in Table 22.
 type TransparentECDSAPublicKey struct {
-	RecommendedCurve ttlv.RecommendedCurve
+	RecommendedCurve kmip14.RecommendedCurve
 	QString          []byte `validate:"required"`
 }
 
@@ -360,7 +361,7 @@ type TransparentECMQVPublicKey TransparentECPublicKey
 // If the Key Format Type in the Key Block is Transparent EC Private Key, then Key Material is a structure as shown
 // in Table 27.
 type TransparentECPrivateKey struct {
-	RecommendedCurve ttlv.RecommendedCurve
+	RecommendedCurve kmip14.RecommendedCurve
 	D                *big.Int `validate:"required"`
 }
 
@@ -369,7 +370,7 @@ type TransparentECPrivateKey struct {
 // If the Key Format Type in the Key Block is Transparent EC Public Key, then Key Material is a structure as
 // shown in Table 28.
 type TransparentECPublicKey struct {
-	RecommendedCurve ttlv.RecommendedCurve
+	RecommendedCurve kmip14.RecommendedCurve
 	QString          []byte `validate:"required"`
 }
 
@@ -433,7 +434,7 @@ func (t *TemplateAttribute) MarshalTTLV(e *ttlv.Encoder, tag ttlv.Tag) error {
 	}
 	return e.EncodeStructure(tag, func(e *ttlv.Encoder) error {
 		if len(t.Name) > 0 {
-			err := e.EncodeValue(ttlv.TagName, t.Name)
+			err := e.EncodeValue(kmip14.TagName, t.Name)
 			if err != nil {
 				return err
 			}
@@ -441,18 +442,18 @@ func (t *TemplateAttribute) MarshalTTLV(e *ttlv.Encoder, tag ttlv.Tag) error {
 		for name, m := range t.Attributes {
 			for idx, v := range m {
 				if v != DeletedMarker {
-					err := e.EncodeStructure(ttlv.TagAttribute, func(e *ttlv.Encoder) error {
-						err := e.EncodeValue(ttlv.TagAttributeName, name) //nolint:scopelint
+					err := e.EncodeStructure(kmip14.TagAttribute, func(e *ttlv.Encoder) error {
+						err := e.EncodeValue(kmip14.TagAttributeName, name) //nolint:scopelint
 						if err != nil {
 							return err
 						}
 						if idx != 0 { //nolint:scopelint
-							err := e.EncodeValue(ttlv.TagAttributeIndex, idx) //nolint:scopelint
+							err := e.EncodeValue(kmip14.TagAttributeIndex, idx) //nolint:scopelint
 							if err != nil {
 								return err
 							}
 						}
-						return e.EncodeValue(ttlv.TagAttributeValue, v) //nolint:scopelint
+						return e.EncodeValue(kmip14.TagAttributeValue, v) //nolint:scopelint
 					})
 					if err != nil {
 						return err

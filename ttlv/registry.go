@@ -1,5 +1,3 @@
-//go:generate go run ../cmd/kmipgen/main.go -o kmip_1_4_generated.go -i kmip_1_4_specs.json
-
 package ttlv
 
 import (
@@ -18,7 +16,6 @@ var DefaultRegistry Registry
 
 // nolint:gochecknoinits
 func init() {
-	RegisterGeneratedDefinitions(&DefaultRegistry)
 	RegisterTypes(&DefaultRegistry)
 }
 

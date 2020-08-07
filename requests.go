@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"github.com/ansel1/merry"
 	"github.com/gemalto/flume"
+	"github.com/gemalto/kmip-go/kmip14"
 	"github.com/gemalto/kmip-go/ttlv"
 	"github.com/google/uuid"
 	"io"
@@ -639,7 +640,7 @@ func (h *StandardProtocolHandler) parseMessage(ctx context.Context, req *Request
 		return merry.Prepend(err, "invalid ttlv")
 	}
 
-	if ttlvV.Tag() != ttlv.TagRequestMessage {
+	if ttlvV.Tag() != kmip14.TagRequestMessage {
 		return merry.Errorf("invalid tag: expected RequestMessage, was %s", ttlvV.Tag().String())
 	}
 
@@ -694,10 +695,10 @@ func (r *Response) Bytes() []byte {
 	return r.buf.Bytes()
 }
 
-func (r *Response) errorResponse(reason ttlv.ResultReason, msg string) {
+func (r *Response) errorResponse(reason kmip14.ResultReason, msg string) {
 	r.BatchItem = []ResponseBatchItem{
 		{
-			ResultStatus:  ttlv.ResultStatusOperationFailed,
+			ResultStatus:  kmip14.ResultStatusOperationFailed,
 			ResultReason:  reason,
 			ResultMessage: msg,
 		},
@@ -721,7 +722,7 @@ func (h *StandardProtocolHandler) handleRequest(ctx context.Context, req *Reques
 	resp.ResponseHeader.ServerCorrelationValue = scv
 
 	if err := h.parseMessage(ctx, req); err != nil {
-		resp.errorResponse(ttlv.ResultReasonInvalidMessage, err.Error())
+		resp.errorResponse(kmip14.ResultReasonInvalidMessage, err.Error())
 		return
 	}
 
@@ -734,7 +735,7 @@ func (h *StandardProtocolHandler) handleRequest(ctx context.Context, req *Reques
 
 	clientMajorVersion := req.Message.RequestHeader.ProtocolVersion.ProtocolVersionMajor
 	if clientMajorVersion != h.ProtocolVersion.ProtocolVersionMajor {
-		resp.errorResponse(ttlv.ResultReasonInvalidMessage,
+		resp.errorResponse(kmip14.ResultReasonInvalidMessage,
 			fmt.Sprintf("mismatched protocol versions, client: %d, server: %d", clientMajorVersion, h.ProtocolVersion.ProtocolVersionMajor))
 		return
 	}
@@ -755,7 +756,7 @@ func (h *StandardProtocolHandler) handleRequest(ctx context.Context, req *Reques
 
 	if req.Message.RequestHeader.MaximumResponseSize > 0 && len(respTTLV) > req.Message.RequestHeader.MaximumResponseSize {
 		// new error resp
-		resp.errorResponse(ttlv.ResultReasonResponseTooLarge, "")
+		resp.errorResponse(kmip14.ResultReasonResponseTooLarge, "")
 		respTTLV = resp.Bytes()
 	}
 
@@ -788,12 +789,12 @@ func (h *StandardProtocolHandler) ServeKMIP(ctx context.Context, req *Request, w
 	releaseResponse(resp)
 }
 
-func (r *ResponseMessage) addFailure(reason ttlv.ResultReason, msg string) {
+func (r *ResponseMessage) addFailure(reason kmip14.ResultReason, msg string) {
 	if msg == "" {
 		msg = reason.String()
 	}
 	r.BatchItem = append(r.BatchItem, ResponseBatchItem{
-		ResultStatus:  ttlv.ResultStatusOperationFailed,
+		ResultStatus:  kmip14.ResultStatusOperationFailed,
 		ResultReason:  reason,
 		ResultMessage: msg,
 	})
@@ -806,7 +807,7 @@ func (r *ResponseMessage) addFailure(reason ttlv.ResultReason, msg string) {
 // items in the request to items in the response.
 type OperationMux struct {
 	mu       sync.RWMutex
-	handlers map[ttlv.Operation]ItemHandler
+	handlers map[kmip14.Operation]ItemHandler
 	// ErrorHandler defaults to the DefaultErrorHandler.
 	ErrorHandler ErrorHandler
 }
@@ -826,7 +827,7 @@ func (f ErrorHandlerFunc) HandleError(err error) *ResponseBatchItem {
 // DefaultErrorHandler tries to map errors to ResultReasons.
 var DefaultErrorHandler = ErrorHandlerFunc(func(err error) *ResponseBatchItem {
 	reason := GetResultReason(err)
-	if reason == ttlv.ResultReason(0) {
+	if reason == kmip14.ResultReason(0) {
 		// error not handled
 		return nil
 	}
@@ -839,9 +840,9 @@ var DefaultErrorHandler = ErrorHandlerFunc(func(err error) *ResponseBatchItem {
 	return newFailedResponseBatchItem(reason, msg)
 })
 
-func newFailedResponseBatchItem(reason ttlv.ResultReason, msg string) *ResponseBatchItem {
+func newFailedResponseBatchItem(reason kmip14.ResultReason, msg string) *ResponseBatchItem {
 	return &ResponseBatchItem{
-		ResultStatus:  ttlv.ResultStatusOperationFailed,
+		ResultStatus:  kmip14.ResultStatusOperationFailed,
 		ResultReason:  reason,
 		ResultMessage: msg,
 	}
@@ -852,7 +853,7 @@ func (m *OperationMux) bi(ctx context.Context, req *Request, reqItem *RequestBat
 	req.CurrentItem = reqItem
 	h := m.handlerForOp(reqItem.Operation)
 	if h == nil {
-		return newFailedResponseBatchItem(ttlv.ResultReasonOperationNotSupported, "")
+		return newFailedResponseBatchItem(kmip14.ResultReasonOperationNotSupported, "")
 	}
 
 	resp, err := h.HandleItem(ctx, req)
@@ -881,18 +882,18 @@ func (m *OperationMux) HandleMessage(ctx context.Context, req *Request, resp *Re
 	}
 }
 
-func (m *OperationMux) Handle(op ttlv.Operation, handler ItemHandler) {
+func (m *OperationMux) Handle(op kmip14.Operation, handler ItemHandler) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
 	if m.handlers == nil {
-		m.handlers = map[ttlv.Operation]ItemHandler{}
+		m.handlers = map[kmip14.Operation]ItemHandler{}
 	}
 
 	m.handlers[op] = handler
 }
 
-func (m *OperationMux) handlerForOp(op ttlv.Operation) ItemHandler {
+func (m *OperationMux) handlerForOp(op kmip14.Operation) ItemHandler {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -900,6 +901,6 @@ func (m *OperationMux) handlerForOp(op ttlv.Operation) ItemHandler {
 }
 
 func (m *OperationMux) missingHandler(ctx context.Context, req *Request, resp *ResponseMessage) error {
-	resp.addFailure(ttlv.ResultReasonOperationNotSupported, "")
+	resp.addFailure(kmip14.ResultReasonOperationNotSupported, "")
 	return nil
 }

@@ -1,10 +1,12 @@
-package ttlv
+package ttlv_test
 
 import (
 	"bytes"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	. "github.com/gemalto/kmip-go/kmip14"
+	. "github.com/gemalto/kmip-go/ttlv"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io"
@@ -1531,7 +1533,7 @@ func BenchmarkEncodeSlice(b *testing.B) {
 	rv := reflect.ValueOf(v)
 
 	for i := 0; i < b.N; i++ {
-		_ = enc.encode(TagNone, rv, nil)
+		_ = enc.EncodeValue(TagNone, rv)
 	}
 }
 

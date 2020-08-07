@@ -3,7 +3,7 @@ package kmip
 import (
 	"context"
 	"github.com/ansel1/merry"
-	"github.com/gemalto/kmip-go/ttlv"
+	"github.com/gemalto/kmip-go/kmip14"
 )
 
 // 4.3
@@ -11,7 +11,7 @@ import (
 // Table 169
 
 type RegisterRequestPayload struct {
-	ObjectType        ttlv.ObjectType
+	ObjectType        kmip14.ObjectType
 	TemplateAttribute TemplateAttribute
 	Certificate       *Certificate
 	SymmetricKey      *SymmetricKey
@@ -46,26 +46,26 @@ func (h *RegisterHandler) HandleItem(ctx context.Context, req *Request) (item *R
 		var payloadPresent bool
 		switch payload.ObjectType {
 		default:
-			return nil, WithResultReason(merry.UserError("Object Type is not recognized"), ttlv.ResultReasonInvalidField)
-		case ttlv.ObjectTypeCertificate:
+			return nil, WithResultReason(merry.UserError("Object Type is not recognized"), kmip14.ResultReasonInvalidField)
+		case kmip14.ObjectTypeCertificate:
 			payloadPresent = payload.Certificate != nil
-		case ttlv.ObjectTypeSymmetricKey:
+		case kmip14.ObjectTypeSymmetricKey:
 			payloadPresent = payload.SymmetricKey != nil
-		case ttlv.ObjectTypePrivateKey:
+		case kmip14.ObjectTypePrivateKey:
 			payloadPresent = payload.PrivateKey != nil
-		case ttlv.ObjectTypePublicKey:
+		case kmip14.ObjectTypePublicKey:
 			payloadPresent = payload.PublicKey != nil
-		case ttlv.ObjectTypeSplitKey:
+		case kmip14.ObjectTypeSplitKey:
 			payloadPresent = payload.SplitKey != nil
-		case ttlv.ObjectTypeTemplate:
+		case kmip14.ObjectTypeTemplate:
 			payloadPresent = payload.Template != nil
-		case ttlv.ObjectTypeSecretData:
+		case kmip14.ObjectTypeSecretData:
 			payloadPresent = payload.SecretData != nil
-		case ttlv.ObjectTypeOpaqueObject:
+		case kmip14.ObjectTypeOpaqueObject:
 			payloadPresent = payload.OpaqueObject != nil
 		}
 		if !payloadPresent {
-			return nil, WithResultReason(merry.UserErrorf("Object Type %s does not match type of cryptographic object provided", payload.ObjectType.String()), ttlv.ResultReasonInvalidField)
+			return nil, WithResultReason(merry.UserErrorf("Object Type %s does not match type of cryptographic object provided", payload.ObjectType.String()), kmip14.ResultReasonInvalidField)
 		}
 	}
 

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ansel1/merry"
-	"github.com/gemalto/kmip-go/ttlv"
+	"github.com/gemalto/kmip-go/kmip14"
 )
 
 func Details(err error) string {
@@ -24,16 +24,16 @@ func init() {
 	merry.RegisterDetail("Result Reason", errorKeyResultReason)
 }
 
-func WithResultReason(err error, rr ttlv.ResultReason) error {
+func WithResultReason(err error, rr kmip14.ResultReason) error {
 	return merry.WithValue(err, errorKeyResultReason, rr)
 }
 
-func GetResultReason(err error) ttlv.ResultReason {
+func GetResultReason(err error) kmip14.ResultReason {
 	v := merry.Value(err, errorKeyResultReason)
 	switch t := v.(type) {
 	case nil:
-		return ttlv.ResultReason(0)
-	case ttlv.ResultReason:
+		return kmip14.ResultReason(0)
+	case kmip14.ResultReason:
 		return t
 	default:
 		panic(fmt.Sprintf("err result reason attribute's value was wrong type, expected ResultReason, got %T", v))

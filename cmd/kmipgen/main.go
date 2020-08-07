@@ -367,18 +367,20 @@ const ({{range .Vals}}
 	{{$typeName}}{{.Name}} {{$typeName}} = {{.Value | printf "%#08x"}}{{end}}
 )
 
-var {{.TypeName}}Enum {{ttlvPackage}}Enum
+var {{.TypeName}}Enum = New{{.TypeName}}Enum()
 
-func init() {
+func New{{.TypeName}}Enum() {{ttlvPackage}}Enum {
 	m := map[{{.TypeName}}]string {
 {{range .Vals}}        {{$typeName}}{{.Name}}: "{{.Name}}",
 {{end}}
 	}
 
-	{{.TypeName}}Enum = {{if .BitMask}}{{ttlvPackage}}NewBitmask{{else}}{{ttlvPackage}}NewEnum{{end}}()
+	e := {{if .BitMask}}{{ttlvPackage}}NewBitmask{{else}}{{ttlvPackage}}NewEnum{{end}}()
     for v, name := range m {
-    	{{.TypeName}}Enum.RegisterValue(uint32(v), name)
+    	e.RegisterValue(uint32(v), name)
 	}
+	
+	return e
 }
 
 func ({{.Var}} {{.TypeName}}) MarshalText() (text []byte, err error) {

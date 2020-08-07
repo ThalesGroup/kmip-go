@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/gemalto/kmip-go"
+	"github.com/gemalto/kmip-go/kmip14"
 	"github.com/gemalto/kmip-go/ttlv"
 	"github.com/google/uuid"
 	"net"
@@ -31,7 +32,7 @@ func Example_client() {
 		BatchItem: []kmip.RequestBatchItem{
 			{
 				UniqueBatchItemID: biID[:],
-				Operation:         ttlv.OperationDiscoverVersions,
+				Operation:         kmip14.OperationDiscoverVersions,
 				RequestPayload: kmip.DiscoverVersionsRequestPayload{
 					ProtocolVersion: []kmip.ProtocolVersion{
 						{ProtocolVersionMajor: 1, ProtocolVersionMinor: 2},
@@ -72,7 +73,7 @@ func ExampleServer() {
 
 	kmip.DefaultProtocolHandler.LogTraffic = true
 
-	kmip.DefaultOperationMux.Handle(ttlv.OperationDiscoverVersions, &kmip.DiscoverVersionsHandler{
+	kmip.DefaultOperationMux.Handle(kmip14.OperationDiscoverVersions, &kmip.DiscoverVersionsHandler{
 		SupportedVersions: []kmip.ProtocolVersion{
 			{
 				ProtocolVersionMajor: 1,

@@ -1,7 +1,7 @@
 package kmip
 
 import (
-	"github.com/gemalto/kmip-go/ttlv"
+	"github.com/gemalto/kmip-go/kmip14"
 	"math/big"
 )
 
@@ -10,7 +10,7 @@ import (
 // 2.2.1
 
 type Certificate struct {
-	CertificateType  ttlv.CertificateType
+	CertificateType  kmip14.CertificateType
 	CertificateValue []byte
 }
 
@@ -38,7 +38,7 @@ type SplitKey struct {
 	SplitKeyParts     int
 	KeyPartIdentifier int
 	SplitKeyThreshold int
-	SplitKeyMethod    ttlv.SplitKeyMethod
+	SplitKeyMethod    kmip14.SplitKeyMethod
 	PrimeFieldSize    *big.Int `ttlv:",omitempty"`
 	KeyBlock          KeyBlock
 }
@@ -52,14 +52,14 @@ type Template struct {
 // 2.2.7
 
 type SecretData struct {
-	SecretDataType ttlv.SecretDataType
+	SecretDataType kmip14.SecretDataType
 	KeyBlock       KeyBlock
 }
 
 // 2.2.8
 
 type OpaqueObject struct {
-	OpaqueDataType  ttlv.OpaqueDataType
+	OpaqueDataType  kmip14.OpaqueDataType
 	OpaqueDataValue []byte
 }
 

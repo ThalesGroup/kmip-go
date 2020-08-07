@@ -355,11 +355,11 @@ func (t TTLV) MarshalXML(e *xml.Encoder, _ xml.StartElement) error {
 			// if the struct contains an attribute name, followed by an
 			// attribute value, use the name to try and map enumeration values
 			// to their string variants
-			if n.Tag() == TagAttributeName {
+			if n.Tag() == tagAttributeName {
 				// try to map the attribute name to a tag
 				attrTag, _ = DefaultRegistry.ParseTag(kmiputil.NormalizeName(n.ValueTextString()))
 			}
-			if n.Tag() == TagAttributeValue && (n.Type() == TypeEnumeration || n.Type() == TypeInteger) {
+			if n.Tag() == tagAttributeValue && (n.Type() == TypeEnumeration || n.Type() == TypeInteger) {
 				valAttr := xml.Attr{
 					Name: xml.Name{Local: "value"},
 				}
@@ -369,7 +369,7 @@ func (t TTLV) MarshalXML(e *xml.Encoder, _ xml.StartElement) error {
 					valAttr.Value = DefaultRegistry.FormatInt(attrTag, n.ValueInteger())
 				}
 				err := e.EncodeToken(xml.StartElement{
-					Name: xml.Name{Local: TagAttributeValue.String()},
+					Name: xml.Name{Local: tagAttributeValue.String()},
 					Attr: []xml.Attr{
 						{
 							Name:  xml.Name{Local: "type"},
@@ -492,7 +492,7 @@ func unmarshalXMLTval(buf *encBuf, tval *xmltval, attrTag Tag) error {
 		}
 	case TypeInteger:
 		enumTag := tag
-		if tag == TagAttributeValue && attrTag != TagNone {
+		if tag == tagAttributeValue && attrTag != TagNone {
 			enumTag = attrTag
 		}
 		i, err := DefaultRegistry.ParseInt(enumTag, strings.Replace(tval.Value, " ", "|", -1))
@@ -524,7 +524,7 @@ func unmarshalXMLTval(buf *encBuf, tval *xmltval, attrTag Tag) error {
 		buf.encodeBigInt(tag, n)
 	case TypeEnumeration:
 		enumTag := tag
-		if tag == TagAttributeValue && attrTag != TagNone {
+		if tag == tagAttributeValue && attrTag != TagNone {
 			enumTag = attrTag
 		}
 		e, err := DefaultRegistry.ParseEnum(enumTag, tval.Value)
@@ -543,7 +543,7 @@ func unmarshalXMLTval(buf *encBuf, tval *xmltval, attrTag Tag) error {
 			}
 			// check whether the TTLV we just unmarshaled is an AttributeName
 			ttlv := TTLV(buf.Bytes()[offset:])
-			if ttlv.Tag() == TagAttributeName {
+			if ttlv.Tag() == tagAttributeName {
 				// try to parse the value as a tag name, which may be used later
 				// when unmarshaling the AttributeValue
 				attrTag, _ = DefaultRegistry.ParseTag(kmiputil.NormalizeName(ttlv.ValueTextString()))
@@ -720,7 +720,7 @@ func (t *TTLV) unmarshalJSON(b []byte, attrTag Tag) error {
 			return syntaxError(errors.New("must be number, hex string, or mask value name"))
 		case string:
 			enumTag := tag
-			if tag == TagAttributeValue && attrTag != TagNone {
+			if tag == tagAttributeValue && attrTag != TagNone {
 				enumTag = attrTag
 			}
 			i, err := DefaultRegistry.ParseInt(enumTag, tv)
@@ -774,7 +774,7 @@ func (t *TTLV) unmarshalJSON(b []byte, attrTag Tag) error {
 			return syntaxError(errors.New("must be number or string"))
 		case string:
 			enumTag := tag
-			if tag == TagAttributeValue && attrTag != TagNone {
+			if tag == tagAttributeValue && attrTag != TagNone {
 				enumTag = attrTag
 			}
 			u, err := DefaultRegistry.ParseEnum(enumTag, tv)
@@ -800,7 +800,7 @@ func (t *TTLV) unmarshalJSON(b []byte, attrTag Tag) error {
 			if err != nil {
 				return syntaxError(err)
 			}
-			if TagAttributeName == scratch.Tag() {
+			if tagAttributeName == scratch.Tag() {
 				attrTag, _ = DefaultRegistry.ParseTag(kmiputil.NormalizeName(scratch.ValueTextString()))
 			}
 			_, _ = enc.Write(scratch)
@@ -888,17 +888,17 @@ func (t TTLV) MarshalJSON() ([]byte, error) {
 			// if the struct contains an attribute name, followed by an
 			// attribute value, use the name to try and map enumeration values
 			// to their string variants
-			if c.Tag() == TagAttributeName {
+			if c.Tag() == tagAttributeName {
 				// try to map the attribute name to a tag
 				attrTag, _ = DefaultRegistry.ParseTag(kmiputil.NormalizeName(c.ValueTextString()))
 			}
 
 			switch {
-			case c.Tag() == TagAttributeValue && c.Type() == TypeEnumeration:
+			case c.Tag() == tagAttributeValue && c.Type() == TypeEnumeration:
 				sb.WriteString(`{"tag":"AttributeValue","type":"Enumeration","value":"`)
 				sb.WriteString(DefaultRegistry.FormatEnum(attrTag, c.ValueEnumeration()))
 				sb.WriteString(`"}`)
-			case c.Tag() == TagAttributeValue && c.Type() == TypeInteger:
+			case c.Tag() == tagAttributeValue && c.Type() == TypeInteger:
 				sb.WriteString(`{"tag":"AttributeValue","type":"Integer","value":`)
 				if enum := DefaultRegistry.EnumForTag(attrTag); enum != nil {
 					sb.WriteString(`"`)

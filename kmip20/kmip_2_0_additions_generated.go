@@ -81,9 +81,9 @@ const (
 	CredentialTypeTicket              CredentialType = 0x00000006
 )
 
-var CredentialTypeEnum ttlv.Enum
+var CredentialTypeEnum = NewCredentialTypeEnum()
 
-func init() {
+func NewCredentialTypeEnum() ttlv.Enum {
 	m := map[CredentialType]string{
 		CredentialTypeUsernameAndPassword: "UsernameAndPassword",
 		CredentialTypeDevice:              "Device",
@@ -93,10 +93,12 @@ func init() {
 		CredentialTypeTicket:              "Ticket",
 	}
 
-	CredentialTypeEnum = ttlv.NewEnum()
+	e := ttlv.NewEnum()
 	for v, name := range m {
-		CredentialTypeEnum.RegisterValue(uint32(v), name)
+		e.RegisterValue(uint32(v), name)
 	}
+
+	return e
 }
 
 func (c CredentialType) MarshalText() (text []byte, err error) {
@@ -175,9 +177,9 @@ const (
 	CryptographicAlgorithmEd448            CryptographicAlgorithm = 0x00000038
 )
 
-var CryptographicAlgorithmEnum ttlv.Enum
+var CryptographicAlgorithmEnum = NewCryptographicAlgorithmEnum()
 
-func init() {
+func NewCryptographicAlgorithmEnum() ttlv.Enum {
 	m := map[CryptographicAlgorithm]string{
 		CryptographicAlgorithmDES:              "DES",
 		CryptographicAlgorithmDES3:             "DES3",
@@ -237,10 +239,12 @@ func init() {
 		CryptographicAlgorithmEd448:            "Ed448",
 	}
 
-	CryptographicAlgorithmEnum = ttlv.NewEnum()
+	e := ttlv.NewEnum()
 	for v, name := range m {
-		CryptographicAlgorithmEnum.RegisterValue(uint32(v), name)
+		e.RegisterValue(uint32(v), name)
 	}
+
+	return e
 }
 
 func (c CryptographicAlgorithm) MarshalText() (text []byte, err error) {
@@ -273,9 +277,9 @@ const (
 	DerivationMethodHKDF                 DerivationMethod = 0x0000000a
 )
 
-var DerivationMethodEnum ttlv.Enum
+var DerivationMethodEnum = NewDerivationMethodEnum()
 
-func init() {
+func NewDerivationMethodEnum() ttlv.Enum {
 	m := map[DerivationMethod]string{
 		DerivationMethodPBKDF2:               "PBKDF2",
 		DerivationMethodHASH:                 "HASH",
@@ -289,10 +293,12 @@ func init() {
 		DerivationMethodHKDF:                 "HKDF",
 	}
 
-	DerivationMethodEnum = ttlv.NewEnum()
+	e := ttlv.NewEnum()
 	for v, name := range m {
-		DerivationMethodEnum.RegisterValue(uint32(v), name)
+		e.RegisterValue(uint32(v), name)
 	}
+
+	return e
 }
 
 func (d DerivationMethod) MarshalText() (text []byte, err error) {
@@ -329,9 +335,9 @@ const (
 	LinkTypeWrappingKeyLink          LinkType = 0x0000010e
 )
 
-var LinkTypeEnum ttlv.Enum
+var LinkTypeEnum = NewLinkTypeEnum()
 
-func init() {
+func NewLinkTypeEnum() ttlv.Enum {
 	m := map[LinkType]string{
 		LinkTypeCertificateLink:          "CertificateLink",
 		LinkTypePublicKeyLink:            "PublicKeyLink",
@@ -349,10 +355,12 @@ func init() {
 		LinkTypeWrappingKeyLink:          "WrappingKeyLink",
 	}
 
-	LinkTypeEnum = ttlv.NewEnum()
+	e := ttlv.NewEnum()
 	for v, name := range m {
-		LinkTypeEnum.RegisterValue(uint32(v), name)
+		e.RegisterValue(uint32(v), name)
 	}
+
+	return e
 }
 
 func (l LinkType) MarshalText() (text []byte, err error) {
@@ -385,9 +393,9 @@ const (
 	ObjectTypeCertificateRequest ObjectType = 0x0000000a
 )
 
-var ObjectTypeEnum ttlv.Enum
+var ObjectTypeEnum = NewObjectTypeEnum()
 
-func init() {
+func NewObjectTypeEnum() ttlv.Enum {
 	m := map[ObjectType]string{
 		ObjectTypeCertificate:        "Certificate",
 		ObjectTypeSymmetricKey:       "SymmetricKey",
@@ -401,10 +409,12 @@ func init() {
 		ObjectTypeCertificateRequest: "CertificateRequest",
 	}
 
-	ObjectTypeEnum = ttlv.NewEnum()
+	e := ttlv.NewEnum()
 	for v, name := range m {
-		ObjectTypeEnum.RegisterValue(uint32(v), name)
+		e.RegisterValue(uint32(v), name)
 	}
+
+	return e
 }
 
 func (o ObjectType) MarshalText() (text []byte, err error) {
@@ -480,9 +490,9 @@ const (
 	OperationReProvision        Operation = 0x00000035
 )
 
-var OperationEnum ttlv.Enum
+var OperationEnum = NewOperationEnum()
 
-func init() {
+func NewOperationEnum() ttlv.Enum {
 	m := map[Operation]string{
 		OperationCreate:             "Create",
 		OperationCreateKeyPair:      "CreateKeyPair",
@@ -539,10 +549,12 @@ func init() {
 		OperationReProvision:        "ReProvision",
 	}
 
-	OperationEnum = ttlv.NewEnum()
+	e := ttlv.NewEnum()
 	for v, name := range m {
-		OperationEnum.RegisterValue(uint32(v), name)
+		e.RegisterValue(uint32(v), name)
 	}
+
+	return e
 }
 
 func (o Operation) MarshalText() (text []byte, err error) {
@@ -762,9 +774,9 @@ const (
 	ProfileNameCompleteServer                                    ProfileName = 0x0000012c
 )
 
-var ProfileNameEnum ttlv.Enum
+var ProfileNameEnum = NewProfileNameEnum()
 
-func init() {
+func NewProfileNameEnum() ttlv.Enum {
 	m := map[ProfileName]string{
 		ProfileNameBaselineServerBasicKMIPV1_2:                       "BaselineServerBasicKMIPV1_2",
 		ProfileNameBaselineServerTLSV1_2KMIPV1_2:                     "BaselineServerTLSV1_2KMIPV1_2",
@@ -965,10 +977,12 @@ func init() {
 		ProfileNameCompleteServer:                                    "CompleteServer",
 	}
 
-	ProfileNameEnum = ttlv.NewEnum()
+	e := ttlv.NewEnum()
 	for v, name := range m {
-		ProfileNameEnum.RegisterValue(uint32(v), name)
+		e.RegisterValue(uint32(v), name)
 	}
+
+	return e
 }
 
 func (p ProfileName) MarshalText() (text []byte, err error) {
@@ -1005,9 +1019,9 @@ const (
 	QueryFunctionQueryStorageProtectionMasks    QueryFunction = 0x0000000e
 )
 
-var QueryFunctionEnum ttlv.Enum
+var QueryFunctionEnum = NewQueryFunctionEnum()
 
-func init() {
+func NewQueryFunctionEnum() ttlv.Enum {
 	m := map[QueryFunction]string{
 		QueryFunctionQueryOperations:                "QueryOperations",
 		QueryFunctionQueryObjects:                   "QueryObjects",
@@ -1025,10 +1039,12 @@ func init() {
 		QueryFunctionQueryStorageProtectionMasks:    "QueryStorageProtectionMasks",
 	}
 
-	QueryFunctionEnum = ttlv.NewEnum()
+	e := ttlv.NewEnum()
 	for v, name := range m {
-		QueryFunctionEnum.RegisterValue(uint32(v), name)
+		e.RegisterValue(uint32(v), name)
 	}
+
+	return e
 }
 
 func (q QueryFunction) MarshalText() (text []byte, err error) {
@@ -1121,9 +1137,9 @@ const (
 	RecommendedCurveCURVE448         RecommendedCurve = 0x00000046
 )
 
-var RecommendedCurveEnum ttlv.Enum
+var RecommendedCurveEnum = NewRecommendedCurveEnum()
 
-func init() {
+func NewRecommendedCurveEnum() ttlv.Enum {
 	m := map[RecommendedCurve]string{
 		RecommendedCurveP_192:            "P_192",
 		RecommendedCurveK_163:            "K_163",
@@ -1197,10 +1213,12 @@ func init() {
 		RecommendedCurveCURVE448:         "CURVE448",
 	}
 
-	RecommendedCurveEnum = ttlv.NewEnum()
+	e := ttlv.NewEnum()
 	for v, name := range m {
-		RecommendedCurveEnum.RegisterValue(uint32(v), name)
+		e.RegisterValue(uint32(v), name)
 	}
+
+	return e
 }
 
 func (r RecommendedCurve) MarshalText() (text []byte, err error) {
@@ -1291,9 +1309,9 @@ const (
 	ResultReasonGeneralFailure                      ResultReason = 0x00000100
 )
 
-var ResultReasonEnum ttlv.Enum
+var ResultReasonEnum = NewResultReasonEnum()
 
-func init() {
+func NewResultReasonEnum() ttlv.Enum {
 	m := map[ResultReason]string{
 		ResultReasonItemNotFound:                        "ItemNotFound",
 		ResultReasonResponseTooLarge:                    "ResponseTooLarge",
@@ -1365,10 +1383,12 @@ func init() {
 		ResultReasonGeneralFailure:                      "GeneralFailure",
 	}
 
-	ResultReasonEnum = ttlv.NewEnum()
+	e := ttlv.NewEnum()
 	for v, name := range m {
-		ResultReasonEnum.RegisterValue(uint32(v), name)
+		e.RegisterValue(uint32(v), name)
 	}
+
+	return e
 }
 
 func (r ResultReason) MarshalText() (text []byte, err error) {
@@ -1394,19 +1414,21 @@ const (
 	AdjustmentTypeNegate    AdjustmentType = 0x00000003
 )
 
-var AdjustmentTypeEnum ttlv.Enum
+var AdjustmentTypeEnum = NewAdjustmentTypeEnum()
 
-func init() {
+func NewAdjustmentTypeEnum() ttlv.Enum {
 	m := map[AdjustmentType]string{
 		AdjustmentTypeIncrement: "Increment",
 		AdjustmentTypeDecrement: "Decrement",
 		AdjustmentTypeNegate:    "Negate",
 	}
 
-	AdjustmentTypeEnum = ttlv.NewEnum()
+	e := ttlv.NewEnum()
 	for v, name := range m {
-		AdjustmentTypeEnum.RegisterValue(uint32(v), name)
+		e.RegisterValue(uint32(v), name)
 	}
+
+	return e
 }
 
 func (a AdjustmentType) MarshalText() (text []byte, err error) {
@@ -1432,19 +1454,21 @@ const (
 	AsynchronousIndicatorProhibited AsynchronousIndicator = 0x00000003
 )
 
-var AsynchronousIndicatorEnum ttlv.Enum
+var AsynchronousIndicatorEnum = NewAsynchronousIndicatorEnum()
 
-func init() {
+func NewAsynchronousIndicatorEnum() ttlv.Enum {
 	m := map[AsynchronousIndicator]string{
 		AsynchronousIndicatorMandatory:  "Mandatory",
 		AsynchronousIndicatorOptional:   "Optional",
 		AsynchronousIndicatorProhibited: "Prohibited",
 	}
 
-	AsynchronousIndicatorEnum = ttlv.NewEnum()
+	e := ttlv.NewEnum()
 	for v, name := range m {
-		AsynchronousIndicatorEnum.RegisterValue(uint32(v), name)
+		e.RegisterValue(uint32(v), name)
 	}
+
+	return e
 }
 
 func (a AsynchronousIndicator) MarshalText() (text []byte, err error) {
@@ -1474,9 +1498,9 @@ const (
 	DataSignatureVerify   Data = 0x00000007
 )
 
-var DataEnum ttlv.Enum
+var DataEnum = NewDataEnum()
 
-func init() {
+func NewDataEnum() ttlv.Enum {
 	m := map[Data]string{
 		DataDecrypt:           "Decrypt",
 		DataEncrypt:           "Encrypt",
@@ -1487,10 +1511,12 @@ func init() {
 		DataSignatureVerify:   "SignatureVerify",
 	}
 
-	DataEnum = ttlv.NewEnum()
+	e := ttlv.NewEnum()
 	for v, name := range m {
-		DataEnum.RegisterValue(uint32(v), name)
+		e.RegisterValue(uint32(v), name)
 	}
+
+	return e
 }
 
 func (d Data) MarshalText() (text []byte, err error) {
@@ -1515,18 +1541,20 @@ const (
 	EndpointRoleServer EndpointRole = 0x00000002
 )
 
-var EndpointRoleEnum ttlv.Enum
+var EndpointRoleEnum = NewEndpointRoleEnum()
 
-func init() {
+func NewEndpointRoleEnum() ttlv.Enum {
 	m := map[EndpointRole]string{
 		EndpointRoleClient: "Client",
 		EndpointRoleServer: "Server",
 	}
 
-	EndpointRoleEnum = ttlv.NewEnum()
+	e := ttlv.NewEnum()
 	for v, name := range m {
-		EndpointRoleEnum.RegisterValue(uint32(v), name)
+		e.RegisterValue(uint32(v), name)
 	}
+
+	return e
 }
 
 func (e EndpointRole) MarshalText() (text []byte, err error) {
@@ -1552,19 +1580,21 @@ const (
 	InteropFunctionReset InteropFunction = 0x00000003
 )
 
-var InteropFunctionEnum ttlv.Enum
+var InteropFunctionEnum = NewInteropFunctionEnum()
 
-func init() {
+func NewInteropFunctionEnum() ttlv.Enum {
 	m := map[InteropFunction]string{
 		InteropFunctionBegin: "Begin",
 		InteropFunctionEnd:   "End",
 		InteropFunctionReset: "Reset",
 	}
 
-	InteropFunctionEnum = ttlv.NewEnum()
+	e := ttlv.NewEnum()
 	for v, name := range m {
-		InteropFunctionEnum.RegisterValue(uint32(v), name)
+		e.RegisterValue(uint32(v), name)
 	}
+
+	return e
 }
 
 func (i InteropFunction) MarshalText() (text []byte, err error) {
@@ -1606,9 +1636,9 @@ const (
 	NISTKeyTypePublicAuthorizationKey             NISTKeyType = 0x00000013
 )
 
-var NISTKeyTypeEnum ttlv.Enum
+var NISTKeyTypeEnum = NewNISTKeyTypeEnum()
 
-func init() {
+func NewNISTKeyTypeEnum() ttlv.Enum {
 	m := map[NISTKeyType]string{
 		NISTKeyTypePrivateSignatureKey:                "PrivateSignatureKey",
 		NISTKeyTypePublicSignatureVerificationKey:     "PublicSignatureVerificationKey",
@@ -1631,10 +1661,12 @@ func init() {
 		NISTKeyTypePublicAuthorizationKey:             "PublicAuthorizationKey",
 	}
 
-	NISTKeyTypeEnum = ttlv.NewEnum()
+	e := ttlv.NewEnum()
 	for v, name := range m {
-		NISTKeyTypeEnum.RegisterValue(uint32(v), name)
+		e.RegisterValue(uint32(v), name)
 	}
+
+	return e
 }
 
 func (n NISTKeyType) MarshalText() (text []byte, err error) {
@@ -1656,15 +1688,17 @@ type PKCS_11Function uint32
 
 const ()
 
-var PKCS_11FunctionEnum ttlv.Enum
+var PKCS_11FunctionEnum = NewPKCS_11FunctionEnum()
 
-func init() {
+func NewPKCS_11FunctionEnum() ttlv.Enum {
 	m := map[PKCS_11Function]string{}
 
-	PKCS_11FunctionEnum = ttlv.NewEnum()
+	e := ttlv.NewEnum()
 	for v, name := range m {
-		PKCS_11FunctionEnum.RegisterValue(uint32(v), name)
+		e.RegisterValue(uint32(v), name)
 	}
+
+	return e
 }
 
 func (p PKCS_11Function) MarshalText() (text []byte, err error) {
@@ -1686,15 +1720,17 @@ type PKCS_11ReturnCode uint32
 
 const ()
 
-var PKCS_11ReturnCodeEnum ttlv.Enum
+var PKCS_11ReturnCodeEnum = NewPKCS_11ReturnCodeEnum()
 
-func init() {
+func NewPKCS_11ReturnCodeEnum() ttlv.Enum {
 	m := map[PKCS_11ReturnCode]string{}
 
-	PKCS_11ReturnCodeEnum = ttlv.NewEnum()
+	e := ttlv.NewEnum()
 	for v, name := range m {
-		PKCS_11ReturnCodeEnum.RegisterValue(uint32(v), name)
+		e.RegisterValue(uint32(v), name)
 	}
+
+	return e
 }
 
 func (p PKCS_11ReturnCode) MarshalText() (text []byte, err error) {
@@ -1719,18 +1755,20 @@ const (
 	ProtectionLevelLow  ProtectionLevel = 0x00000002
 )
 
-var ProtectionLevelEnum ttlv.Enum
+var ProtectionLevelEnum = NewProtectionLevelEnum()
 
-func init() {
+func NewProtectionLevelEnum() ttlv.Enum {
 	m := map[ProtectionLevel]string{
 		ProtectionLevelHigh: "High",
 		ProtectionLevelLow:  "Low",
 	}
 
-	ProtectionLevelEnum = ttlv.NewEnum()
+	e := ttlv.NewEnum()
 	for v, name := range m {
-		ProtectionLevelEnum.RegisterValue(uint32(v), name)
+		e.RegisterValue(uint32(v), name)
 	}
+
+	return e
 }
 
 func (p ProtectionLevel) MarshalText() (text []byte, err error) {
@@ -1754,17 +1792,19 @@ const (
 	TicketTypeLogin TicketType = 0x00000001
 )
 
-var TicketTypeEnum ttlv.Enum
+var TicketTypeEnum = NewTicketTypeEnum()
 
-func init() {
+func NewTicketTypeEnum() ttlv.Enum {
 	m := map[TicketType]string{
 		TicketTypeLogin: "Login",
 	}
 
-	TicketTypeEnum = ttlv.NewEnum()
+	e := ttlv.NewEnum()
 	for v, name := range m {
-		TicketTypeEnum.RegisterValue(uint32(v), name)
+		e.RegisterValue(uint32(v), name)
 	}
+
+	return e
 }
 
 func (t TicketType) MarshalText() (text []byte, err error) {
@@ -1804,9 +1844,9 @@ const (
 	UniqueIdentifierReKeyKeyPairPublicKey   UniqueIdentifier = 0x00000011
 )
 
-var UniqueIdentifierEnum ttlv.Enum
+var UniqueIdentifierEnum = NewUniqueIdentifierEnum()
 
-func init() {
+func NewUniqueIdentifierEnum() ttlv.Enum {
 	m := map[UniqueIdentifier]string{
 		UniqueIdentifierIDPlaceholder:           "IDPlaceholder",
 		UniqueIdentifierCertify:                 "Certify",
@@ -1827,10 +1867,12 @@ func init() {
 		UniqueIdentifierReKeyKeyPairPublicKey:   "ReKeyKeyPairPublicKey",
 	}
 
-	UniqueIdentifierEnum = ttlv.NewEnum()
+	e := ttlv.NewEnum()
 	for v, name := range m {
-		UniqueIdentifierEnum.RegisterValue(uint32(v), name)
+		e.RegisterValue(uint32(v), name)
 	}
+
+	return e
 }
 
 func (u UniqueIdentifier) MarshalText() (text []byte, err error) {
@@ -1867,9 +1909,9 @@ const (
 	ProtectionStorageMaskSameJurisdiction ProtectionStorageMask = 0x00002000
 )
 
-var ProtectionStorageMaskEnum ttlv.Enum
+var ProtectionStorageMaskEnum = NewProtectionStorageMaskEnum()
 
-func init() {
+func NewProtectionStorageMaskEnum() ttlv.Enum {
 	m := map[ProtectionStorageMask]string{
 		ProtectionStorageMaskSoftware:         "Software",
 		ProtectionStorageMaskHardware:         "Hardware",
@@ -1887,10 +1929,12 @@ func init() {
 		ProtectionStorageMaskSameJurisdiction: "SameJurisdiction",
 	}
 
-	ProtectionStorageMaskEnum = ttlv.NewBitmask()
+	e := ttlv.NewBitmask()
 	for v, name := range m {
-		ProtectionStorageMaskEnum.RegisterValue(uint32(v), name)
+		e.RegisterValue(uint32(v), name)
 	}
+
+	return e
 }
 
 func (p ProtectionStorageMask) MarshalText() (text []byte, err error) {

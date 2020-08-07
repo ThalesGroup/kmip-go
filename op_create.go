@@ -2,7 +2,7 @@ package kmip
 
 import (
 	"context"
-	"github.com/gemalto/kmip-go/ttlv"
+	"github.com/gemalto/kmip-go/kmip14"
 )
 
 // TODO: should request and response payloads implement validation?
@@ -28,13 +28,13 @@ import (
 //
 // TemplateAttribute MUST include CryptographicAlgorithm (3.4) and CryptographicUsageMask (3.19).
 type CreateRequestPayload struct {
-	ObjectType        ttlv.ObjectType
+	ObjectType        kmip14.ObjectType
 	TemplateAttribute TemplateAttribute
 }
 
 // CreateResponsePayload 4.1 Table 164
 type CreateResponsePayload struct {
-	ObjectType        ttlv.ObjectType
+	ObjectType        kmip14.ObjectType
 	UniqueIdentifier  string
 	TemplateAttribute *TemplateAttribute
 }
@@ -55,7 +55,7 @@ func (h *CreateHandler) HandleItem(ctx context.Context, req *Request) (*Response
 		return nil, err
 	}
 
-	req.IDPlaceholder = respPayload.TemplateAttribute.GetTag(ttlv.TagUniqueIdentifier, 0).(string)
+	req.IDPlaceholder = respPayload.TemplateAttribute.GetTag(kmip14.TagUniqueIdentifier, 0).(string)
 
 	return &ResponseBatchItem{
 		ResponsePayload: respPayload,

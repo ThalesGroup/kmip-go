@@ -31,7 +31,7 @@ fmt:
 	go fmt ./...
 
 # generates go code structures representing all the enums, mask, and tags defined
-# in the KMIP spec.  The source specifications are stored in ttlv/kmip_1_4_specs.json
+# in the KMIP spec.  The source specifications are stored in kmip14/kmip_1_4.json
 # and ttls/kmip20/kmip_2_0_additions.json.  The generated .go files are named *_generated.go
 #
 # the kmipgen tool (defined in cmd/kmipgen) is used to generate the source.  This tool can

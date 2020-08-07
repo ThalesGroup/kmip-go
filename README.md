@@ -1,4 +1,4 @@
-kmip-go [![GoDoc](https://godoc.org/github.com/gemalto/kmip-go?status.png)](https://godoc.org/github.com/gemalto/kmip-go) [![Go Report Card](https://goreportcard.com/badge/github.com/gemalto/kmip-go)](https://goreportcard.com/report/gemalto/kmip-go)
+kmip-go [![GoDoc](https://godoc.org/github.com/gemalto/kmip-go?status.png)](https://godoc.org/github.com/gemalto/kmip-go) [![Go Report Card](https://goreportcard.com/badge/github.com/gemalto/kmip-go)](https://goreportcard.com/report/gemalto/kmip-go) [![Build](https://github.com/gemalto/kmip-go/workflows/Build/badge.svg)](https://github.com/gemalto/kmip-go/actions?query=branch%3Amaster+workflow%3ABuild+)
 =======
 
 kmip-go is a go implemenation of KMIP protocol primitives.  It supports marshaling data in TTLV, XML, or JSON

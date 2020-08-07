@@ -4,6 +4,12 @@ package kmip
 // This is a WIP implementation of a KMIP server.  The code is mostly based on the http server in
 // the golang standard library.  It is functional, but not all of the features of the http server
 // have been ported over yet, and some of the stuff in here still refers to http stuff.
+//
+// The responsibility of handling a request is broken up into 3 layers of handlers: ProtocolHandler, MessageHandler,
+// and ItemHandler.  Each of these handlers delegates details to the next layer.  Using the http
+// package as an analogy, ProtocolHandler is similar to the wire-level HTTP protocol handling in
+// http.Server and http.Transport.  MessageHandler parses KMIP TTLV bytes into golang request and response structs.
+// ItemHandler is a bit like http.ServeMux, routing particular KMIP operations to registered handlers.
 
 import (
 	"bufio"
@@ -26,6 +32,23 @@ import (
 
 var serverLog = flume.New("kmip_server")
 
+// Server serves KMIP protocol connections from a net.Listener.  Because KMIP is a connection-oriented
+// protocol, unlike HTTP, each connection ends up being serviced by a dedicated goroutine (rather than
+// each request).  For each KMIP connection, requests are processed serially.  The handling
+// of the request is delegated to the ProtocolHandler.
+//
+// Limitations:
+//
+// This implementation is functional (it can respond to KMIP requests), but incomplete.  Some of the
+// connection management features of the http package haven't been ported over, and also, there is
+// currently no connection-context in which to store things like an authentication or session management.
+// Since HTTP is an intrinsically stateless model, it makes sense for the http package to delegate session
+// management to third party packages, but for KMIP, it would makes sense for there to be some first
+// class support for a connection context.
+//
+// This package also only handles the binary TTLV encoding for now.  It may make sense for this
+// server to detect or support the XML and JSON encodings as well.  It may also makes sense to support
+// KMIP requests over HTTP, perhaps by adapting ProtocolHandler to an http.Handler or something.
 type Server struct {
 	Handler ProtocolHandler
 
@@ -467,12 +490,15 @@ func (c *conn) readRequest(ctx context.Context) (w *Request, err error) {
 	return req, nil
 }
 
+// Request represents a KMIP request.
 type Request struct {
+	// TTLV will hold the entire body of the request.
 	TTLV                ttlv.TTLV
 	Message             *RequestMessage
 	CurrentItem         *RequestBatchItem
 	DisallowExtraValues bool
 
+	// TLS holds the TLS state of the connection this request was received on.
 	TLS        *tls.ConnectionState
 	RemoteAddr string
 	LocalAddr  string
@@ -540,14 +566,29 @@ type ResponseWriter interface {
 	io.Writer
 }
 
+// ProtocolHandler is responsible for handling raw requests read off the wire.  The
+// *Request object will only have TTLV field populated.  The response should
+// be written directly to the ResponseWriter.
+//
+// The default implemention of ProtocolHandler is StandardProtocolHandler.
 type ProtocolHandler interface {
 	ServeKMIP(ctx context.Context, req *Request, resp ResponseWriter)
 }
 
+// MessageHandler handles KMIP requests which have already be decoded.  The *Request
+// object's Message field will be populated from the decoded TTLV.  The *Response
+// object will always be non-nil, and its ResponseHeader will be populated.  The
+// MessageHandler usually shouldn't modify the ResponseHeader: the ProtocolHandler
+// is responsible for the header.  The MessageHandler just needs to populate
+// the response batch items.
+//
+// The default implementation of MessageHandler is OperationMux.
 type MessageHandler interface {
 	HandleMessage(ctx context.Context, req *Request, resp *Response)
 }
 
+// ItemHandler handles a single batch item in a KMIP request.  The *Request
+// object's CurrentItem field will be populated with item to be handled.
 type ItemHandler interface {
 	HandleItem(ctx context.Context, req *Request) (item *ResponseBatchItem, err error)
 }
@@ -580,10 +621,16 @@ var DefaultProtocolHandler = &StandardProtocolHandler{
 
 var DefaultOperationMux = &OperationMux{}
 
+// StandardProtocolHandler is the default ProtocolHandler implementation.  It
+// handles decoding the request and encoding the response, as well as protocol
+// level tasks like version negotiation and correlation values.
+//
+// It delegates handling of the request to a MessageHandler.
 type StandardProtocolHandler struct {
 	ProtocolVersion ProtocolVersion
 	MessageHandler  MessageHandler
-	LogTraffic      bool
+
+	LogTraffic bool
 }
 
 func (h *StandardProtocolHandler) parseMessage(ctx context.Context, req *Request) error {
@@ -752,12 +799,20 @@ func (r *ResponseMessage) addFailure(reason ttlv.ResultReason, msg string) {
 	})
 }
 
+// OperationMux is an implementation of MessageHandler which handles each batch item in the request
+// by routing the operation to an ItemHandler.  The ItemHandler performs the operation, and returns
+// either a *ResponseBatchItem, or an error.  If it returns an error, the error is passed to
+// ErrorHandler, which converts it into a error *ResponseBatchItem.  OperationMux handles correlating
+// items in the request to items in the response.
 type OperationMux struct {
-	mu           sync.RWMutex
-	handlers     map[ttlv.Operation]ItemHandler
+	mu       sync.RWMutex
+	handlers map[ttlv.Operation]ItemHandler
+	// ErrorHandler defaults to the DefaultErrorHandler.
 	ErrorHandler ErrorHandler
 }
 
+// ErrorHandler converts a golang error into a *ResponseBatchItem (which should hold information
+// about the error to convey back to the client).
 type ErrorHandler interface {
 	HandleError(err error) *ResponseBatchItem
 }
@@ -768,6 +823,7 @@ func (f ErrorHandlerFunc) HandleError(err error) *ResponseBatchItem {
 	return f(err)
 }
 
+// DefaultErrorHandler tries to map errors to ResultReasons.
 var DefaultErrorHandler = ErrorHandlerFunc(func(err error) *ResponseBatchItem {
 	reason := GetResultReason(err)
 	if reason == ttlv.ResultReason(0) {

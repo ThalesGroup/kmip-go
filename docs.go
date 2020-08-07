@@ -1,12 +1,13 @@
 // Package kmip is a general purpose KMIP library for implementing KMIP services and clients.
 //
-// Features
+// The ttlv sub package contains the core logic for parsing the KMIP TTLV encoding formats,
+// and marshaling them to and from golang structs.
 //
-// TTLV: This is a low-level parser for the TTLV binary format.  It can parse the binary format, and
-// can marshal/unmarshal to/from the XML and JSON KMIP formats.  Note: this library is built around
-// the binary TTLV format.  XML and JSON KMIP values need to be converted to TTLV values first.
+// This package defines structs for many of the structures defined in the KMIP Spec, such as
+// the different types of managed objects, request and response bodies, etc.  Not all Structures
+// are represented here yet, but the ones that are can be used as examples.
 //
-// Encoder/Decoder: These types marshal and unmarshal TTLV to Go structs.  They work much like json.Encoder,
-// json.Decoder, xml.Encoder, and xml.Decoder.  kmip.Encoder can also be used to directly encode TTLV values from
-// primitive values.
+// There is also a partial implementation of a server, and an example of a client.  There is
+// currently no Client type for KMIP, but it is simple to open a socket overwhich you send
+// and receive raw KMIP requests and responses.
 package kmip

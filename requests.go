@@ -1,4 +1,3 @@
-//nolint
 package kmip
 
 // This is a WIP implementation of a KMIP server.  The code is mostly based on the http server in

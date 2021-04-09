@@ -24,10 +24,9 @@ func Example_client() {
 		RequestHeader: kmip.RequestHeader{
 			ProtocolVersion: kmip.ProtocolVersion{
 				ProtocolVersionMajor: 1,
-				ProtocolVersionMinor: 0,
+				ProtocolVersionMinor: 2,
 			},
-			BatchCount:             1,
-			ClientCorrelationValue: uuid.New().String(),
+			BatchCount: 1,
 		},
 		BatchItem: []kmip.RequestBatchItem{
 			{

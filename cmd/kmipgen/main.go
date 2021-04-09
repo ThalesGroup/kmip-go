@@ -64,15 +64,14 @@ func main() {
 		flag.PrintDefaults()
 	}
 
-	var specs Specifications
-
 	var inputFilename string
 	var outputFilename string
+	var packageName string
 	var usage bool
 
 	flag.StringVar(&inputFilename, "i", "", "Input `filename` of specifications.  Required.")
 	flag.StringVar(&outputFilename, "o", "", "Output `filename`.  Defaults to standard out.")
-	flag.StringVar(&specs.Package, "p", "ttlv", "Go `package` name in generated code.")
+	flag.StringVar(&packageName, "p", "ttlv", "Go `package` name in generated code.")
 	flag.BoolVar(&usage, "h", false, "Show this usage message.")
 	flag.Parse()
 
@@ -87,32 +86,44 @@ func main() {
 		os.Exit(1)
 	}
 
-	inputFile, err := os.Open(inputFilename)
+	err := run(inputFilename, outputFilename, packageName)
+	if err != nil {
+		fmt.Println(merry.Details(err))
+		os.Exit(1)
+	}
+}
+
+func run(inFilename, outFilename, packageName string) error {
+	inputFile, err := os.Open(inFilename)
 	if err != nil {
 		fmt.Println("error opening input file: ", err.Error())
 		os.Exit(1)
 	}
 	defer inputFile.Close()
 
+	specs := Specifications{
+		Package: packageName,
+	}
+
 	err = json.NewDecoder(bufio.NewReader(inputFile)).Decode(&specs)
 	if err != nil {
-		fmt.Println("error reading input file: ", err.Error())
+		return merry.Prepend(err, "error reading input file")
 	}
 
 	var outputWriter *os.File
 	outputWriter = os.Stdout
 
-	if outputFilename != "" {
-		p, err := filepath.Abs(outputFilename)
+	if outFilename != "" {
+		p, err := filepath.Abs(outFilename)
 		if err != nil {
-			panic(err)
+			return merry.Prepend(err, "can't resolve absolute path for output filename")
 		}
 
 		fmt.Println("writing to", p)
 
 		f, err := os.Create(p)
 		if err != nil {
-			panic(err)
+			return merry.Prepend(err, "error creating output file")
 		}
 
 		outputWriter = f
@@ -136,9 +147,10 @@ func main() {
 
 	_, err = outputWriter.WriteString(src)
 	if err != nil {
-		fmt.Println("error writing to output file", err.Error())
-		os.Exit(1)
+		return merry.Prepend(err, "error writing to output file")
 	}
+
+	return nil
 }
 
 type tagVal struct {

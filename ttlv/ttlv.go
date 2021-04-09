@@ -393,7 +393,7 @@ func (t TTLV) MarshalXML(e *xml.Encoder, _ xml.StartElement) error {
 
 	case TypeInteger:
 		if enum := DefaultRegistry.EnumForTag(t.Tag()); enum != nil {
-			out.Value = strings.Replace(FormatInt(t.ValueInteger(), enum), "|", " ", -1)
+			out.Value = strings.ReplaceAll(FormatInt(t.ValueInteger(), enum), "|", " ")
 		} else {
 			out.Value = strconv.Itoa(int(t.ValueInteger()))
 		}
@@ -495,7 +495,7 @@ func unmarshalXMLTval(buf *encBuf, tval *xmltval, attrTag Tag) error {
 		if tag == tagAttributeValue && attrTag != TagNone {
 			enumTag = attrTag
 		}
-		i, err := DefaultRegistry.ParseInt(enumTag, strings.Replace(tval.Value, " ", "|", -1))
+		i, err := DefaultRegistry.ParseInt(enumTag, strings.ReplaceAll(tval.Value, " ", "|"))
 		if err != nil {
 			return syntaxError(err)
 		}

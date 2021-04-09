@@ -265,7 +265,7 @@ func TestTTLV_UnmarshalTTLV(t *testing.T) {
 	ttlv = make(TTLV, buf.Len()+100) // create a TTLV buf a bit larger than necessary
 	// copy some marker bytes into the end.  after unmarshaling, the marker bytes should
 	// be intact, since they are in the end part of the buffer
-	copy(ttlv[buf.Len():], []byte("whitewhale"))
+	copy(ttlv[buf.Len():], "whitewhale")
 	err = ttlv.UnmarshalTTLV(nil, buf.Bytes())
 
 	require.NoError(t, err)

@@ -55,7 +55,7 @@ func (h *CreateHandler) HandleItem(ctx context.Context, req *Request) (*Response
 		return nil, err
 	}
 
-	req.IDPlaceholder = respPayload.TemplateAttribute.GetTag(kmip14.TagUniqueIdentifier, 0).(string)
+	req.IDPlaceholder = respPayload.TemplateAttribute.GetTag(kmip14.TagUniqueIdentifier).AttributeValue.(string)
 
 	return &ResponseBatchItem{
 		ResponsePayload: respPayload,

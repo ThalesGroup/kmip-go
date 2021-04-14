@@ -155,6 +155,22 @@ func (t Value) MarshalTTLV(e *Encoder, tag Tag) error {
 // Values is a slice of Value objects.  It represents the body of a TTLV with a type of Structure.
 type Values []Value
 
+// NewValue creates a new tagged value.
+func NewValue(tag Tag, val interface{}) Value {
+	return Value{
+		Tag:   tag,
+		Value: val,
+	}
+}
+
+// NewStruct creates a new tagged value which is of type struct.
+func NewStruct(tag Tag, vals ...Value) Value {
+	return Value{
+		Tag:   tag,
+		Value: Values(vals),
+	}
+}
+
 type Encoder struct {
 	encodeDepth int
 	w           io.Writer

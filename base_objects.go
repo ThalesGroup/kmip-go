@@ -390,201 +390,67 @@ type TransparentECPublicKey struct {
 //}
 
 type TemplateAttribute struct {
-	Name       []Name
-	Attributes map[string]map[int]interface{}
+	Name      []Name
+	Attribute []Attribute
 }
 
-func (t *TemplateAttribute) UnmarshalTTLV(d *ttlv.Decoder, ttlv ttlv.TTLV) error {
-	if len(ttlv) == 0 {
+// Get returns a reference to the first Attribute in the list matching the name.
+// Returns nil if not found.
+func (t *TemplateAttribute) Get(s string) *Attribute {
+	if t == nil {
 		return nil
 	}
-
-	attr := struct {
-		Name      []Name
-		Attribute []Attribute
-	}{}
-	err := d.DecodeValue(&attr, ttlv)
-	if err != nil {
-		return err
-	}
-
-	if t == nil {
-		*t = TemplateAttribute{}
-	}
-
-	t.Name = attr.Name
-	for _, a := range attr.Attribute {
-		if t.Attributes == nil {
-			t.Attributes = map[string]map[int]interface{}{}
+	for i := range t.Attribute {
+		if t.Attribute[i].AttributeName == s {
+			return &t.Attribute[i]
 		}
-		idxMap := t.Attributes[a.AttributeName]
-		if idxMap == nil {
-			idxMap = map[int]interface{}{}
-			t.Attributes[a.AttributeName] = idxMap
-		}
-		idxMap[a.AttributeIndex] = a.AttributeValue
 	}
-
 	return nil
 }
 
-func (t *TemplateAttribute) MarshalTTLV(e *ttlv.Encoder, tag ttlv.Tag) error {
+// GetIdx returns a reference to the Attribute in the list matching the name and index.
+// Returns nil if not found.
+func (t *TemplateAttribute) GetIdx(s string, idx int) *Attribute {
 	if t == nil {
 		return nil
 	}
-	return e.EncodeStructure(tag, func(e *ttlv.Encoder) error {
-		if len(t.Name) > 0 {
-			err := e.EncodeValue(kmip14.TagName, t.Name)
-			if err != nil {
-				return err
-			}
+
+	for i := range t.Attribute {
+		if t.Attribute[i].AttributeName == s && t.Attribute[i].AttributeIndex == idx {
+			return &t.Attribute[i]
 		}
-		for name, m := range t.Attributes {
-			for idx, v := range m {
-				if v != DeletedMarker {
-					err := e.EncodeStructure(kmip14.TagAttribute, func(e *ttlv.Encoder) error {
-						err := e.EncodeValue(kmip14.TagAttributeName, name) //nolint:scopelint
-						if err != nil {
-							return err
-						}
-						if idx != 0 { //nolint:scopelint
-							err := e.EncodeValue(kmip14.TagAttributeIndex, idx) //nolint:scopelint
-							if err != nil {
-								return err
-							}
-						}
-						return e.EncodeValue(kmip14.TagAttributeValue, v) //nolint:scopelint
-					})
-					if err != nil {
-						return err
-					}
-				}
-			}
+	}
+	return nil
+}
+
+// GetTag returns a reference to the first Attribute in the list matching the tag.
+// Returns nil if not found.
+func (t *TemplateAttribute) GetTag(tag ttlv.Tag) *Attribute {
+	return t.Get(tag.String())
+}
+
+// GetTagIdx returns a reference to the first Attribute in the list matching the tag and index.
+// Returns nil if not found.
+func (t *TemplateAttribute) GetTagIdx(tag ttlv.Tag, idx int) *Attribute {
+	return t.GetIdx(tag.String(), idx)
+}
+
+func (t *TemplateAttribute) GetAll(s string) []Attribute {
+	if t == nil {
+		return nil
+	}
+	var ret []Attribute
+	for i := range t.Attribute {
+		if t.Attribute[i].AttributeName == s {
+			ret = append(ret, t.Attribute[i])
 		}
-		return nil
-	})
-}
-
-type deletedMarker int
-
-const DeletedMarker = deletedMarker(0)
-
-func (t *TemplateAttribute) Get(s string, idx int) interface{} {
-	if t == nil {
-		return nil
 	}
-	//for i := range t.Attribute {
-	//	if t.Attribute[i].AttributeName == s && t.Attribute[i].AttributeIndex == idx {
-	//		return t.Attribute[i].AttributeValue
-	//	}
-	//}
-	//return nil
-	v := t.Attributes[s][idx]
-	if v == DeletedMarker {
-		return nil
-	}
-	return v
+
+	return ret
 }
 
-func (t *TemplateAttribute) GetTag(tag ttlv.Tag, idx int) interface{} {
-	return t.Get(tag.String(), idx)
-}
-
-func (t *TemplateAttribute) GetAll(s string) map[int]interface{} {
-	if t == nil {
-		return nil
-	}
-	//var ret []Attribute
-	//for i := range t.Attribute {
-	//	if t.Attribute[i].AttributeName == s {
-	//		ret = append(ret, t.Attribute[i])
-	//	}
-	//}
-	return t.Attributes[s]
-}
-
-func (t *TemplateAttribute) GetAllTag(tag ttlv.Tag) map[int]interface{} {
+func (t *TemplateAttribute) GetAllTag(tag ttlv.Tag) []Attribute {
 	return t.GetAll(tag.String())
-}
-
-func (t *TemplateAttribute) getOrCreate(name string) map[int]interface{} {
-	if t.Attributes == nil {
-		t.Attributes = map[string]map[int]interface{}{}
-	}
-	m := t.Attributes[name]
-	if m == nil {
-		m = map[int]interface{}{}
-		t.Attributes[name] = m
-	}
-	return m
-}
-
-func (t *TemplateAttribute) Add(a Attribute) {
-	//a.AttributeIndex = 0
-	//for i := range t.Attribute {
-	//	if t.Attribute[i].AttributeName == a.AttributeName {
-	//		if n := t.Attribute[i].AttributeIndex; n >= a.AttributeIndex {
-	//			a.AttributeIndex = n + 1
-	//		}
-	//	}
-	//}
-	//t.Attribute = append(t.Attribute, a)
-
-	m := t.getOrCreate(a.AttributeName)
-	for i := range m {
-		if i >= a.AttributeIndex {
-			a.AttributeIndex = i + 1
-		}
-	}
-	m[a.AttributeIndex] = a.AttributeValue
-}
-
-func (t TemplateAttribute) Set2(name string, val interface{}, idx int) interface{} {
-	m := t.getOrCreate(name)
-	p := m[idx]
-	m[idx] = val
-	return p
-}
-
-func (t TemplateAttribute) Set(a Attribute) interface{} {
-	m := t.getOrCreate(a.AttributeName)
-	p := m[a.AttributeIndex]
-	m[a.AttributeIndex] = a.AttributeValue
-	return p
-	//if t == nil || t.Attribute == nil {
-	//	return nil
-	//}
-	//for i := range t.Attribute {
-	//	if t.Attribute[i].AttributeName == a.AttributeName && t.Attribute[i].AttributeIndex == a.AttributeIndex {
-	//		replaced := t.Attribute[i]
-	//		t.Attribute[i] = a
-	//		return &replaced
-	//	}
-	//}
-	//t.Attribute = append(t.Attribute, a)
-	//return nil
-}
-
-func (t TemplateAttribute) Delete(a Attribute) interface{} {
-
-	//if t == nil || t.Attribute == nil {
-	//	return nil
-	//}
-	//for i := range t.Attribute {
-	//	if t.Attribute[i].AttributeName == a.AttributeName && t.Attribute[i].AttributeIndex == a.AttributeIndex {
-	//		replaced := t.Attribute[i]
-	//		t.Attribute = append(t.Attribute[:i], t.Attribute[i+1:]...)
-	//		return &replaced
-	//	}
-	//}
-	//return nil
-
-	m := t.Attributes[a.AttributeName]
-	p, ok := m[a.AttributeIndex]
-	if ok {
-		m[a.AttributeIndex] = DeletedMarker
-	}
-	return p
 }
 
 // CommonTemplateAttribute 2.1.8 Table 29

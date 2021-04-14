@@ -92,3 +92,126 @@ func TestRequest(t *testing.T) {
 		ProtocolVersionMinor: 2,
 	}, protVer)
 }
+
+func TestTemplateAttribute_marshal(t *testing.T) {
+	tests := []struct {
+		name     string
+		in       TemplateAttribute
+		expected ttlv.Value
+	}{
+		{
+			name: "basic",
+			in: TemplateAttribute{
+				Name: []Name{
+					{
+						NameValue: "first",
+						NameType:  kmip14.NameTypeUninterpretedTextString,
+					},
+					{
+						NameValue: "this is a uri",
+						NameType:  kmip14.NameTypeURI,
+					},
+				},
+				Attribute: []Attribute{
+					{
+						AttributeName:  kmip14.TagAlwaysSensitive.String(),
+						AttributeIndex: 5,
+						AttributeValue: true,
+					},
+				},
+			},
+			expected: s(kmip14.TagTemplateAttribute,
+				s(kmip14.TagName,
+					v(kmip14.TagNameValue, "first"),
+					v(kmip14.TagNameType, kmip14.NameTypeUninterpretedTextString),
+				),
+				s(kmip14.TagName,
+					v(kmip14.TagNameValue, "this is a uri"),
+					v(kmip14.TagNameType, kmip14.NameTypeURI),
+				),
+				s(kmip14.TagAttribute,
+					v(kmip14.TagAttributeName, kmip14.TagAlwaysSensitive.String()),
+					v(kmip14.TagAttributeIndex, 5),
+					v(kmip14.TagAttributeValue, true),
+				),
+			),
+		},
+		{
+			name: "noname",
+			in: TemplateAttribute{Attribute: []Attribute{
+				{
+					AttributeName:  kmip14.TagAlwaysSensitive.String(),
+					AttributeIndex: 5,
+					AttributeValue: true,
+				},
+			}},
+			expected: s(kmip14.TagTemplateAttribute,
+				s(kmip14.TagAttribute,
+					v(kmip14.TagAttributeName, kmip14.TagAlwaysSensitive.String()),
+					v(kmip14.TagAttributeIndex, 5),
+					v(kmip14.TagAttributeValue, true),
+				),
+			),
+		},
+		{
+			name: "noattribute",
+			in: TemplateAttribute{
+				Name: []Name{
+					{
+						NameValue: "first",
+						NameType:  kmip14.NameTypeUninterpretedTextString,
+					},
+				},
+			},
+			expected: s(kmip14.TagTemplateAttribute,
+				s(kmip14.TagName,
+					v(kmip14.TagNameValue, "first"),
+					v(kmip14.TagNameType, kmip14.NameTypeUninterpretedTextString),
+				),
+			),
+		},
+		{
+			name: "omitzeroindex",
+			in: TemplateAttribute{
+				Attribute: []Attribute{
+					{
+						AttributeName:  kmip14.TagAlwaysSensitive.String(),
+						AttributeValue: true,
+					},
+				},
+			},
+			expected: s(kmip14.TagTemplateAttribute,
+				s(kmip14.TagAttribute,
+					v(kmip14.TagAttributeName, kmip14.TagAlwaysSensitive.String()),
+					v(kmip14.TagAttributeValue, true),
+				),
+			),
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			out, err := ttlv.Marshal(&test.in)
+			require.NoError(t, err)
+
+			expected, err := ttlv.Marshal(test.expected)
+			require.NoError(t, err)
+
+			require.Equal(t, out, expected)
+
+			var ta TemplateAttribute
+			err = ttlv.Unmarshal(expected, &ta)
+			require.NoError(t, err)
+
+			require.Equal(t, test.in, ta)
+		})
+	}
+}
+
+func v(tag ttlv.Tag, val interface{}) ttlv.Value {
+	return ttlv.NewValue(tag, val)
+}
+
+func s(tag ttlv.Tag, vals ...ttlv.Value) ttlv.Value {
+	return ttlv.NewStruct(tag, vals...)
+}

@@ -19,8 +19,9 @@ Packages
 The `ttlv` package implements the core encoder and decoder logic.
 
 The `kmip14` package contains constants for all the tags, types, enumerations and bitmasks defined in the KMIP 1.4
-specification.   It also contains mappings from these values to the canonical names used in the JSON and XML
-encodings.  The `kmip14` definitions are all automatically registered with `ttlv.DefaultRegistry`.
+specification.   It also contains mappings from these values to the normalized names used in the JSON and XML
+encodings, and the canonical names used in Attribute structures.  
+The `kmip14` definitions are all automatically registered with `ttlv.DefaultRegistry`.
 
 The `kmip20` package adds additional enumeration values from the 2.0 specification.  It is meant to be registered
 on top of the 1.4 definitions.

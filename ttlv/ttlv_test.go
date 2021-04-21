@@ -151,7 +151,7 @@ func TestTTLV(t *testing.T) {
 		},
 		{
 			bs:  "42 00 20 | 05 | 00 00 00 04 | 00 00 00 FF 00 00 00 00",
-			exp: uint32(255),
+			exp: EnumValue(255),
 			typ: TypeEnumeration,
 		},
 		{

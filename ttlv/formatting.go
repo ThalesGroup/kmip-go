@@ -10,7 +10,7 @@ import (
 
 // FormatType formats a byte as a KMIP Type string,
 // as described in the KMIP Profiles spec.  If the value is registered,
-// the canonical name of the value will be returned.
+// the normalized name of the value will be returned.
 //
 // Otherwise, a 1 byte hex string is returned, but this is not
 // technically a valid encoding for types in the JSON and XML encoding
@@ -29,7 +29,7 @@ func FormatType(b byte, enumMap EnumMap) string {
 
 // FormatTag formats an uint32 as a KMIP Tag string,
 // as described in the KMIP Profiles spec.  If the value is registered,
-// the canonical name of the value will be returned.  Otherwise, a
+// the normalized name of the value will be returned.  Otherwise, a
 // 3 byte hex string is returned.  Examples:
 //
 // - ActivationDate
@@ -43,9 +43,27 @@ func FormatTag(v uint32, enumMap EnumMap) string {
 	return fmt.Sprintf("%#06x", v)
 }
 
+// FormatTagCanonical formats an uint32 as a canonical Tag name
+// from the KMIP spec.  If the value is registered,
+// the canonical name of the value will be returned.  Otherwise, a
+// 3 byte hex string is returned.  Examples:
+//
+// - Activation Date
+// - 0x420001
+//
+// Canonical tag names are used in the AttributeName of Attribute structs.
+func FormatTagCanonical(v uint32, enumMap EnumMap) string {
+	if enumMap != nil {
+		if s, ok := enumMap.CanonicalName(v); ok {
+			return s
+		}
+	}
+	return fmt.Sprintf("%#06x", v)
+}
+
 // FormatEnum formats an uint32 as a KMIP Enumeration string,
 // as described in the KMIP Profiles spec.  If the value is registered,
-// the canonical name of the value will be returned.  Otherwise, a
+// the normalized name of the value will be returned.  Otherwise, a
 // four byte hex string is returned.  Examples:
 //
 // - SymmetricKey
@@ -239,17 +257,25 @@ func ParseType(s string, enumMap EnumMap) (Type, error) {
 	return 0, merry.Here(ErrUnregisteredEnumName).Append(s)
 }
 
-// EnumMap defines a set of named enumeration values.  Names should be
-// in the canonical format described in the KMIP spec (see NormalizeName())
+// EnumMap defines a set of named enumeration values.  Canonical names should
+// be the name from the spec. Names should be in the normalized format
+// described in the KMIP spec (see NormalizeName()).
+//
 //
 // Value enumerations are used for encoding and decoding KMIP Enumeration values,
 // KMIP Integer bitmask values, Types, and Tags.
 type EnumMap interface {
-	// Name returns the canonical name for a value.  If the name is not
-	// registered, it returns "", false
+	// Name returns the normalized name for a value, e.g. AttributeName.
+	// If the name is not registered, it returns "", false.
 	Name(v uint32) (string, bool)
+	// CanonicalName returns the canonical name for the value from the spec,
+	// e.g. Attribute Name.
+	// If the name is not registered, it returns "", false
+	CanonicalName(v uint32) (string, bool)
 	// Value returns the value registered for the name argument.  If there is
-	// no name registered for this value, it returns 0, false
+	// no name registered for this value, it returns 0, false.
+	// The name argument may be the canonical name (e.g. "Cryptographic Algorithm") or
+	// the normalized name (e.g. "CryptographicAlgorithm").
 	Value(name string) (uint32, bool)
 	// Values returns the complete set of registered values.  The order
 	// they are returned in will be the order they are encoded in when

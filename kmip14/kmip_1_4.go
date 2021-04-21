@@ -3,9 +3,9 @@
 // Package kmip14 contains tag and enumeration value definitions from the 1.4 specification.
 // These definitions will be registered automatically into the DefaultRegistry.
 //
-// Each tag is stored in a package constant, named Tag<canonical KMIP name>.
+// Each tag is stored in a package constant, named Tag<normalized KMIP name>.
 // Bitmask and Enumeration values are each represented by a type, named
-// after the canonical name of the values set from the spec, e.g.
+// after the normalized name of the values set from the spec, e.g.
 package kmip14
 
 import (

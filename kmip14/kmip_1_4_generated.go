@@ -314,7 +314,7 @@ var CredentialTypeEnum = NewCredentialTypeEnum()
 
 func NewCredentialTypeEnum() ttlv.Enum {
 	m := map[CredentialType]string{
-		CredentialTypeUsernameAndPassword: "UsernameAndPassword",
+		CredentialTypeUsernameAndPassword: "Username and Password",
 		CredentialTypeDevice:              "Device",
 		CredentialTypeAttestation:         "Attestation",
 	}
@@ -355,10 +355,10 @@ var KeyCompressionTypeEnum = NewKeyCompressionTypeEnum()
 
 func NewKeyCompressionTypeEnum() ttlv.Enum {
 	m := map[KeyCompressionType]string{
-		KeyCompressionTypeECPublicKeyTypeUncompressed:         "ECPublicKeyTypeUncompressed",
-		KeyCompressionTypeECPublicKeyTypeX9_62CompressedPrime: "ECPublicKeyTypeX9_62CompressedPrime",
-		KeyCompressionTypeECPublicKeyTypeX9_62CompressedChar2: "ECPublicKeyTypeX9_62CompressedChar2",
-		KeyCompressionTypeECPublicKeyTypeX9_62Hybrid:          "ECPublicKeyTypeX9_62Hybrid",
+		KeyCompressionTypeECPublicKeyTypeUncompressed:         "EC Public Key Type Uncompressed",
+		KeyCompressionTypeECPublicKeyTypeX9_62CompressedPrime: "EC Public Key Type X9.62 Compressed Prime",
+		KeyCompressionTypeECPublicKeyTypeX9_62CompressedChar2: "EC Public Key Type X9.62 Compressed Char2",
+		KeyCompressionTypeECPublicKeyTypeX9_62Hybrid:          "EC Public Key Type X9.62 Hybrid",
 	}
 
 	e := ttlv.NewEnum()
@@ -417,26 +417,26 @@ func NewKeyFormatTypeEnum() ttlv.Enum {
 	m := map[KeyFormatType]string{
 		KeyFormatTypeRaw:                        "Raw",
 		KeyFormatTypeOpaque:                     "Opaque",
-		KeyFormatTypePKCS_1:                     "PKCS_1",
-		KeyFormatTypePKCS_8:                     "PKCS_8",
-		KeyFormatTypeX_509:                      "X_509",
+		KeyFormatTypePKCS_1:                     "PKCS#1",
+		KeyFormatTypePKCS_8:                     "PKCS#8",
+		KeyFormatTypeX_509:                      "X.509",
 		KeyFormatTypeECPrivateKey:               "ECPrivateKey",
-		KeyFormatTypeTransparentSymmetricKey:    "TransparentSymmetricKey",
-		KeyFormatTypeTransparentDSAPrivateKey:   "TransparentDSAPrivateKey",
-		KeyFormatTypeTransparentDSAPublicKey:    "TransparentDSAPublicKey",
-		KeyFormatTypeTransparentRSAPrivateKey:   "TransparentRSAPrivateKey",
-		KeyFormatTypeTransparentRSAPublicKey:    "TransparentRSAPublicKey",
-		KeyFormatTypeTransparentDHPrivateKey:    "TransparentDHPrivateKey",
-		KeyFormatTypeTransparentDHPublicKey:     "TransparentDHPublicKey",
-		KeyFormatTypeTransparentECDSAPrivateKey: "TransparentECDSAPrivateKey",
-		KeyFormatTypeTransparentECDSAPublicKey:  "TransparentECDSAPublicKey",
-		KeyFormatTypeTransparentECDHPrivateKey:  "TransparentECDHPrivateKey",
-		KeyFormatTypeTransparentECDHPublicKey:   "TransparentECDHPublicKey",
-		KeyFormatTypeTransparentECMQVPrivateKey: "TransparentECMQVPrivateKey",
-		KeyFormatTypeTransparentECMQVPublicKey:  "TransparentECMQVPublicKey",
-		KeyFormatTypeTransparentECPrivateKey:    "TransparentECPrivateKey",
-		KeyFormatTypeTransparentECPublicKey:     "TransparentECPublicKey",
-		KeyFormatTypePKCS_12:                    "PKCS_12",
+		KeyFormatTypeTransparentSymmetricKey:    "Transparent Symmetric Key",
+		KeyFormatTypeTransparentDSAPrivateKey:   "Transparent DSA Private Key",
+		KeyFormatTypeTransparentDSAPublicKey:    "Transparent DSA Public Key",
+		KeyFormatTypeTransparentRSAPrivateKey:   "Transparent RSA Private Key",
+		KeyFormatTypeTransparentRSAPublicKey:    "Transparent RSA Public Key",
+		KeyFormatTypeTransparentDHPrivateKey:    "Transparent DH Private Key",
+		KeyFormatTypeTransparentDHPublicKey:     "Transparent DH Public Key",
+		KeyFormatTypeTransparentECDSAPrivateKey: "Transparent ECDSA Private Key",
+		KeyFormatTypeTransparentECDSAPublicKey:  "Transparent ECDSA Public Key",
+		KeyFormatTypeTransparentECDHPrivateKey:  "Transparent ECDH Private Key",
+		KeyFormatTypeTransparentECDHPublicKey:   "Transparent ECDH Public Key",
+		KeyFormatTypeTransparentECMQVPrivateKey: "Transparent ECMQV Private Key",
+		KeyFormatTypeTransparentECMQVPublicKey:  "Transparent ECMQV Public Key",
+		KeyFormatTypeTransparentECPrivateKey:    "Transparent EC Private Key",
+		KeyFormatTypeTransparentECPublicKey:     "Transparent EC Public Key",
+		KeyFormatTypePKCS_12:                    "PKCS#12",
 	}
 
 	e := ttlv.NewEnum()
@@ -477,10 +477,10 @@ var WrappingMethodEnum = NewWrappingMethodEnum()
 func NewWrappingMethodEnum() ttlv.Enum {
 	m := map[WrappingMethod]string{
 		WrappingMethodEncrypt:            "Encrypt",
-		WrappingMethodMACSign:            "MACSign",
-		WrappingMethodEncryptThenMACSign: "EncryptThenMACSign",
-		WrappingMethodMACSignThenEncrypt: "MACSignThenEncrypt",
-		WrappingMethodTR_31:              "TR_31",
+		WrappingMethodMACSign:            "MAC/sign",
+		WrappingMethodEncryptThenMACSign: "Encrypt then MAC/sign",
+		WrappingMethodMACSignThenEncrypt: "MAC/sign then encrypt",
+		WrappingMethodTR_31:              "TR-31",
 	}
 
 	e := ttlv.NewEnum()
@@ -583,21 +583,21 @@ var RecommendedCurveEnum = NewRecommendedCurveEnum()
 
 func NewRecommendedCurveEnum() ttlv.Enum {
 	m := map[RecommendedCurve]string{
-		RecommendedCurveP_192:            "P_192",
-		RecommendedCurveK_163:            "K_163",
-		RecommendedCurveB_163:            "B_163",
-		RecommendedCurveP_224:            "P_224",
-		RecommendedCurveK_233:            "K_233",
-		RecommendedCurveB_233:            "B_233",
-		RecommendedCurveP_256:            "P_256",
-		RecommendedCurveK_283:            "K_283",
-		RecommendedCurveB_283:            "B_283",
-		RecommendedCurveP_384:            "P_384",
-		RecommendedCurveK_409:            "K_409",
-		RecommendedCurveB_409:            "B_409",
-		RecommendedCurveP_521:            "P_521",
-		RecommendedCurveK_571:            "K_571",
-		RecommendedCurveB_571:            "B_571",
+		RecommendedCurveP_192:            "P-192",
+		RecommendedCurveK_163:            "K-163",
+		RecommendedCurveB_163:            "B-163",
+		RecommendedCurveP_224:            "P-224",
+		RecommendedCurveK_233:            "K-233",
+		RecommendedCurveB_233:            "B-233",
+		RecommendedCurveP_256:            "P-256",
+		RecommendedCurveK_283:            "K-283",
+		RecommendedCurveB_283:            "B-283",
+		RecommendedCurveP_384:            "P-384",
+		RecommendedCurveK_409:            "K-409",
+		RecommendedCurveB_409:            "B-409",
+		RecommendedCurveP_521:            "P-521",
+		RecommendedCurveK_571:            "K-571",
+		RecommendedCurveB_571:            "B-571",
 		RecommendedCurveSECP112R1:        "SECP112R1",
 		RecommendedCurveSECP112R2:        "SECP112R2",
 		RecommendedCurveSECP128R1:        "SECP128R1",
@@ -687,7 +687,7 @@ var CertificateTypeEnum = NewCertificateTypeEnum()
 
 func NewCertificateTypeEnum() ttlv.Enum {
 	m := map[CertificateType]string{
-		CertificateTypeX_509: "X_509",
+		CertificateTypeX_509: "X.509",
 		CertificateTypePGP:   "PGP",
 	}
 
@@ -742,25 +742,25 @@ var DigitalSignatureAlgorithmEnum = NewDigitalSignatureAlgorithmEnum()
 
 func NewDigitalSignatureAlgorithmEnum() ttlv.Enum {
 	m := map[DigitalSignatureAlgorithm]string{
-		DigitalSignatureAlgorithmMD2WithRSAEncryption:      "MD2WithRSAEncryption",
-		DigitalSignatureAlgorithmMD5WithRSAEncryption:      "MD5WithRSAEncryption",
-		DigitalSignatureAlgorithmSHA_1WithRSAEncryption:    "SHA_1WithRSAEncryption",
-		DigitalSignatureAlgorithmSHA_224WithRSAEncryption:  "SHA_224WithRSAEncryption",
-		DigitalSignatureAlgorithmSHA_256WithRSAEncryption:  "SHA_256WithRSAEncryption",
-		DigitalSignatureAlgorithmSHA_384WithRSAEncryption:  "SHA_384WithRSAEncryption",
-		DigitalSignatureAlgorithmSHA_512WithRSAEncryption:  "SHA_512WithRSAEncryption",
-		DigitalSignatureAlgorithmRSASSA_PSS:                "RSASSA_PSS",
-		DigitalSignatureAlgorithmDSAWithSHA_1:              "DSAWithSHA_1",
-		DigitalSignatureAlgorithmDSAWithSHA224:             "DSAWithSHA224",
-		DigitalSignatureAlgorithmDSAWithSHA256:             "DSAWithSHA256",
-		DigitalSignatureAlgorithmECDSAWithSHA_1:            "ECDSAWithSHA_1",
-		DigitalSignatureAlgorithmECDSAWithSHA224:           "ECDSAWithSHA224",
-		DigitalSignatureAlgorithmECDSAWithSHA256:           "ECDSAWithSHA256",
-		DigitalSignatureAlgorithmECDSAWithSHA384:           "ECDSAWithSHA384",
-		DigitalSignatureAlgorithmECDSAWithSHA512:           "ECDSAWithSHA512",
-		DigitalSignatureAlgorithmSHA3_256WithRSAEncryption: "SHA3_256WithRSAEncryption",
-		DigitalSignatureAlgorithmSHA3_384WithRSAEncryption: "SHA3_384WithRSAEncryption",
-		DigitalSignatureAlgorithmSHA3_512WithRSAEncryption: "SHA3_512WithRSAEncryption",
+		DigitalSignatureAlgorithmMD2WithRSAEncryption:      "MD2 with RSA Encryption",
+		DigitalSignatureAlgorithmMD5WithRSAEncryption:      "MD5 with RSA Encryption",
+		DigitalSignatureAlgorithmSHA_1WithRSAEncryption:    "SHA-1 with RSA Encryption",
+		DigitalSignatureAlgorithmSHA_224WithRSAEncryption:  "SHA-224 with RSA Encryption",
+		DigitalSignatureAlgorithmSHA_256WithRSAEncryption:  "SHA-256 with RSA Encryption",
+		DigitalSignatureAlgorithmSHA_384WithRSAEncryption:  "SHA-384 with RSA Encryption",
+		DigitalSignatureAlgorithmSHA_512WithRSAEncryption:  "SHA-512 with RSA Encryption",
+		DigitalSignatureAlgorithmRSASSA_PSS:                "RSASSA-PSS",
+		DigitalSignatureAlgorithmDSAWithSHA_1:              "DSA with SHA-1",
+		DigitalSignatureAlgorithmDSAWithSHA224:             "DSA with SHA224",
+		DigitalSignatureAlgorithmDSAWithSHA256:             "DSA with SHA256",
+		DigitalSignatureAlgorithmECDSAWithSHA_1:            "ECDSA with SHA-1",
+		DigitalSignatureAlgorithmECDSAWithSHA224:           "ECDSA with SHA224",
+		DigitalSignatureAlgorithmECDSAWithSHA256:           "ECDSA with SHA256",
+		DigitalSignatureAlgorithmECDSAWithSHA384:           "ECDSA with SHA384",
+		DigitalSignatureAlgorithmECDSAWithSHA512:           "ECDSA with SHA512",
+		DigitalSignatureAlgorithmSHA3_256WithRSAEncryption: "SHA3-256 with RSA Encryption",
+		DigitalSignatureAlgorithmSHA3_384WithRSAEncryption: "SHA3-384 with RSA Encryption",
+		DigitalSignatureAlgorithmSHA3_512WithRSAEncryption: "SHA3-512 with RSA Encryption",
 	}
 
 	e := ttlv.NewEnum()
@@ -800,9 +800,9 @@ var SplitKeyMethodEnum = NewSplitKeyMethodEnum()
 func NewSplitKeyMethodEnum() ttlv.Enum {
 	m := map[SplitKeyMethod]string{
 		SplitKeyMethodXOR:                         "XOR",
-		SplitKeyMethodPolynomialSharingGF2_16:     "PolynomialSharingGF2_16",
-		SplitKeyMethodPolynomialSharingPrimeField: "PolynomialSharingPrimeField",
-		SplitKeyMethodPolynomialSharingGF2_8:      "PolynomialSharingGF2_8",
+		SplitKeyMethodPolynomialSharingGF2_16:     "Polynomial Sharing GF (2^16)",
+		SplitKeyMethodPolynomialSharingPrimeField: "Polynomial Sharing Prime Field",
+		SplitKeyMethodPolynomialSharingGF2_8:      "Polynomial Sharing GF (2^8)",
 	}
 
 	e := ttlv.NewEnum()
@@ -909,7 +909,7 @@ var NameTypeEnum = NewNameTypeEnum()
 
 func NewNameTypeEnum() ttlv.Enum {
 	m := map[NameType]string{
-		NameTypeUninterpretedTextString: "UninterpretedTextString",
+		NameTypeUninterpretedTextString: "Uninterpreted Text String",
 		NameTypeURI:                     "URI",
 	}
 
@@ -955,14 +955,14 @@ var ObjectTypeEnum = NewObjectTypeEnum()
 func NewObjectTypeEnum() ttlv.Enum {
 	m := map[ObjectType]string{
 		ObjectTypeCertificate:  "Certificate",
-		ObjectTypeSymmetricKey: "SymmetricKey",
-		ObjectTypePublicKey:    "PublicKey",
-		ObjectTypePrivateKey:   "PrivateKey",
-		ObjectTypeSplitKey:     "SplitKey",
+		ObjectTypeSymmetricKey: "Symmetric Key",
+		ObjectTypePublicKey:    "Public Key",
+		ObjectTypePrivateKey:   "Private Key",
+		ObjectTypeSplitKey:     "Split Key",
 		ObjectTypeTemplate:     "Template",
-		ObjectTypeSecretData:   "SecretData",
-		ObjectTypeOpaqueObject: "OpaqueObject",
-		ObjectTypePGPKey:       "PGPKey",
+		ObjectTypeSecretData:   "Secret Data",
+		ObjectTypeOpaqueObject: "Opaque Object",
+		ObjectTypePGPKey:       "PGP Key",
 	}
 
 	e := ttlv.NewEnum()
@@ -1038,17 +1038,17 @@ var CryptographicAlgorithmEnum = NewCryptographicAlgorithmEnum()
 func NewCryptographicAlgorithmEnum() ttlv.Enum {
 	m := map[CryptographicAlgorithm]string{
 		CryptographicAlgorithmDES:              "DES",
-		CryptographicAlgorithmDES3:             "DES3",
+		CryptographicAlgorithmDES3:             "3DES",
 		CryptographicAlgorithmAES:              "AES",
 		CryptographicAlgorithmRSA:              "RSA",
 		CryptographicAlgorithmDSA:              "DSA",
 		CryptographicAlgorithmECDSA:            "ECDSA",
-		CryptographicAlgorithmHMAC_SHA1:        "HMAC_SHA1",
-		CryptographicAlgorithmHMAC_SHA224:      "HMAC_SHA224",
-		CryptographicAlgorithmHMAC_SHA256:      "HMAC_SHA256",
-		CryptographicAlgorithmHMAC_SHA384:      "HMAC_SHA384",
-		CryptographicAlgorithmHMAC_SHA512:      "HMAC_SHA512",
-		CryptographicAlgorithmHMAC_MD5:         "HMAC_MD5",
+		CryptographicAlgorithmHMAC_SHA1:        "HMAC-SHA1",
+		CryptographicAlgorithmHMAC_SHA224:      "HMAC-SHA224",
+		CryptographicAlgorithmHMAC_SHA256:      "HMAC-SHA256",
+		CryptographicAlgorithmHMAC_SHA384:      "HMAC-SHA384",
+		CryptographicAlgorithmHMAC_SHA512:      "HMAC-SHA512",
+		CryptographicAlgorithmHMAC_MD5:         "HMAC-MD5",
 		CryptographicAlgorithmDH:               "DH",
 		CryptographicAlgorithmECDH:             "ECDH",
 		CryptographicAlgorithmECMQV:            "ECMQV",
@@ -1063,20 +1063,20 @@ func NewCryptographicAlgorithmEnum() ttlv.Enum {
 		CryptographicAlgorithmSKIPJACK:         "SKIPJACK",
 		CryptographicAlgorithmTwofish:          "Twofish",
 		CryptographicAlgorithmEC:               "EC",
-		CryptographicAlgorithmOneTimePad:       "OneTimePad",
+		CryptographicAlgorithmOneTimePad:       "One Time Pad",
 		CryptographicAlgorithmChaCha20:         "ChaCha20",
 		CryptographicAlgorithmPoly1305:         "Poly1305",
 		CryptographicAlgorithmChaCha20Poly1305: "ChaCha20Poly1305",
-		CryptographicAlgorithmSHA3_224:         "SHA3_224",
-		CryptographicAlgorithmSHA3_256:         "SHA3_256",
-		CryptographicAlgorithmSHA3_384:         "SHA3_384",
-		CryptographicAlgorithmSHA3_512:         "SHA3_512",
-		CryptographicAlgorithmHMAC_SHA3_224:    "HMAC_SHA3_224",
-		CryptographicAlgorithmHMAC_SHA3_256:    "HMAC_SHA3_256",
-		CryptographicAlgorithmHMAC_SHA3_384:    "HMAC_SHA3_384",
-		CryptographicAlgorithmHMAC_SHA3_512:    "HMAC_SHA3_512",
-		CryptographicAlgorithmSHAKE_128:        "SHAKE_128",
-		CryptographicAlgorithmSHAKE_256:        "SHAKE_256",
+		CryptographicAlgorithmSHA3_224:         "SHA3-224",
+		CryptographicAlgorithmSHA3_256:         "SHA3-256",
+		CryptographicAlgorithmSHA3_384:         "SHA3-384",
+		CryptographicAlgorithmSHA3_512:         "SHA3-512",
+		CryptographicAlgorithmHMAC_SHA3_224:    "HMAC-SHA3-224",
+		CryptographicAlgorithmHMAC_SHA3_256:    "HMAC-SHA3-256",
+		CryptographicAlgorithmHMAC_SHA3_384:    "HMAC-SHA3-384",
+		CryptographicAlgorithmHMAC_SHA3_512:    "HMAC-SHA3-512",
+		CryptographicAlgorithmSHAKE_128:        "SHAKE-128",
+		CryptographicAlgorithmSHAKE_256:        "SHAKE-256",
 	}
 
 	e := ttlv.NewEnum()
@@ -1138,14 +1138,14 @@ func NewBlockCipherModeEnum() ttlv.Enum {
 		BlockCipherModeCMAC:              "CMAC",
 		BlockCipherModeCCM:               "CCM",
 		BlockCipherModeGCM:               "GCM",
-		BlockCipherModeCBC_MAC:           "CBC_MAC",
+		BlockCipherModeCBC_MAC:           "CBC-MAC",
 		BlockCipherModeXTS:               "XTS",
 		BlockCipherModeAESKeyWrapPadding: "AESKeyWrapPadding",
 		BlockCipherModeNISTKeyWrap:       "NISTKeyWrap",
-		BlockCipherModeX9_102AESKW:       "X9_102AESKW",
-		BlockCipherModeX9_102TDKW:        "X9_102TDKW",
-		BlockCipherModeX9_102AKW1:        "X9_102AKW1",
-		BlockCipherModeX9_102AKW2:        "X9_102AKW2",
+		BlockCipherModeX9_102AESKW:       "X9.102 AESKW",
+		BlockCipherModeX9_102TDKW:        "X9.102 TDKW",
+		BlockCipherModeX9_102AKW1:        "X9.102 AKW1",
+		BlockCipherModeX9_102AKW2:        "X9.102 AKW2",
 		BlockCipherModeAEAD:              "AEAD",
 	}
 
@@ -1196,10 +1196,10 @@ func NewPaddingMethodEnum() ttlv.Enum {
 		PaddingMethodPKCS5:     "PKCS5",
 		PaddingMethodSSL3:      "SSL3",
 		PaddingMethodZeros:     "Zeros",
-		PaddingMethodANSIX9_23: "ANSIX9_23",
-		PaddingMethodISO10126:  "ISO10126",
-		PaddingMethodPKCS1V1_5: "PKCS1V1_5",
-		PaddingMethodX9_31:     "X9_31",
+		PaddingMethodANSIX9_23: "ANSI X9.23",
+		PaddingMethodISO10126:  "ISO 10126",
+		PaddingMethodPKCS1V1_5: "PKCS1 v1.5",
+		PaddingMethodX9_31:     "X9.31",
 		PaddingMethodPSS:       "PSS",
 	}
 
@@ -1255,20 +1255,20 @@ func NewHashingAlgorithmEnum() ttlv.Enum {
 		HashingAlgorithmMD2:         "MD2",
 		HashingAlgorithmMD4:         "MD4",
 		HashingAlgorithmMD5:         "MD5",
-		HashingAlgorithmSHA_1:       "SHA_1",
-		HashingAlgorithmSHA_224:     "SHA_224",
-		HashingAlgorithmSHA_256:     "SHA_256",
-		HashingAlgorithmSHA_384:     "SHA_384",
-		HashingAlgorithmSHA_512:     "SHA_512",
-		HashingAlgorithmRIPEMD_160:  "RIPEMD_160",
+		HashingAlgorithmSHA_1:       "SHA-1",
+		HashingAlgorithmSHA_224:     "SHA-224",
+		HashingAlgorithmSHA_256:     "SHA-256",
+		HashingAlgorithmSHA_384:     "SHA-384",
+		HashingAlgorithmSHA_512:     "SHA-512",
+		HashingAlgorithmRIPEMD_160:  "RIPEMD-160",
 		HashingAlgorithmTiger:       "Tiger",
 		HashingAlgorithmWhirlpool:   "Whirlpool",
-		HashingAlgorithmSHA_512_224: "SHA_512_224",
-		HashingAlgorithmSHA_512_256: "SHA_512_256",
-		HashingAlgorithmSHA_3_224:   "SHA_3_224",
-		HashingAlgorithmSHA_3_256:   "SHA_3_256",
-		HashingAlgorithmSHA_3_384:   "SHA_3_384",
-		HashingAlgorithmSHA_3_512:   "SHA_3_512",
+		HashingAlgorithmSHA_512_224: "SHA-512/224",
+		HashingAlgorithmSHA_512_256: "SHA-512/256",
+		HashingAlgorithmSHA_3_224:   "SHA-3-224",
+		HashingAlgorithmSHA_3_256:   "SHA-3-256",
+		HashingAlgorithmSHA_3_384:   "SHA-3-384",
+		HashingAlgorithmSHA_3_512:   "SHA-3-512",
 	}
 
 	e := ttlv.NewEnum()
@@ -1391,12 +1391,12 @@ var StateEnum = NewStateEnum()
 
 func NewStateEnum() ttlv.Enum {
 	m := map[State]string{
-		StatePreActive:            "PreActive",
+		StatePreActive:            "Pre-Active",
 		StateActive:               "Active",
 		StateDeactivated:          "Deactivated",
 		StateCompromised:          "Compromised",
 		StateDestroyed:            "Destroyed",
-		StateDestroyedCompromised: "DestroyedCompromised",
+		StateDestroyedCompromised: "Destroyed Compromised",
 	}
 
 	e := ttlv.NewEnum()
@@ -1439,12 +1439,12 @@ var RevocationReasonCodeEnum = NewRevocationReasonCodeEnum()
 func NewRevocationReasonCodeEnum() ttlv.Enum {
 	m := map[RevocationReasonCode]string{
 		RevocationReasonCodeUnspecified:          "Unspecified",
-		RevocationReasonCodeKeyCompromise:        "KeyCompromise",
-		RevocationReasonCodeCACompromise:         "CACompromise",
-		RevocationReasonCodeAffiliationChanged:   "AffiliationChanged",
+		RevocationReasonCodeKeyCompromise:        "Key Compromise",
+		RevocationReasonCodeCACompromise:         "CA Compromise",
+		RevocationReasonCodeAffiliationChanged:   "Affiliation Changed",
 		RevocationReasonCodeSuperseded:           "Superseded",
-		RevocationReasonCodeCessationOfOperation: "CessationOfOperation",
-		RevocationReasonCodePrivilegeWithdrawn:   "PrivilegeWithdrawn",
+		RevocationReasonCodeCessationOfOperation: "Cessation of Operation",
+		RevocationReasonCodePrivilegeWithdrawn:   "Privilege Withdrawn",
 	}
 
 	e := ttlv.NewEnum()
@@ -1492,19 +1492,19 @@ var LinkTypeEnum = NewLinkTypeEnum()
 
 func NewLinkTypeEnum() ttlv.Enum {
 	m := map[LinkType]string{
-		LinkTypeCertificateLink:          "CertificateLink",
-		LinkTypePublicKeyLink:            "PublicKeyLink",
-		LinkTypePrivateKeyLink:           "PrivateKeyLink",
-		LinkTypeDerivationBaseObjectLink: "DerivationBaseObjectLink",
-		LinkTypeDerivedKeyLink:           "DerivedKeyLink",
-		LinkTypeReplacementObjectLink:    "ReplacementObjectLink",
-		LinkTypeReplacedObjectLink:       "ReplacedObjectLink",
-		LinkTypeParentLink:               "ParentLink",
-		LinkTypeChildLink:                "ChildLink",
-		LinkTypePreviousLink:             "PreviousLink",
-		LinkTypeNextLink:                 "NextLink",
-		LinkTypePKCS_12CertificateLink:   "PKCS_12CertificateLink",
-		LinkTypePKCS_12PasswordLink:      "PKCS_12PasswordLink",
+		LinkTypeCertificateLink:          "Certificate Link",
+		LinkTypePublicKeyLink:            "Public Key Link",
+		LinkTypePrivateKeyLink:           "Private Key Link",
+		LinkTypeDerivationBaseObjectLink: "Derivation Base Object Link",
+		LinkTypeDerivedKeyLink:           "Derived Key Link",
+		LinkTypeReplacementObjectLink:    "Replacement Object Link",
+		LinkTypeReplacedObjectLink:       "Replaced Object Link",
+		LinkTypeParentLink:               "Parent Link",
+		LinkTypeChildLink:                "Child Link",
+		LinkTypePreviousLink:             "Previous Link",
+		LinkTypeNextLink:                 "Next Link",
+		LinkTypePKCS_12CertificateLink:   "PKCS#12 Certificate Link",
+		LinkTypePKCS_12PasswordLink:      "PKCS#12 Password Link",
 	}
 
 	e := ttlv.NewEnum()
@@ -1551,10 +1551,10 @@ func NewDerivationMethodEnum() ttlv.Enum {
 		DerivationMethodHASH:            "HASH",
 		DerivationMethodHMAC:            "HMAC",
 		DerivationMethodENCRYPT:         "ENCRYPT",
-		DerivationMethodNIST800_108_C:   "NIST800_108_C",
-		DerivationMethodNIST800_108_F:   "NIST800_108_F",
-		DerivationMethodNIST800_108_DPI: "NIST800_108_DPI",
-		DerivationMethodAsymmetricKey:   "AsymmetricKey",
+		DerivationMethodNIST800_108_C:   "NIST800 - 108 - C",
+		DerivationMethodNIST800_108_F:   "NIST800 - 108 - F",
+		DerivationMethodNIST800_108_DPI: "NIST800 - 108 - DPI",
+		DerivationMethodAsymmetricKey:   "Asymmetric Key",
 	}
 
 	e := ttlv.NewEnum()
@@ -1594,7 +1594,7 @@ var CertificateRequestTypeEnum = NewCertificateRequestTypeEnum()
 func NewCertificateRequestTypeEnum() ttlv.Enum {
 	m := map[CertificateRequestType]string{
 		CertificateRequestTypeCRMF:    "CRMF",
-		CertificateRequestTypePKCS_10: "PKCS_10",
+		CertificateRequestTypePKCS_10: "PKCS#10",
 		CertificateRequestTypePEM:     "PEM",
 		CertificateRequestTypePGP:     "PGP",
 	}
@@ -1683,18 +1683,18 @@ var QueryFunctionEnum = NewQueryFunctionEnum()
 
 func NewQueryFunctionEnum() ttlv.Enum {
 	m := map[QueryFunction]string{
-		QueryFunctionQueryOperations:                "QueryOperations",
-		QueryFunctionQueryObjects:                   "QueryObjects",
-		QueryFunctionQueryServerInformation:         "QueryServerInformation",
-		QueryFunctionQueryApplicationNamespaces:     "QueryApplicationNamespaces",
-		QueryFunctionQueryExtensionList:             "QueryExtensionList",
-		QueryFunctionQueryExtensionMap:              "QueryExtensionMap",
-		QueryFunctionQueryAttestationTypes:          "QueryAttestationTypes",
-		QueryFunctionQueryRNGs:                      "QueryRNGs",
-		QueryFunctionQueryValidations:               "QueryValidations",
-		QueryFunctionQueryProfiles:                  "QueryProfiles",
-		QueryFunctionQueryCapabilities:              "QueryCapabilities",
-		QueryFunctionQueryClientRegistrationMethods: "QueryClientRegistrationMethods",
+		QueryFunctionQueryOperations:                "Query Operations",
+		QueryFunctionQueryObjects:                   "Query Objects",
+		QueryFunctionQueryServerInformation:         "Query Server Information",
+		QueryFunctionQueryApplicationNamespaces:     "Query Application Namespaces",
+		QueryFunctionQueryExtensionList:             "Query Extension List",
+		QueryFunctionQueryExtensionMap:              "Query Extension Map",
+		QueryFunctionQueryAttestationTypes:          "Query Attestation Types",
+		QueryFunctionQueryRNGs:                      "Query RNGs",
+		QueryFunctionQueryValidations:               "Query Validations",
+		QueryFunctionQueryProfiles:                  "Query Profiles",
+		QueryFunctionQueryCapabilities:              "Query Capabilities",
+		QueryFunctionQueryClientRegistrationMethods: "Query Client Registration Methods",
 	}
 
 	e := ttlv.NewEnum()
@@ -1735,7 +1735,7 @@ var CancellationResultEnum = NewCancellationResultEnum()
 func NewCancellationResultEnum() ttlv.Enum {
 	m := map[CancellationResult]string{
 		CancellationResultCanceled:       "Canceled",
-		CancellationResultUnableToCancel: "UnableToCancel",
+		CancellationResultUnableToCancel: "Unable to Cancel",
 		CancellationResultCompleted:      "Completed",
 		CancellationResultFailed:         "Failed",
 		CancellationResultUnavailable:    "Unavailable",
@@ -1855,22 +1855,22 @@ var OperationEnum = NewOperationEnum()
 func NewOperationEnum() ttlv.Enum {
 	m := map[Operation]string{
 		OperationCreate:             "Create",
-		OperationCreateKeyPair:      "CreateKeyPair",
+		OperationCreateKeyPair:      "Create Key Pair",
 		OperationRegister:           "Register",
-		OperationReKey:              "ReKey",
-		OperationDeriveKey:          "DeriveKey",
+		OperationReKey:              "Re-key",
+		OperationDeriveKey:          "Derive Key",
 		OperationCertify:            "Certify",
-		OperationReCertify:          "ReCertify",
+		OperationReCertify:          "Re-certify",
 		OperationLocate:             "Locate",
 		OperationCheck:              "Check",
 		OperationGet:                "Get",
-		OperationGetAttributes:      "GetAttributes",
-		OperationGetAttributeList:   "GetAttributeList",
-		OperationAddAttribute:       "AddAttribute",
-		OperationModifyAttribute:    "ModifyAttribute",
-		OperationDeleteAttribute:    "DeleteAttribute",
-		OperationObtainLease:        "ObtainLease",
-		OperationGetUsageAllocation: "GetUsageAllocation",
+		OperationGetAttributes:      "Get Attributes",
+		OperationGetAttributeList:   "Get Attribute List",
+		OperationAddAttribute:       "Add Attribute",
+		OperationModifyAttribute:    "Modify Attribute",
+		OperationDeleteAttribute:    "Delete Attribute",
+		OperationObtainLease:        "Obtain Lease",
+		OperationGetUsageAllocation: "Get Usage Allocation",
 		OperationActivate:           "Activate",
 		OperationRevoke:             "Revoke",
 		OperationDestroy:            "Destroy",
@@ -1882,19 +1882,19 @@ func NewOperationEnum() ttlv.Enum {
 		OperationPoll:               "Poll",
 		OperationNotify:             "Notify",
 		OperationPut:                "Put",
-		OperationReKeyKeyPair:       "ReKeyKeyPair",
-		OperationDiscoverVersions:   "DiscoverVersions",
+		OperationReKeyKeyPair:       "Re-key Key Pair",
+		OperationDiscoverVersions:   "Discover Versions",
 		OperationEncrypt:            "Encrypt",
 		OperationDecrypt:            "Decrypt",
 		OperationSign:               "Sign",
-		OperationSignatureVerify:    "SignatureVerify",
+		OperationSignatureVerify:    "Signature Verify",
 		OperationMAC:                "MAC",
-		OperationMACVerify:          "MACVerify",
-		OperationRNGRetrieve:        "RNGRetrieve",
-		OperationRNGSeed:            "RNGSeed",
+		OperationMACVerify:          "MAC Verify",
+		OperationRNGRetrieve:        "RNG Retrieve",
+		OperationRNGSeed:            "RNG Seed",
 		OperationHash:               "Hash",
-		OperationCreateSplitKey:     "CreateSplitKey",
-		OperationJoinSplitKey:       "JoinSplitKey",
+		OperationCreateSplitKey:     "Create Split Key",
+		OperationJoinSplitKey:       "Join Split Key",
 		OperationImport:             "Import",
 		OperationExport:             "Export",
 	}
@@ -1936,9 +1936,9 @@ var ResultStatusEnum = NewResultStatusEnum()
 func NewResultStatusEnum() ttlv.Enum {
 	m := map[ResultStatus]string{
 		ResultStatusSuccess:          "Success",
-		ResultStatusOperationFailed:  "OperationFailed",
-		ResultStatusOperationPending: "OperationPending",
-		ResultStatusOperationUndone:  "OperationUndone",
+		ResultStatusOperationFailed:  "Operation Failed",
+		ResultStatusOperationPending: "Operation Pending",
+		ResultStatusOperationUndone:  "Operation Undone",
 	}
 
 	e := ttlv.NewEnum()
@@ -1998,31 +1998,31 @@ var ResultReasonEnum = NewResultReasonEnum()
 
 func NewResultReasonEnum() ttlv.Enum {
 	m := map[ResultReason]string{
-		ResultReasonItemNotFound:                     "ItemNotFound",
-		ResultReasonResponseTooLarge:                 "ResponseTooLarge",
-		ResultReasonAuthenticationNotSuccessful:      "AuthenticationNotSuccessful",
-		ResultReasonInvalidMessage:                   "InvalidMessage",
-		ResultReasonOperationNotSupported:            "OperationNotSupported",
-		ResultReasonMissingData:                      "MissingData",
-		ResultReasonInvalidField:                     "InvalidField",
-		ResultReasonFeatureNotSupported:              "FeatureNotSupported",
-		ResultReasonOperationCanceledByRequester:     "OperationCanceledByRequester",
-		ResultReasonCryptographicFailure:             "CryptographicFailure",
-		ResultReasonIllegalOperation:                 "IllegalOperation",
-		ResultReasonPermissionDenied:                 "PermissionDenied",
-		ResultReasonObjectArchived:                   "ObjectArchived",
-		ResultReasonIndexOutOfBounds:                 "IndexOutOfBounds",
-		ResultReasonApplicationNamespaceNotSupported: "ApplicationNamespaceNotSupported",
-		ResultReasonKeyFormatTypeNotSupported:        "KeyFormatTypeNotSupported",
-		ResultReasonKeyCompressionTypeNotSupported:   "KeyCompressionTypeNotSupported",
-		ResultReasonEncodingOptionError:              "EncodingOptionError",
-		ResultReasonKeyValueNotPresent:               "KeyValueNotPresent",
-		ResultReasonAttestationRequired:              "AttestationRequired",
-		ResultReasonAttestationFailed:                "AttestationFailed",
+		ResultReasonItemNotFound:                     "Item Not Found",
+		ResultReasonResponseTooLarge:                 "Response Too Large",
+		ResultReasonAuthenticationNotSuccessful:      "Authentication Not Successful",
+		ResultReasonInvalidMessage:                   "Invalid Message",
+		ResultReasonOperationNotSupported:            "Operation Not Supported",
+		ResultReasonMissingData:                      "Missing Data",
+		ResultReasonInvalidField:                     "Invalid Field",
+		ResultReasonFeatureNotSupported:              "Feature Not Supported",
+		ResultReasonOperationCanceledByRequester:     "Operation Canceled By Requester",
+		ResultReasonCryptographicFailure:             "Cryptographic Failure",
+		ResultReasonIllegalOperation:                 "Illegal Operation",
+		ResultReasonPermissionDenied:                 "Permission Denied",
+		ResultReasonObjectArchived:                   "Object archived",
+		ResultReasonIndexOutOfBounds:                 "Index Out of Bounds",
+		ResultReasonApplicationNamespaceNotSupported: "Application Namespace Not Supported",
+		ResultReasonKeyFormatTypeNotSupported:        "Key Format Type Not Supported",
+		ResultReasonKeyCompressionTypeNotSupported:   "Key Compression Type Not Supported",
+		ResultReasonEncodingOptionError:              "Encoding Option Error",
+		ResultReasonKeyValueNotPresent:               "Key Value Not Present",
+		ResultReasonAttestationRequired:              "Attestation Required",
+		ResultReasonAttestationFailed:                "Attestation Failed",
 		ResultReasonSensitive:                        "Sensitive",
-		ResultReasonNotExtractable:                   "NotExtractable",
-		ResultReasonObjectAlreadyExists:              "ObjectAlreadyExists",
-		ResultReasonGeneralFailure:                   "GeneralFailure",
+		ResultReasonNotExtractable:                   "Not Extractable",
+		ResultReasonObjectAlreadyExists:              "Object Already Exists",
+		ResultReasonGeneralFailure:                   "General Failure",
 	}
 
 	e := ttlv.NewEnum()
@@ -2137,8 +2137,8 @@ var EncodingOptionEnum = NewEncodingOptionEnum()
 
 func NewEncodingOptionEnum() ttlv.Enum {
 	m := map[EncodingOption]string{
-		EncodingOptionNoEncoding:   "NoEncoding",
-		EncodingOptionTTLVEncoding: "TTLVEncoding",
+		EncodingOptionNoEncoding:   "No Encoding",
+		EncodingOptionTTLVEncoding: "TTLV Encoding",
 	}
 
 	e := ttlv.NewEnum()
@@ -2175,8 +2175,8 @@ var ObjectGroupMemberEnum = NewObjectGroupMemberEnum()
 
 func NewObjectGroupMemberEnum() ttlv.Enum {
 	m := map[ObjectGroupMember]string{
-		ObjectGroupMemberGroupMemberFresh:   "GroupMemberFresh",
-		ObjectGroupMemberGroupMemberDefault: "GroupMemberDefault",
+		ObjectGroupMemberGroupMemberFresh:   "Group Member Fresh",
+		ObjectGroupMemberGroupMemberDefault: "Group Member Default",
 	}
 
 	e := ttlv.NewEnum()
@@ -2218,13 +2218,13 @@ var AlternativeNameTypeEnum = NewAlternativeNameTypeEnum()
 
 func NewAlternativeNameTypeEnum() ttlv.Enum {
 	m := map[AlternativeNameType]string{
-		AlternativeNameTypeUninterpretedTextString: "UninterpretedTextString",
+		AlternativeNameTypeUninterpretedTextString: "Uninterpreted Text String",
 		AlternativeNameTypeURI:                     "URI",
-		AlternativeNameTypeObjectSerialNumber:      "ObjectSerialNumber",
-		AlternativeNameTypeEmailAddress:            "EmailAddress",
-		AlternativeNameTypeDNSName:                 "DNSName",
-		AlternativeNameTypeX_500DistinguishedName:  "X_500DistinguishedName",
-		AlternativeNameTypeIPAddress:               "IPAddress",
+		AlternativeNameTypeObjectSerialNumber:      "Object Serial Number",
+		AlternativeNameTypeEmailAddress:            "Email Address",
+		AlternativeNameTypeDNSName:                 "DNS Name",
+		AlternativeNameTypeX_500DistinguishedName:  "X.500 Distinguished Name",
+		AlternativeNameTypeIPAddress:               "IP Address",
 	}
 
 	e := ttlv.NewEnum()
@@ -2261,7 +2261,7 @@ var KeyValueLocationTypeEnum = NewKeyValueLocationTypeEnum()
 
 func NewKeyValueLocationTypeEnum() ttlv.Enum {
 	m := map[KeyValueLocationType]string{
-		KeyValueLocationTypeUninterpretedTextString: "UninterpretedTextString",
+		KeyValueLocationTypeUninterpretedTextString: "Uninterpreted Text String",
 		KeyValueLocationTypeURI:                     "URI",
 	}
 
@@ -2300,9 +2300,9 @@ var AttestationTypeEnum = NewAttestationTypeEnum()
 
 func NewAttestationTypeEnum() ttlv.Enum {
 	m := map[AttestationType]string{
-		AttestationTypeTPMQuote:           "TPMQuote",
-		AttestationTypeTCGIntegrityReport: "TCGIntegrityReport",
-		AttestationTypeSAMLAssertion:      "SAMLAssertion",
+		AttestationTypeTPMQuote:           "TPM Quote",
+		AttestationTypeTCGIntegrityReport: "TCG Integrity Report",
+		AttestationTypeSAMLAssertion:      "SAML Assertion",
 	}
 
 	e := ttlv.NewEnum()
@@ -2344,11 +2344,11 @@ var RNGAlgorithmEnum = NewRNGAlgorithmEnum()
 func NewRNGAlgorithmEnum() ttlv.Enum {
 	m := map[RNGAlgorithm]string{
 		RNGAlgorithmUnspecified: "Unspecified",
-		RNGAlgorithmFIPS186_2:   "FIPS186_2",
+		RNGAlgorithmFIPS186_2:   "FIPS 186-2",
 		RNGAlgorithmDRBG:        "DRBG",
 		RNGAlgorithmNRBG:        "NRBG",
-		RNGAlgorithmANSIX9_31:   "ANSIX9_31",
-		RNGAlgorithmANSIX9_62:   "ANSIX9_62",
+		RNGAlgorithmANSIX9_31:   "ANSI X9.31",
+		RNGAlgorithmANSIX9_62:   "ANSI X9.62",
 	}
 
 	e := ttlv.NewEnum()
@@ -2389,7 +2389,7 @@ var DRBGAlgorithmEnum = NewDRBGAlgorithmEnum()
 func NewDRBGAlgorithmEnum() ttlv.Enum {
 	m := map[DRBGAlgorithm]string{
 		DRBGAlgorithmUnspecified: "Unspecified",
-		DRBGAlgorithmDual_EC:     "Dual_EC",
+		DRBGAlgorithmDual_EC:     "Dual - EC",
 		DRBGAlgorithmHash:        "Hash",
 		DRBGAlgorithmHMAC:        "HMAC",
 		DRBGAlgorithmCTR:         "CTR",
@@ -2435,12 +2435,12 @@ var FIPS186VariationEnum = NewFIPS186VariationEnum()
 func NewFIPS186VariationEnum() ttlv.Enum {
 	m := map[FIPS186Variation]string{
 		FIPS186VariationUnspecified:     "Unspecified",
-		FIPS186VariationGPXOriginal:     "GPXOriginal",
-		FIPS186VariationGPXChangeNotice: "GPXChangeNotice",
-		FIPS186VariationXOriginal:       "XOriginal",
-		FIPS186VariationXChangeNotice:   "XChangeNotice",
-		FIPS186VariationKOriginal:       "KOriginal",
-		FIPS186VariationKChangeNotice:   "KChangeNotice",
+		FIPS186VariationGPXOriginal:     "GP x-Original",
+		FIPS186VariationGPXChangeNotice: "GP x-Change Notice",
+		FIPS186VariationXOriginal:       "x-Original",
+		FIPS186VariationXChangeNotice:   "x-Change Notice",
+		FIPS186VariationKOriginal:       "k-Original",
+		FIPS186VariationKChangeNotice:   "k-Change Notice",
 	}
 
 	e := ttlv.NewEnum()
@@ -2479,8 +2479,8 @@ var ValidationAuthorityTypeEnum = NewValidationAuthorityTypeEnum()
 func NewValidationAuthorityTypeEnum() ttlv.Enum {
 	m := map[ValidationAuthorityType]string{
 		ValidationAuthorityTypeUnspecified:    "Unspecified",
-		ValidationAuthorityTypeNISTCMVP:       "NISTCMVP",
-		ValidationAuthorityTypeCommonCriteria: "CommonCriteria",
+		ValidationAuthorityTypeNISTCMVP:       "NIST CMVP",
+		ValidationAuthorityTypeCommonCriteria: "Common Criteria",
 	}
 
 	e := ttlv.NewEnum()
@@ -2715,162 +2715,162 @@ var ProfileNameEnum = NewProfileNameEnum()
 
 func NewProfileNameEnum() ttlv.Enum {
 	m := map[ProfileName]string{
-		ProfileNameBaselineServerBasicKMIPV1_2:                       "BaselineServerBasicKMIPV1_2",
-		ProfileNameBaselineServerTLSV1_2KMIPV1_2:                     "BaselineServerTLSV1_2KMIPV1_2",
-		ProfileNameBaselineClientBasicKMIPV1_2:                       "BaselineClientBasicKMIPV1_2",
-		ProfileNameBaselineClientTLSV1_2KMIPV1_2:                     "BaselineClientTLSV1_2KMIPV1_2",
-		ProfileNameCompleteServerBasicKMIPV1_2:                       "CompleteServerBasicKMIPV1_2",
-		ProfileNameCompleteServerTLSV1_2KMIPV1_2:                     "CompleteServerTLSV1_2KMIPV1_2",
-		ProfileNameTapeLibraryClientKMIPV1_0:                         "TapeLibraryClientKMIPV1_0",
-		ProfileNameTapeLibraryClientKMIPV1_1:                         "TapeLibraryClientKMIPV1_1",
-		ProfileNameTapeLibraryClientKMIPV1_2:                         "TapeLibraryClientKMIPV1_2",
-		ProfileNameTapeLibraryServerKMIPV1_0:                         "TapeLibraryServerKMIPV1_0",
-		ProfileNameTapeLibraryServerKMIPV1_1:                         "TapeLibraryServerKMIPV1_1",
-		ProfileNameTapeLibraryServerKMIPV1_2:                         "TapeLibraryServerKMIPV1_2",
-		ProfileNameSymmetricKeyLifecycleClientKMIPV1_0:               "SymmetricKeyLifecycleClientKMIPV1_0",
-		ProfileNameSymmetricKeyLifecycleClientKMIPV1_1:               "SymmetricKeyLifecycleClientKMIPV1_1",
-		ProfileNameSymmetricKeyLifecycleClientKMIPV1_2:               "SymmetricKeyLifecycleClientKMIPV1_2",
-		ProfileNameSymmetricKeyLifecycleServerKMIPV1_0:               "SymmetricKeyLifecycleServerKMIPV1_0",
-		ProfileNameSymmetricKeyLifecycleServerKMIPV1_1:               "SymmetricKeyLifecycleServerKMIPV1_1",
-		ProfileNameSymmetricKeyLifecycleServerKMIPV1_2:               "SymmetricKeyLifecycleServerKMIPV1_2",
-		ProfileNameAsymmetricKeyLifecycleClientKMIPV1_0:              "AsymmetricKeyLifecycleClientKMIPV1_0",
-		ProfileNameAsymmetricKeyLifecycleClientKMIPV1_1:              "AsymmetricKeyLifecycleClientKMIPV1_1",
-		ProfileNameAsymmetricKeyLifecycleClientKMIPV1_2:              "AsymmetricKeyLifecycleClientKMIPV1_2",
-		ProfileNameAsymmetricKeyLifecycleServerKMIPV1_0:              "AsymmetricKeyLifecycleServerKMIPV1_0",
-		ProfileNameAsymmetricKeyLifecycleServerKMIPV1_1:              "AsymmetricKeyLifecycleServerKMIPV1_1",
-		ProfileNameAsymmetricKeyLifecycleServerKMIPV1_2:              "AsymmetricKeyLifecycleServerKMIPV1_2",
-		ProfileNameBasicCryptographicClientKMIPV1_2:                  "BasicCryptographicClientKMIPV1_2",
-		ProfileNameBasicCryptographicServerKMIPV1_2:                  "BasicCryptographicServerKMIPV1_2",
-		ProfileNameAdvancedCryptographicClientKMIPV1_2:               "AdvancedCryptographicClientKMIPV1_2",
-		ProfileNameAdvancedCryptographicServerKMIPV1_2:               "AdvancedCryptographicServerKMIPV1_2",
-		ProfileNameRNGCryptographicClientKMIPV1_2:                    "RNGCryptographicClientKMIPV1_2",
-		ProfileNameRNGCryptographicServerKMIPV1_2:                    "RNGCryptographicServerKMIPV1_2",
-		ProfileNameBasicSymmetricKeyFoundryClientKMIPV1_0:            "BasicSymmetricKeyFoundryClientKMIPV1_0",
-		ProfileNameIntermediateSymmetricKeyFoundryClientKMIPV1_0:     "IntermediateSymmetricKeyFoundryClientKMIPV1_0",
-		ProfileNameAdvancedSymmetricKeyFoundryClientKMIPV1_0:         "AdvancedSymmetricKeyFoundryClientKMIPV1_0",
-		ProfileNameBasicSymmetricKeyFoundryClientKMIPV1_1:            "BasicSymmetricKeyFoundryClientKMIPV1_1",
-		ProfileNameIntermediateSymmetricKeyFoundryClientKMIPV1_1:     "IntermediateSymmetricKeyFoundryClientKMIPV1_1",
-		ProfileNameAdvancedSymmetricKeyFoundryClientKMIPV1_1:         "AdvancedSymmetricKeyFoundryClientKMIPV1_1",
-		ProfileNameBasicSymmetricKeyFoundryClientKMIPV1_2:            "BasicSymmetricKeyFoundryClientKMIPV1_2",
-		ProfileNameIntermediateSymmetricKeyFoundryClientKMIPV1_2:     "IntermediateSymmetricKeyFoundryClientKMIPV1_2",
-		ProfileNameAdvancedSymmetricKeyFoundryClientKMIPV1_2:         "AdvancedSymmetricKeyFoundryClientKMIPV1_2",
-		ProfileNameSymmetricKeyFoundryServerKMIPV1_0:                 "SymmetricKeyFoundryServerKMIPV1_0",
-		ProfileNameSymmetricKeyFoundryServerKMIPV1_1:                 "SymmetricKeyFoundryServerKMIPV1_1",
-		ProfileNameSymmetricKeyFoundryServerKMIPV1_2:                 "SymmetricKeyFoundryServerKMIPV1_2",
-		ProfileNameOpaqueManagedObjectStoreClientKMIPV1_0:            "OpaqueManagedObjectStoreClientKMIPV1_0",
-		ProfileNameOpaqueManagedObjectStoreClientKMIPV1_1:            "OpaqueManagedObjectStoreClientKMIPV1_1",
-		ProfileNameOpaqueManagedObjectStoreClientKMIPV1_2:            "OpaqueManagedObjectStoreClientKMIPV1_2",
-		ProfileNameOpaqueManagedObjectStoreServerKMIPV1_0:            "OpaqueManagedObjectStoreServerKMIPV1_0",
-		ProfileNameOpaqueManagedObjectStoreServerKMIPV1_1:            "OpaqueManagedObjectStoreServerKMIPV1_1",
-		ProfileNameOpaqueManagedObjectStoreServerKMIPV1_2:            "OpaqueManagedObjectStoreServerKMIPV1_2",
-		ProfileNameSuiteBMinLOS_128ClientKMIPV1_0:                    "SuiteBMinLOS_128ClientKMIPV1_0",
-		ProfileNameSuiteBMinLOS_128ClientKMIPV1_1:                    "SuiteBMinLOS_128ClientKMIPV1_1",
-		ProfileNameSuiteBMinLOS_128ClientKMIPV1_2:                    "SuiteBMinLOS_128ClientKMIPV1_2",
-		ProfileNameSuiteBMinLOS_128ServerKMIPV1_0:                    "SuiteBMinLOS_128ServerKMIPV1_0",
-		ProfileNameSuiteBMinLOS_128ServerKMIPV1_1:                    "SuiteBMinLOS_128ServerKMIPV1_1",
-		ProfileNameSuiteBMinLOS_128ServerKMIPV1_2:                    "SuiteBMinLOS_128ServerKMIPV1_2",
-		ProfileNameSuiteBMinLOS_192ClientKMIPV1_0:                    "SuiteBMinLOS_192ClientKMIPV1_0",
-		ProfileNameSuiteBMinLOS_192ClientKMIPV1_1:                    "SuiteBMinLOS_192ClientKMIPV1_1",
-		ProfileNameSuiteBMinLOS_192ClientKMIPV1_2:                    "SuiteBMinLOS_192ClientKMIPV1_2",
-		ProfileNameSuiteBMinLOS_192ServerKMIPV1_0:                    "SuiteBMinLOS_192ServerKMIPV1_0",
-		ProfileNameSuiteBMinLOS_192ServerKMIPV1_1:                    "SuiteBMinLOS_192ServerKMIPV1_1",
-		ProfileNameSuiteBMinLOS_192ServerKMIPV1_2:                    "SuiteBMinLOS_192ServerKMIPV1_2",
-		ProfileNameStorageArrayWithSelfEncryptingDriveClientKMIPV1_0: "StorageArrayWithSelfEncryptingDriveClientKMIPV1_0",
-		ProfileNameStorageArrayWithSelfEncryptingDriveClientKMIPV1_1: "StorageArrayWithSelfEncryptingDriveClientKMIPV1_1",
-		ProfileNameStorageArrayWithSelfEncryptingDriveClientKMIPV1_2: "StorageArrayWithSelfEncryptingDriveClientKMIPV1_2",
-		ProfileNameStorageArrayWithSelfEncryptingDriveServerKMIPV1_0: "StorageArrayWithSelfEncryptingDriveServerKMIPV1_0",
-		ProfileNameStorageArrayWithSelfEncryptingDriveServerKMIPV1_1: "StorageArrayWithSelfEncryptingDriveServerKMIPV1_1",
-		ProfileNameStorageArrayWithSelfEncryptingDriveServerKMIPV1_2: "StorageArrayWithSelfEncryptingDriveServerKMIPV1_2",
-		ProfileNameHTTPSClientKMIPV1_0:                               "HTTPSClientKMIPV1_0",
-		ProfileNameHTTPSClientKMIPV1_1:                               "HTTPSClientKMIPV1_1",
-		ProfileNameHTTPSClientKMIPV1_2:                               "HTTPSClientKMIPV1_2",
-		ProfileNameHTTPSServerKMIPV1_0:                               "HTTPSServerKMIPV1_0",
-		ProfileNameHTTPSServerKMIPV1_1:                               "HTTPSServerKMIPV1_1",
-		ProfileNameHTTPSServerKMIPV1_2:                               "HTTPSServerKMIPV1_2",
-		ProfileNameJSONClientKMIPV1_0:                                "JSONClientKMIPV1_0",
-		ProfileNameJSONClientKMIPV1_1:                                "JSONClientKMIPV1_1",
-		ProfileNameJSONClientKMIPV1_2:                                "JSONClientKMIPV1_2",
-		ProfileNameJSONServerKMIPV1_0:                                "JSONServerKMIPV1_0",
-		ProfileNameJSONServerKMIPV1_1:                                "JSONServerKMIPV1_1",
-		ProfileNameJSONServerKMIPV1_2:                                "JSONServerKMIPV1_2",
-		ProfileNameXMLClientKMIPV1_0:                                 "XMLClientKMIPV1_0",
-		ProfileNameXMLClientKMIPV1_1:                                 "XMLClientKMIPV1_1",
-		ProfileNameXMLClientKMIPV1_2:                                 "XMLClientKMIPV1_2",
-		ProfileNameXMLServerKMIPV1_0:                                 "XMLServerKMIPV1_0",
-		ProfileNameXMLServerKMIPV1_1:                                 "XMLServerKMIPV1_1",
-		ProfileNameXMLServerKMIPV1_2:                                 "XMLServerKMIPV1_2",
-		ProfileNameBaselineServerBasicKMIPV1_3:                       "BaselineServerBasicKMIPV1_3",
-		ProfileNameBaselineServerTLSV1_2KMIPV1_3:                     "BaselineServerTLSV1_2KMIPV1_3",
-		ProfileNameBaselineClientBasicKMIPV1_3:                       "BaselineClientBasicKMIPV1_3",
-		ProfileNameBaselineClientTLSV1_2KMIPV1_3:                     "BaselineClientTLSV1_2KMIPV1_3",
-		ProfileNameCompleteServerBasicKMIPV1_3:                       "CompleteServerBasicKMIPV1_3",
-		ProfileNameCompleteServerTLSV1_2KMIPV1_3:                     "CompleteServerTLSV1_2KMIPV1_3",
-		ProfileNameTapeLibraryClientKMIPV1_3:                         "TapeLibraryClientKMIPV1_3",
-		ProfileNameTapeLibraryServerKMIPV1_3:                         "TapeLibraryServerKMIPV1_3",
-		ProfileNameSymmetricKeyLifecycleClientKMIPV1_3:               "SymmetricKeyLifecycleClientKMIPV1_3",
-		ProfileNameSymmetricKeyLifecycleServerKMIPV1_3:               "SymmetricKeyLifecycleServerKMIPV1_3",
-		ProfileNameAsymmetricKeyLifecycleClientKMIPV1_3:              "AsymmetricKeyLifecycleClientKMIPV1_3",
-		ProfileNameAsymmetricKeyLifecycleServerKMIPV1_3:              "AsymmetricKeyLifecycleServerKMIPV1_3",
-		ProfileNameBasicCryptographicClientKMIPV1_3:                  "BasicCryptographicClientKMIPV1_3",
-		ProfileNameBasicCryptographicServerKMIPV1_3:                  "BasicCryptographicServerKMIPV1_3",
-		ProfileNameAdvancedCryptographicClientKMIPV1_3:               "AdvancedCryptographicClientKMIPV1_3",
-		ProfileNameAdvancedCryptographicServerKMIPV1_3:               "AdvancedCryptographicServerKMIPV1_3",
-		ProfileNameRNGCryptographicClientKMIPV1_3:                    "RNGCryptographicClientKMIPV1_3",
-		ProfileNameRNGCryptographicServerKMIPV1_3:                    "RNGCryptographicServerKMIPV1_3",
-		ProfileNameBasicSymmetricKeyFoundryClientKMIPV1_3:            "BasicSymmetricKeyFoundryClientKMIPV1_3",
-		ProfileNameIntermediateSymmetricKeyFoundryClientKMIPV1_3:     "IntermediateSymmetricKeyFoundryClientKMIPV1_3",
-		ProfileNameAdvancedSymmetricKeyFoundryClientKMIPV1_3:         "AdvancedSymmetricKeyFoundryClientKMIPV1_3",
-		ProfileNameSymmetricKeyFoundryServerKMIPV1_3:                 "SymmetricKeyFoundryServerKMIPV1_3",
-		ProfileNameOpaqueManagedObjectStoreClientKMIPV1_3:            "OpaqueManagedObjectStoreClientKMIPV1_3",
-		ProfileNameOpaqueManagedObjectStoreServerKMIPV1_3:            "OpaqueManagedObjectStoreServerKMIPV1_3",
-		ProfileNameSuiteBMinLOS_128ClientKMIPV1_3:                    "SuiteBMinLOS_128ClientKMIPV1_3",
-		ProfileNameSuiteBMinLOS_128ServerKMIPV1_3:                    "SuiteBMinLOS_128ServerKMIPV1_3",
-		ProfileNameSuiteBMinLOS_192ClientKMIPV1_3:                    "SuiteBMinLOS_192ClientKMIPV1_3",
-		ProfileNameSuiteBMinLOS_192ServerKMIPV1_3:                    "SuiteBMinLOS_192ServerKMIPV1_3",
-		ProfileNameStorageArrayWithSelfEncryptingDriveClientKMIPV1_3: "StorageArrayWithSelfEncryptingDriveClientKMIPV1_3",
-		ProfileNameStorageArrayWithSelfEncryptingDriveServerKMIPV1_3: "StorageArrayWithSelfEncryptingDriveServerKMIPV1_3",
-		ProfileNameHTTPSClientKMIPV1_3:                               "HTTPSClientKMIPV1_3",
-		ProfileNameHTTPSServerKMIPV1_3:                               "HTTPSServerKMIPV1_3",
-		ProfileNameJSONClientKMIPV1_3:                                "JSONClientKMIPV1_3",
-		ProfileNameJSONServerKMIPV1_3:                                "JSONServerKMIPV1_3",
-		ProfileNameXMLClientKMIPV1_3:                                 "XMLClientKMIPV1_3",
-		ProfileNameXMLServerKMIPV1_3:                                 "XMLServerKMIPV1_3",
-		ProfileNameBaselineServerBasicKMIPV1_4:                       "BaselineServerBasicKMIPV1_4",
-		ProfileNameBaselineServerTLSV1_2KMIPV1_4:                     "BaselineServerTLSV1_2KMIPV1_4",
-		ProfileNameBaselineClientBasicKMIPV1_4:                       "BaselineClientBasicKMIPV1_4",
-		ProfileNameBaselineClientTLSV1_2KMIPV1_4:                     "BaselineClientTLSV1_2KMIPV1_4",
-		ProfileNameCompleteServerBasicKMIPV1_4:                       "CompleteServerBasicKMIPV1_4",
-		ProfileNameCompleteServerTLSV1_2KMIPV1_4:                     "CompleteServerTLSV1_2KMIPV1_4",
-		ProfileNameTapeLibraryClientKMIPV1_4:                         "TapeLibraryClientKMIPV1_4",
-		ProfileNameTapeLibraryServerKMIPV1_4:                         "TapeLibraryServerKMIPV1_4",
-		ProfileNameSymmetricKeyLifecycleClientKMIPV1_4:               "SymmetricKeyLifecycleClientKMIPV1_4",
-		ProfileNameSymmetricKeyLifecycleServerKMIPV1_4:               "SymmetricKeyLifecycleServerKMIPV1_4",
-		ProfileNameAsymmetricKeyLifecycleClientKMIPV1_4:              "AsymmetricKeyLifecycleClientKMIPV1_4",
-		ProfileNameAsymmetricKeyLifecycleServerKMIPV1_4:              "AsymmetricKeyLifecycleServerKMIPV1_4",
-		ProfileNameBasicCryptographicClientKMIPV1_4:                  "BasicCryptographicClientKMIPV1_4",
-		ProfileNameBasicCryptographicServerKMIPV1_4:                  "BasicCryptographicServerKMIPV1_4",
-		ProfileNameAdvancedCryptographicClientKMIPV1_4:               "AdvancedCryptographicClientKMIPV1_4",
-		ProfileNameAdvancedCryptographicServerKMIPV1_4:               "AdvancedCryptographicServerKMIPV1_4",
-		ProfileNameRNGCryptographicClientKMIPV1_4:                    "RNGCryptographicClientKMIPV1_4",
-		ProfileNameRNGCryptographicServerKMIPV1_4:                    "RNGCryptographicServerKMIPV1_4",
-		ProfileNameBasicSymmetricKeyFoundryClientKMIPV1_4:            "BasicSymmetricKeyFoundryClientKMIPV1_4",
-		ProfileNameIntermediateSymmetricKeyFoundryClientKMIPV1_4:     "IntermediateSymmetricKeyFoundryClientKMIPV1_4",
-		ProfileNameAdvancedSymmetricKeyFoundryClientKMIPV1_4:         "AdvancedSymmetricKeyFoundryClientKMIPV1_4",
-		ProfileNameSymmetricKeyFoundryServerKMIPV1_4:                 "SymmetricKeyFoundryServerKMIPV1_4",
-		ProfileNameOpaqueManagedObjectStoreClientKMIPV1_4:            "OpaqueManagedObjectStoreClientKMIPV1_4",
-		ProfileNameOpaqueManagedObjectStoreServerKMIPV1_4:            "OpaqueManagedObjectStoreServerKMIPV1_4",
-		ProfileNameSuiteBMinLOS_128ClientKMIPV1_4:                    "SuiteBMinLOS_128ClientKMIPV1_4",
-		ProfileNameSuiteBMinLOS_128ServerKMIPV1_4:                    "SuiteBMinLOS_128ServerKMIPV1_4",
-		ProfileNameSuiteBMinLOS_192ClientKMIPV1_4:                    "SuiteBMinLOS_192ClientKMIPV1_4",
-		ProfileNameSuiteBMinLOS_192ServerKMIPV1_4:                    "SuiteBMinLOS_192ServerKMIPV1_4",
-		ProfileNameStorageArrayWithSelfEncryptingDriveClientKMIPV1_4: "StorageArrayWithSelfEncryptingDriveClientKMIPV1_4",
-		ProfileNameStorageArrayWithSelfEncryptingDriveServerKMIPV1_4: "StorageArrayWithSelfEncryptingDriveServerKMIPV1_4",
-		ProfileNameHTTPSClientKMIPV1_4:                               "HTTPSClientKMIPV1_4",
-		ProfileNameHTTPSServerKMIPV1_4:                               "HTTPSServerKMIPV1_4",
-		ProfileNameJSONClientKMIPV1_4:                                "JSONClientKMIPV1_4",
-		ProfileNameJSONServerKMIPV1_4:                                "JSONServerKMIPV1_4",
-		ProfileNameXMLClientKMIPV1_4:                                 "XMLClientKMIPV1_4",
-		ProfileNameXMLServerKMIPV1_4:                                 "XMLServerKMIPV1_4",
+		ProfileNameBaselineServerBasicKMIPV1_2:                       "Baseline Server Basic KMIP v1.2",
+		ProfileNameBaselineServerTLSV1_2KMIPV1_2:                     "Baseline Server TLS v1.2 KMIP v1.2",
+		ProfileNameBaselineClientBasicKMIPV1_2:                       "Baseline Client Basic KMIP v1.2",
+		ProfileNameBaselineClientTLSV1_2KMIPV1_2:                     "Baseline Client TLS v1.2 KMIP v1.2",
+		ProfileNameCompleteServerBasicKMIPV1_2:                       "Complete Server Basic KMIP v1.2",
+		ProfileNameCompleteServerTLSV1_2KMIPV1_2:                     "Complete Server TLS v1.2 KMIP v1.2",
+		ProfileNameTapeLibraryClientKMIPV1_0:                         "Tape Library Client KMIP v1.0",
+		ProfileNameTapeLibraryClientKMIPV1_1:                         "Tape Library Client KMIP v1.1",
+		ProfileNameTapeLibraryClientKMIPV1_2:                         "Tape Library Client KMIP v1.2",
+		ProfileNameTapeLibraryServerKMIPV1_0:                         "Tape Library Server KMIP v1.0",
+		ProfileNameTapeLibraryServerKMIPV1_1:                         "Tape Library Server KMIP v1.1",
+		ProfileNameTapeLibraryServerKMIPV1_2:                         "Tape Library Server KMIP v1.2",
+		ProfileNameSymmetricKeyLifecycleClientKMIPV1_0:               "Symmetric Key Lifecycle Client KMIP v1.0",
+		ProfileNameSymmetricKeyLifecycleClientKMIPV1_1:               "Symmetric Key Lifecycle Client KMIP v1.1",
+		ProfileNameSymmetricKeyLifecycleClientKMIPV1_2:               "Symmetric Key Lifecycle Client KMIP v1.2",
+		ProfileNameSymmetricKeyLifecycleServerKMIPV1_0:               "Symmetric Key Lifecycle Server KMIP v1.0",
+		ProfileNameSymmetricKeyLifecycleServerKMIPV1_1:               "Symmetric Key Lifecycle Server KMIP v1.1",
+		ProfileNameSymmetricKeyLifecycleServerKMIPV1_2:               "Symmetric Key Lifecycle Server KMIP v1.2",
+		ProfileNameAsymmetricKeyLifecycleClientKMIPV1_0:              "Asymmetric Key Lifecycle Client KMIP v1.0",
+		ProfileNameAsymmetricKeyLifecycleClientKMIPV1_1:              "Asymmetric Key Lifecycle Client KMIP v1.1",
+		ProfileNameAsymmetricKeyLifecycleClientKMIPV1_2:              "Asymmetric Key Lifecycle Client KMIP v1.2",
+		ProfileNameAsymmetricKeyLifecycleServerKMIPV1_0:              "Asymmetric Key Lifecycle Server KMIP v1.0",
+		ProfileNameAsymmetricKeyLifecycleServerKMIPV1_1:              "Asymmetric Key Lifecycle Server KMIP v1.1",
+		ProfileNameAsymmetricKeyLifecycleServerKMIPV1_2:              "Asymmetric Key Lifecycle Server KMIP v1.2",
+		ProfileNameBasicCryptographicClientKMIPV1_2:                  "Basic Cryptographic Client KMIP v1.2",
+		ProfileNameBasicCryptographicServerKMIPV1_2:                  "Basic Cryptographic Server KMIP v1.2",
+		ProfileNameAdvancedCryptographicClientKMIPV1_2:               "Advanced Cryptographic Client KMIP v1.2",
+		ProfileNameAdvancedCryptographicServerKMIPV1_2:               "Advanced Cryptographic Server KMIP v1.2",
+		ProfileNameRNGCryptographicClientKMIPV1_2:                    "RNG Cryptographic Client KMIP v1.2",
+		ProfileNameRNGCryptographicServerKMIPV1_2:                    "RNG Cryptographic Server KMIP v1.2",
+		ProfileNameBasicSymmetricKeyFoundryClientKMIPV1_0:            "Basic Symmetric Key Foundry Client KMIP v1.0",
+		ProfileNameIntermediateSymmetricKeyFoundryClientKMIPV1_0:     "Intermediate Symmetric Key Foundry Client KMIP v1.0",
+		ProfileNameAdvancedSymmetricKeyFoundryClientKMIPV1_0:         "Advanced Symmetric Key Foundry Client KMIP v1.0",
+		ProfileNameBasicSymmetricKeyFoundryClientKMIPV1_1:            "Basic Symmetric Key Foundry Client KMIP v1.1",
+		ProfileNameIntermediateSymmetricKeyFoundryClientKMIPV1_1:     "Intermediate Symmetric Key Foundry Client KMIP v1.1",
+		ProfileNameAdvancedSymmetricKeyFoundryClientKMIPV1_1:         "Advanced Symmetric Key Foundry Client KMIP v1.1",
+		ProfileNameBasicSymmetricKeyFoundryClientKMIPV1_2:            "Basic Symmetric Key Foundry Client KMIP v1.2",
+		ProfileNameIntermediateSymmetricKeyFoundryClientKMIPV1_2:     "Intermediate Symmetric Key Foundry Client KMIP v1.2",
+		ProfileNameAdvancedSymmetricKeyFoundryClientKMIPV1_2:         "Advanced Symmetric Key Foundry Client KMIP v1.2",
+		ProfileNameSymmetricKeyFoundryServerKMIPV1_0:                 "Symmetric Key Foundry Server KMIP v1.0",
+		ProfileNameSymmetricKeyFoundryServerKMIPV1_1:                 "Symmetric Key Foundry Server KMIP v1.1",
+		ProfileNameSymmetricKeyFoundryServerKMIPV1_2:                 "Symmetric Key Foundry Server KMIP v1.2",
+		ProfileNameOpaqueManagedObjectStoreClientKMIPV1_0:            "Opaque Managed Object Store Client KMIP v1.0",
+		ProfileNameOpaqueManagedObjectStoreClientKMIPV1_1:            "Opaque Managed Object Store Client KMIP v1.1",
+		ProfileNameOpaqueManagedObjectStoreClientKMIPV1_2:            "Opaque Managed Object Store Client KMIP v1.2",
+		ProfileNameOpaqueManagedObjectStoreServerKMIPV1_0:            "Opaque Managed Object Store Server KMIP v1.0",
+		ProfileNameOpaqueManagedObjectStoreServerKMIPV1_1:            "Opaque Managed Object Store Server KMIP v1.1",
+		ProfileNameOpaqueManagedObjectStoreServerKMIPV1_2:            "Opaque Managed Object Store Server KMIP v1.2",
+		ProfileNameSuiteBMinLOS_128ClientKMIPV1_0:                    "Suite B minLOS_128 Client KMIP v1.0",
+		ProfileNameSuiteBMinLOS_128ClientKMIPV1_1:                    "Suite B minLOS_128 Client KMIP v1.1",
+		ProfileNameSuiteBMinLOS_128ClientKMIPV1_2:                    "Suite B minLOS_128 Client KMIP v1.2",
+		ProfileNameSuiteBMinLOS_128ServerKMIPV1_0:                    "Suite B minLOS_128 Server KMIP v1.0",
+		ProfileNameSuiteBMinLOS_128ServerKMIPV1_1:                    "Suite B minLOS_128 Server KMIP v1.1",
+		ProfileNameSuiteBMinLOS_128ServerKMIPV1_2:                    "Suite B minLOS_128 Server KMIP v1.2",
+		ProfileNameSuiteBMinLOS_192ClientKMIPV1_0:                    "Suite B minLOS_192 Client KMIP v1.0",
+		ProfileNameSuiteBMinLOS_192ClientKMIPV1_1:                    "Suite B minLOS_192 Client KMIP v1.1",
+		ProfileNameSuiteBMinLOS_192ClientKMIPV1_2:                    "Suite B minLOS_192 Client KMIP v1.2",
+		ProfileNameSuiteBMinLOS_192ServerKMIPV1_0:                    "Suite B minLOS_192 Server KMIP v1.0",
+		ProfileNameSuiteBMinLOS_192ServerKMIPV1_1:                    "Suite B minLOS_192 Server KMIP v1.1",
+		ProfileNameSuiteBMinLOS_192ServerKMIPV1_2:                    "Suite B minLOS_192 Server KMIP v1.2",
+		ProfileNameStorageArrayWithSelfEncryptingDriveClientKMIPV1_0: "Storage Array with Self Encrypting Drive Client KMIP v1.0",
+		ProfileNameStorageArrayWithSelfEncryptingDriveClientKMIPV1_1: "Storage Array with Self Encrypting Drive Client KMIP v1.1",
+		ProfileNameStorageArrayWithSelfEncryptingDriveClientKMIPV1_2: "Storage Array with Self Encrypting Drive Client KMIP v1.2",
+		ProfileNameStorageArrayWithSelfEncryptingDriveServerKMIPV1_0: "Storage Array with Self Encrypting Drive Server KMIP v1.0",
+		ProfileNameStorageArrayWithSelfEncryptingDriveServerKMIPV1_1: "Storage Array with Self Encrypting Drive Server KMIP v1.1",
+		ProfileNameStorageArrayWithSelfEncryptingDriveServerKMIPV1_2: "Storage Array with Self Encrypting Drive Server KMIP v1.2",
+		ProfileNameHTTPSClientKMIPV1_0:                               "HTTPS Client KMIP v1.0",
+		ProfileNameHTTPSClientKMIPV1_1:                               "HTTPS Client KMIP v1.1",
+		ProfileNameHTTPSClientKMIPV1_2:                               "HTTPS Client KMIP v1.2",
+		ProfileNameHTTPSServerKMIPV1_0:                               "HTTPS Server KMIP v1.0",
+		ProfileNameHTTPSServerKMIPV1_1:                               "HTTPS Server KMIP v1.1",
+		ProfileNameHTTPSServerKMIPV1_2:                               "HTTPS Server KMIP v1.2",
+		ProfileNameJSONClientKMIPV1_0:                                "JSON Client KMIP v1.0",
+		ProfileNameJSONClientKMIPV1_1:                                "JSON Client KMIP v1.1",
+		ProfileNameJSONClientKMIPV1_2:                                "JSON Client KMIP v1.2",
+		ProfileNameJSONServerKMIPV1_0:                                "JSON Server KMIP v1.0",
+		ProfileNameJSONServerKMIPV1_1:                                "JSON Server KMIP v1.1",
+		ProfileNameJSONServerKMIPV1_2:                                "JSON Server KMIP v1.2",
+		ProfileNameXMLClientKMIPV1_0:                                 "XML Client KMIP v1.0",
+		ProfileNameXMLClientKMIPV1_1:                                 "XML Client KMIP v1.1",
+		ProfileNameXMLClientKMIPV1_2:                                 "XML Client KMIP v1.2",
+		ProfileNameXMLServerKMIPV1_0:                                 "XML Server KMIP v1.0",
+		ProfileNameXMLServerKMIPV1_1:                                 "XML Server KMIP v1.1",
+		ProfileNameXMLServerKMIPV1_2:                                 "XML Server KMIP v1.2",
+		ProfileNameBaselineServerBasicKMIPV1_3:                       "Baseline Server Basic KMIP v1.3",
+		ProfileNameBaselineServerTLSV1_2KMIPV1_3:                     "Baseline Server TLS v1.2 KMIP v1.3",
+		ProfileNameBaselineClientBasicKMIPV1_3:                       "Baseline Client Basic KMIP v1.3",
+		ProfileNameBaselineClientTLSV1_2KMIPV1_3:                     "Baseline Client TLS v1.2 KMIP v1.3",
+		ProfileNameCompleteServerBasicKMIPV1_3:                       "Complete Server Basic KMIP v1.3",
+		ProfileNameCompleteServerTLSV1_2KMIPV1_3:                     "Complete Server TLS v1.2 KMIP v1.3",
+		ProfileNameTapeLibraryClientKMIPV1_3:                         "Tape Library Client KMIP v1.3",
+		ProfileNameTapeLibraryServerKMIPV1_3:                         "Tape Library Server KMIP v1.3",
+		ProfileNameSymmetricKeyLifecycleClientKMIPV1_3:               "Symmetric Key Lifecycle Client KMIP v1.3",
+		ProfileNameSymmetricKeyLifecycleServerKMIPV1_3:               "Symmetric Key Lifecycle Server KMIP v1.3",
+		ProfileNameAsymmetricKeyLifecycleClientKMIPV1_3:              "Asymmetric Key Lifecycle Client KMIP v1.3",
+		ProfileNameAsymmetricKeyLifecycleServerKMIPV1_3:              "Asymmetric Key Lifecycle Server KMIP v1.3",
+		ProfileNameBasicCryptographicClientKMIPV1_3:                  "Basic Cryptographic Client KMIP v1.3",
+		ProfileNameBasicCryptographicServerKMIPV1_3:                  "Basic Cryptographic Server KMIP v1.3",
+		ProfileNameAdvancedCryptographicClientKMIPV1_3:               "Advanced Cryptographic Client KMIP v1.3",
+		ProfileNameAdvancedCryptographicServerKMIPV1_3:               "Advanced Cryptographic Server KMIP v1.3",
+		ProfileNameRNGCryptographicClientKMIPV1_3:                    "RNG Cryptographic Client KMIP v1.3",
+		ProfileNameRNGCryptographicServerKMIPV1_3:                    "RNG Cryptographic Server KMIP v1.3",
+		ProfileNameBasicSymmetricKeyFoundryClientKMIPV1_3:            "Basic Symmetric Key Foundry Client KMIP v1.3",
+		ProfileNameIntermediateSymmetricKeyFoundryClientKMIPV1_3:     "Intermediate Symmetric Key Foundry Client KMIP v1.3",
+		ProfileNameAdvancedSymmetricKeyFoundryClientKMIPV1_3:         "Advanced Symmetric Key Foundry Client KMIP v1.3",
+		ProfileNameSymmetricKeyFoundryServerKMIPV1_3:                 "Symmetric Key Foundry Server KMIP v1.3",
+		ProfileNameOpaqueManagedObjectStoreClientKMIPV1_3:            "Opaque Managed Object Store Client KMIP v1.3",
+		ProfileNameOpaqueManagedObjectStoreServerKMIPV1_3:            "Opaque Managed Object Store Server KMIP v1.3",
+		ProfileNameSuiteBMinLOS_128ClientKMIPV1_3:                    "Suite B minLOS_128 Client KMIP v1.3",
+		ProfileNameSuiteBMinLOS_128ServerKMIPV1_3:                    "Suite B minLOS_128 Server KMIP v1.3",
+		ProfileNameSuiteBMinLOS_192ClientKMIPV1_3:                    "Suite B minLOS_192 Client KMIP v1.3",
+		ProfileNameSuiteBMinLOS_192ServerKMIPV1_3:                    "Suite B minLOS_192 Server KMIP v1.3",
+		ProfileNameStorageArrayWithSelfEncryptingDriveClientKMIPV1_3: "Storage Array with Self Encrypting Drive Client KMIP v1.3",
+		ProfileNameStorageArrayWithSelfEncryptingDriveServerKMIPV1_3: "Storage Array with Self Encrypting Drive Server KMIP v1.3",
+		ProfileNameHTTPSClientKMIPV1_3:                               "HTTPS Client KMIP v1.3",
+		ProfileNameHTTPSServerKMIPV1_3:                               "HTTPS Server KMIP v1.3",
+		ProfileNameJSONClientKMIPV1_3:                                "JSON Client KMIP v1.3",
+		ProfileNameJSONServerKMIPV1_3:                                "JSON Server KMIP v1.3",
+		ProfileNameXMLClientKMIPV1_3:                                 "XML Client KMIP v1.3",
+		ProfileNameXMLServerKMIPV1_3:                                 "XML Server KMIP v1.3",
+		ProfileNameBaselineServerBasicKMIPV1_4:                       "Baseline Server Basic KMIP v1.4",
+		ProfileNameBaselineServerTLSV1_2KMIPV1_4:                     "Baseline Server TLS v1.2 KMIP v1.4",
+		ProfileNameBaselineClientBasicKMIPV1_4:                       "Baseline Client Basic KMIP v1.4",
+		ProfileNameBaselineClientTLSV1_2KMIPV1_4:                     "Baseline Client TLS v1.2 KMIP v1.4",
+		ProfileNameCompleteServerBasicKMIPV1_4:                       "Complete Server Basic KMIP v1.4",
+		ProfileNameCompleteServerTLSV1_2KMIPV1_4:                     "Complete Server TLS v1.2 KMIP v1.4",
+		ProfileNameTapeLibraryClientKMIPV1_4:                         "Tape Library Client KMIP v1.4",
+		ProfileNameTapeLibraryServerKMIPV1_4:                         "Tape Library Server KMIP v1.4",
+		ProfileNameSymmetricKeyLifecycleClientKMIPV1_4:               "Symmetric Key Lifecycle Client KMIP v1.4",
+		ProfileNameSymmetricKeyLifecycleServerKMIPV1_4:               "Symmetric Key Lifecycle Server KMIP v1.4",
+		ProfileNameAsymmetricKeyLifecycleClientKMIPV1_4:              "Asymmetric Key Lifecycle Client KMIP v1.4",
+		ProfileNameAsymmetricKeyLifecycleServerKMIPV1_4:              "Asymmetric Key Lifecycle Server KMIP v1.4",
+		ProfileNameBasicCryptographicClientKMIPV1_4:                  "Basic Cryptographic Client KMIP v1.4",
+		ProfileNameBasicCryptographicServerKMIPV1_4:                  "Basic Cryptographic Server KMIP v1.4",
+		ProfileNameAdvancedCryptographicClientKMIPV1_4:               "Advanced Cryptographic Client KMIP v1.4",
+		ProfileNameAdvancedCryptographicServerKMIPV1_4:               "Advanced Cryptographic Server KMIP v1.4",
+		ProfileNameRNGCryptographicClientKMIPV1_4:                    "RNG Cryptographic Client KMIP v1.4",
+		ProfileNameRNGCryptographicServerKMIPV1_4:                    "RNG Cryptographic Server KMIP v1.4",
+		ProfileNameBasicSymmetricKeyFoundryClientKMIPV1_4:            "Basic Symmetric Key Foundry Client KMIP v1.4",
+		ProfileNameIntermediateSymmetricKeyFoundryClientKMIPV1_4:     "Intermediate Symmetric Key Foundry Client KMIP v1.4",
+		ProfileNameAdvancedSymmetricKeyFoundryClientKMIPV1_4:         "Advanced Symmetric Key Foundry Client KMIP v1.4",
+		ProfileNameSymmetricKeyFoundryServerKMIPV1_4:                 "Symmetric Key Foundry Server KMIP v1.4",
+		ProfileNameOpaqueManagedObjectStoreClientKMIPV1_4:            "Opaque Managed Object Store Client KMIP v1.4",
+		ProfileNameOpaqueManagedObjectStoreServerKMIPV1_4:            "Opaque Managed Object Store Server KMIP v1.4",
+		ProfileNameSuiteBMinLOS_128ClientKMIPV1_4:                    "Suite B minLOS_128 Client KMIP v1.4",
+		ProfileNameSuiteBMinLOS_128ServerKMIPV1_4:                    "Suite B minLOS_128 Server KMIP v1.4",
+		ProfileNameSuiteBMinLOS_192ClientKMIPV1_4:                    "Suite B minLOS_192 Client KMIP v1.4",
+		ProfileNameSuiteBMinLOS_192ServerKMIPV1_4:                    "Suite B minLOS_192 Server KMIP v1.4",
+		ProfileNameStorageArrayWithSelfEncryptingDriveClientKMIPV1_4: "Storage Array with Self Encrypting Drive Client KMIP v1.4",
+		ProfileNameStorageArrayWithSelfEncryptingDriveServerKMIPV1_4: "Storage Array with Self Encrypting Drive Server KMIP v1.4",
+		ProfileNameHTTPSClientKMIPV1_4:                               "HTTPS Client KMIP v1.4",
+		ProfileNameHTTPSServerKMIPV1_4:                               "HTTPS Server KMIP v1.4",
+		ProfileNameJSONClientKMIPV1_4:                                "JSON Client KMIP v1.4",
+		ProfileNameJSONServerKMIPV1_4:                                "JSON Server KMIP v1.4",
+		ProfileNameXMLClientKMIPV1_4:                                 "XML Client KMIP v1.4",
+		ProfileNameXMLServerKMIPV1_4:                                 "XML Server KMIP v1.4",
 	}
 
 	e := ttlv.NewEnum()
@@ -2910,7 +2910,7 @@ func NewUnwrapModeEnum() ttlv.Enum {
 	m := map[UnwrapMode]string{
 		UnwrapModeUnspecified:  "Unspecified",
 		UnwrapModeProcessed:    "Processed",
-		UnwrapModeNotProcessed: "NotProcessed",
+		UnwrapModeNotProcessed: "Not Processed",
 	}
 
 	e := ttlv.NewEnum()
@@ -2953,10 +2953,10 @@ var DestroyActionEnum = NewDestroyActionEnum()
 func NewDestroyActionEnum() ttlv.Enum {
 	m := map[DestroyAction]string{
 		DestroyActionUnspecified:         "Unspecified",
-		DestroyActionKeyMaterialDeleted:  "KeyMaterialDeleted",
-		DestroyActionKeyMaterialShredded: "KeyMaterialShredded",
-		DestroyActionMetaDataDeleted:     "MetaDataDeleted",
-		DestroyActionMetaDataShredded:    "MetaDataShredded",
+		DestroyActionKeyMaterialDeleted:  "Key Material Deleted",
+		DestroyActionKeyMaterialShredded: "Key Material Shredded",
+		DestroyActionMetaDataDeleted:     "Meta Data Deleted",
+		DestroyActionMetaDataShredded:    "Meta Data Shredded",
 		DestroyActionDeleted:             "Deleted",
 		DestroyActionShredded:            "Shredded",
 	}
@@ -3037,8 +3037,8 @@ var RNGModeEnum = NewRNGModeEnum()
 func NewRNGModeEnum() ttlv.Enum {
 	m := map[RNGMode]string{
 		RNGModeUnspecified:            "Unspecified",
-		RNGModeSharedInstantiation:    "SharedInstantiation",
-		RNGModeNonSharedInstantiation: "NonSharedInstantiation",
+		RNGModeSharedInstantiation:    "Shared Instantiation",
+		RNGModeNonSharedInstantiation: "Non-Shared Instantiation",
 	}
 
 	e := ttlv.NewEnum()
@@ -3079,10 +3079,10 @@ var ClientRegistrationMethodEnum = NewClientRegistrationMethodEnum()
 func NewClientRegistrationMethodEnum() ttlv.Enum {
 	m := map[ClientRegistrationMethod]string{
 		ClientRegistrationMethodUnspecified:        "Unspecified",
-		ClientRegistrationMethodServerPreGenerated: "ServerPreGenerated",
-		ClientRegistrationMethodServerOnDemand:     "ServerOnDemand",
-		ClientRegistrationMethodClientGenerated:    "ClientGenerated",
-		ClientRegistrationMethodClientRegistered:   "ClientRegistered",
+		ClientRegistrationMethodServerPreGenerated: "Server Pre-Generated",
+		ClientRegistrationMethodServerOnDemand:     "Server On-Demand",
+		ClientRegistrationMethodClientGenerated:    "Client Generated",
+		ClientRegistrationMethodClientRegistered:   "Client Registered",
 	}
 
 	e := ttlv.NewEnum()
@@ -3119,8 +3119,8 @@ var KeyWrapTypeEnum = NewKeyWrapTypeEnum()
 
 func NewKeyWrapTypeEnum() ttlv.Enum {
 	m := map[KeyWrapType]string{
-		KeyWrapTypeNotWrapped:   "NotWrapped",
-		KeyWrapTypeAsRegistered: "AsRegistered",
+		KeyWrapTypeNotWrapped:   "Not Wrapped",
+		KeyWrapTypeAsRegistered: "As Registered",
 	}
 
 	e := ttlv.NewEnum()
@@ -3215,22 +3215,22 @@ func NewCryptographicUsageMaskEnum() ttlv.Enum {
 		CryptographicUsageMaskVerify:             "Verify",
 		CryptographicUsageMaskEncrypt:            "Encrypt",
 		CryptographicUsageMaskDecrypt:            "Decrypt",
-		CryptographicUsageMaskWrapKey:            "WrapKey",
-		CryptographicUsageMaskUnwrapKey:          "UnwrapKey",
+		CryptographicUsageMaskWrapKey:            "Wrap Key",
+		CryptographicUsageMaskUnwrapKey:          "Unwrap Key",
 		CryptographicUsageMaskExport:             "Export",
-		CryptographicUsageMaskMACGenerate:        "MACGenerate",
-		CryptographicUsageMaskMACVerify:          "MACVerify",
-		CryptographicUsageMaskDeriveKey:          "DeriveKey",
-		CryptographicUsageMaskContentCommitment:  "ContentCommitment",
-		CryptographicUsageMaskKeyAgreement:       "KeyAgreement",
-		CryptographicUsageMaskCertificateSign:    "CertificateSign",
-		CryptographicUsageMaskCRLSign:            "CRLSign",
-		CryptographicUsageMaskGenerateCryptogram: "GenerateCryptogram",
-		CryptographicUsageMaskValidateCryptogram: "ValidateCryptogram",
-		CryptographicUsageMaskTranslateEncrypt:   "TranslateEncrypt",
-		CryptographicUsageMaskTranslateDecrypt:   "TranslateDecrypt",
-		CryptographicUsageMaskTranslateWrap:      "TranslateWrap",
-		CryptographicUsageMaskTranslateUnwrap:    "TranslateUnwrap",
+		CryptographicUsageMaskMACGenerate:        "MAC Generate",
+		CryptographicUsageMaskMACVerify:          "MAC Verify",
+		CryptographicUsageMaskDeriveKey:          "Derive Key",
+		CryptographicUsageMaskContentCommitment:  "Content Commitment",
+		CryptographicUsageMaskKeyAgreement:       "Key Agreement",
+		CryptographicUsageMaskCertificateSign:    "Certificate Sign",
+		CryptographicUsageMaskCRLSign:            "CRL Sign",
+		CryptographicUsageMaskGenerateCryptogram: "Generate Cryptogram",
+		CryptographicUsageMaskValidateCryptogram: "Validate Cryptogram",
+		CryptographicUsageMaskTranslateEncrypt:   "Translate Encrypt",
+		CryptographicUsageMaskTranslateDecrypt:   "Translate Decrypt",
+		CryptographicUsageMaskTranslateWrap:      "Translate Wrap",
+		CryptographicUsageMaskTranslateUnwrap:    "Translate Unwrap",
 	}
 
 	e := ttlv.NewBitmask()
@@ -3267,8 +3267,8 @@ var StorageStatusMaskEnum = NewStorageStatusMaskEnum()
 
 func NewStorageStatusMaskEnum() ttlv.Enum {
 	m := map[StorageStatusMask]string{
-		StorageStatusMaskOnLineStorage:   "OnLineStorage",
-		StorageStatusMaskArchivalStorage: "ArchivalStorage",
+		StorageStatusMaskOnLineStorage:   "On-line storage",
+		StorageStatusMaskArchivalStorage: "Archival storage",
 	}
 
 	e := ttlv.NewBitmask()

@@ -8,8 +8,14 @@ const tagAttributeValue Tag = 0x42000b
 // 9.1.3.1
 type Tag uint32
 
+// String returns the normalized name of the tag.
 func (t Tag) String() string {
 	return DefaultRegistry.FormatTag(t)
+}
+
+// CanonicalName returns the canonical name of the tag.
+func (t Tag) CanonicalName() string {
+	return DefaultRegistry.FormatTagCanonical(t)
 }
 
 func (t Tag) MarshalText() (text []byte, err error) {

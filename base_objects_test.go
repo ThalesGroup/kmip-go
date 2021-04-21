@@ -97,6 +97,7 @@ func TestTemplateAttribute_marshal(t *testing.T) {
 	tests := []struct {
 		name     string
 		in       TemplateAttribute
+		inF      func() TemplateAttribute
 		expected ttlv.Value
 	}{
 		{
@@ -114,7 +115,7 @@ func TestTemplateAttribute_marshal(t *testing.T) {
 				},
 				Attribute: []Attribute{
 					{
-						AttributeName:  kmip14.TagAlwaysSensitive.String(),
+						AttributeName:  kmip14.TagAlwaysSensitive.CanonicalName(),
 						AttributeIndex: 5,
 						AttributeValue: true,
 					},
@@ -130,7 +131,7 @@ func TestTemplateAttribute_marshal(t *testing.T) {
 					v(kmip14.TagNameType, kmip14.NameTypeURI),
 				),
 				s(kmip14.TagAttribute,
-					v(kmip14.TagAttributeName, kmip14.TagAlwaysSensitive.String()),
+					v(kmip14.TagAttributeName, kmip14.TagAlwaysSensitive.CanonicalName()),
 					v(kmip14.TagAttributeIndex, 5),
 					v(kmip14.TagAttributeValue, true),
 				),
@@ -140,14 +141,14 @@ func TestTemplateAttribute_marshal(t *testing.T) {
 			name: "noname",
 			in: TemplateAttribute{Attribute: []Attribute{
 				{
-					AttributeName:  kmip14.TagAlwaysSensitive.String(),
+					AttributeName:  kmip14.TagAlwaysSensitive.CanonicalName(),
 					AttributeIndex: 5,
 					AttributeValue: true,
 				},
 			}},
 			expected: s(kmip14.TagTemplateAttribute,
 				s(kmip14.TagAttribute,
-					v(kmip14.TagAttributeName, kmip14.TagAlwaysSensitive.String()),
+					v(kmip14.TagAttributeName, kmip14.TagAlwaysSensitive.CanonicalName()),
 					v(kmip14.TagAttributeIndex, 5),
 					v(kmip14.TagAttributeValue, true),
 				),
@@ -175,15 +176,29 @@ func TestTemplateAttribute_marshal(t *testing.T) {
 			in: TemplateAttribute{
 				Attribute: []Attribute{
 					{
-						AttributeName:  kmip14.TagAlwaysSensitive.String(),
+						AttributeName:  kmip14.TagAlwaysSensitive.CanonicalName(),
 						AttributeValue: true,
 					},
 				},
 			},
 			expected: s(kmip14.TagTemplateAttribute,
 				s(kmip14.TagAttribute,
-					v(kmip14.TagAttributeName, kmip14.TagAlwaysSensitive.String()),
+					v(kmip14.TagAttributeName, kmip14.TagAlwaysSensitive.CanonicalName()),
 					v(kmip14.TagAttributeValue, true),
+				),
+			),
+		},
+		{
+			name: "use canonical names",
+			inF: func() TemplateAttribute {
+				var ta TemplateAttribute
+				ta.Append(kmip14.TagCryptographicAlgorithm, ttlv.EnumValue(kmip14.CryptographicAlgorithmBlowfish))
+				return ta
+			},
+			expected: s(kmip14.TagTemplateAttribute,
+				s(kmip14.TagAttribute,
+					v(kmip14.TagAttributeName, "Cryptographic Algorithm"),
+					v(kmip14.TagAttributeValue, ttlv.EnumValue(kmip14.CryptographicAlgorithmBlowfish)),
 				),
 			),
 		},
@@ -191,7 +206,12 @@ func TestTemplateAttribute_marshal(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			out, err := ttlv.Marshal(&test.in)
+			in := test.in
+			if test.inF != nil {
+				in = test.inF()
+			}
+
+			out, err := ttlv.Marshal(&in)
 			require.NoError(t, err)
 
 			expected, err := ttlv.Marshal(test.expected)
@@ -203,7 +223,7 @@ func TestTemplateAttribute_marshal(t *testing.T) {
 			err = ttlv.Unmarshal(expected, &ta)
 			require.NoError(t, err)
 
-			require.Equal(t, test.in, ta)
+			require.Equal(t, in, ta)
 		})
 	}
 }

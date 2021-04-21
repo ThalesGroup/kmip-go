@@ -24,9 +24,20 @@ import (
 // When an Attribute structure is used to specify or return a particular instance of an Attribute and the Attribute
 // Index is not specified it SHALL be assumed to be 0.
 type Attribute struct {
-	AttributeName  string
+	// AttributeName should contain the canonical name of a tag, e.g. "Cryptographic Algorithm"
+	AttributeName string
+	// AttributeIndex is typically 0 when clients use this struct to create objects or add attributes.  Clients
+	// only need to set this if modifying or deleting an existing attribute.
 	AttributeIndex int `ttlv:",omitempty"`
 	AttributeValue interface{}
+}
+
+func NewAttributeFromTag(tag ttlv.Tag, idx int, val interface{}) Attribute {
+	return Attribute{
+		AttributeName:  tag.CanonicalName(),
+		AttributeIndex: idx,
+		AttributeValue: val,
+	}
 }
 
 // Credential 2.1.2 Table 3
@@ -449,21 +460,10 @@ func (t *TemplateAttribute) GetAll(s string) []Attribute {
 	return ret
 }
 
+func (t *TemplateAttribute) Append(tag ttlv.Tag, value interface{}) {
+	t.Attribute = append(t.Attribute, NewAttributeFromTag(tag, 0, value))
+}
+
 func (t *TemplateAttribute) GetAllTag(tag ttlv.Tag) []Attribute {
 	return t.GetAll(tag.String())
 }
-
-// CommonTemplateAttribute 2.1.8 Table 29
-//
-// See TemplateAttribute.
-type CommonTemplateAttribute TemplateAttribute
-
-// PrivateKeyTemplateAttribute 2.1.8 Table 29
-//
-// See TemplateAttribute.
-type PrivateKeyTemplateAttribute TemplateAttribute
-
-// PublicKeyTemplateAttribute 2.1.8 Table 29
-//
-// See TemplateAttribute.
-type PublicKeyTemplateAttribute TemplateAttribute

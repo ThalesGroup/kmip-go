@@ -1312,6 +1312,11 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			v:        Value{Tag: TagWrappingMethod, Value: uint32(WrappingMethodMACSign)},
 			expected: TTLV(Hex2bytes("42009e | 05 | 00 00 00 04 | 00000002 00000000")),
 		},
+		{
+			name:     "emptystruct",
+			v:        Value{Tag: TagWrappingMethod, Value: Values{}},
+			expected: TTLV(Hex2bytes("42009e | 01 | 00 00 00 00")),
+		},
 	}
 
 	// test cases for all the int base types
@@ -1353,6 +1358,9 @@ func TestEncoder_EncodeValue(t *testing.T) {
 			enc2 := NewEncoder(buf2)
 			err = enc2.EncodeValue(tag, tc.expected)
 			require.NoError(t, err, Details(err))
+
+			t.Log("out: ", TTLV(buf2.Bytes()).String())
+			t.Log("expected: ", TTLV(buf.Bytes()).String())
 
 			require.Equal(t, TTLV(buf2.Bytes()), TTLV(buf.Bytes()))
 		})

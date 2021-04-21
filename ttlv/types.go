@@ -43,7 +43,7 @@ const (
 	TypeDateTimeExtended Type = 0x0B
 )
 
-// String returns the canonical name of the type.  If the type
+// String returns the normalized name of the type.  If the type
 // name isn't registered, it returns the hex value of the type,
 // e.g. "0x01" (TypeStructure).  The value of String() is suitable
 // for use in the JSON or XML encoding of TTLV.

@@ -53,7 +53,7 @@ var ErrTagConflict = errors.New("tag conflict")
 //    to marshal as an Enumeration.  int, int8, int16, int32, and their uint counterparts
 //    can be marshaled as an Enumeration.  A string can be marshaled to an Enumeration
 //    if the string contains a number, a 4 byte (8 char) hex string with the prefix "0x",
-//    or the canonical name of an enum value registered to this tag.  Examples:
+//    or the normalized name of an enum value registered to this tag.  Examples:
 //
 //         type Foo struct {
 //             CancellationResult string    // will encode as an Enumeration because

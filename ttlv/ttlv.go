@@ -41,7 +41,7 @@ var ErrInvalidTag = errors.New("invalid tag")
 // after the current value.
 //
 // TTLV knows how to marshal/unmarshal to XML and JSON, following the KMIP specification
-// for those encodings.  Wherever possible, canonical names for tags, enum values, and mask
+// for those encodings.  Wherever possible, normalized names for tags, enum values, and mask
 // values will be used, if those values have been registered.  Otherwise, compliant
 // hex value encoding is used.
 type TTLV []byte
@@ -171,8 +171,8 @@ func (t TTLV) ValueBigInteger() *big.Int {
 	return i
 }
 
-func (t TTLV) ValueEnumeration() uint32 {
-	return binary.BigEndian.Uint32(t.ValueRaw())
+func (t TTLV) ValueEnumeration() EnumValue {
+	return EnumValue(binary.BigEndian.Uint32(t.ValueRaw()))
 }
 
 func (t TTLV) ValueBoolean() bool {
@@ -305,10 +305,7 @@ func (t TTLV) Next() TTLV {
 // String renders the TTLV in a human-friendly format using Print().
 func (t TTLV) String() string {
 	var sb strings.Builder
-	if err := Print(&sb, "", "  ", t); err != nil {
-		// should never happen
-		panic(err)
-	}
+	_ = Print(&sb, "", "  ", t)
 	return sb.String()
 }
 
@@ -364,7 +361,7 @@ func (t TTLV) MarshalXML(e *xml.Encoder, _ xml.StartElement) error {
 					Name: xml.Name{Local: "value"},
 				}
 				if n.Type() == TypeEnumeration {
-					valAttr.Value = DefaultRegistry.FormatEnum(attrTag, n.ValueEnumeration())
+					valAttr.Value = DefaultRegistry.FormatEnum(attrTag, uint32(n.ValueEnumeration()))
 				} else {
 					valAttr.Value = DefaultRegistry.FormatInt(attrTag, n.ValueInteger())
 				}
@@ -404,7 +401,7 @@ func (t TTLV) MarshalXML(e *xml.Encoder, _ xml.StartElement) error {
 	case TypeBigInteger:
 		out.Value = hex.EncodeToString(t.ValueRaw())
 	case TypeEnumeration:
-		out.Value = DefaultRegistry.FormatEnum(t.Tag(), t.ValueEnumeration())
+		out.Value = DefaultRegistry.FormatEnum(t.Tag(), uint32(t.ValueEnumeration()))
 	case TypeTextString:
 		out.Value = t.ValueTextString()
 	case TypeByteString:
@@ -838,7 +835,7 @@ func (t TTLV) MarshalJSON() ([]byte, error) {
 		}
 	case TypeEnumeration:
 		sb.WriteString(`"`)
-		sb.WriteString(DefaultRegistry.FormatEnum(t.Tag(), t.ValueEnumeration()))
+		sb.WriteString(DefaultRegistry.FormatEnum(t.Tag(), uint32(t.ValueEnumeration())))
 		sb.WriteString(`"`)
 	case TypeInteger:
 		if enum := DefaultRegistry.EnumForTag(t.Tag()); enum != nil {
@@ -896,7 +893,7 @@ func (t TTLV) MarshalJSON() ([]byte, error) {
 			switch {
 			case c.Tag() == tagAttributeValue && c.Type() == TypeEnumeration:
 				sb.WriteString(`{"tag":"AttributeValue","type":"Enumeration","value":"`)
-				sb.WriteString(DefaultRegistry.FormatEnum(attrTag, c.ValueEnumeration()))
+				sb.WriteString(DefaultRegistry.FormatEnum(attrTag, uint32(c.ValueEnumeration())))
 				sb.WriteString(`"}`)
 			case c.Tag() == tagAttributeValue && c.Type() == TypeInteger:
 				sb.WriteString(`{"tag":"AttributeValue","type":"Integer","value":`)
@@ -1013,7 +1010,7 @@ func Print(w io.Writer, prefix, indent string, t TTLV) error {
 			s = s.Next()
 		}
 	case TypeEnumeration:
-		if _, err := fmt.Fprint(w, " ", DefaultRegistry.FormatEnum(tag, t.ValueEnumeration())); err != nil {
+		if _, err := fmt.Fprint(w, " ", DefaultRegistry.FormatEnum(tag, uint32(t.ValueEnumeration()))); err != nil {
 			return err
 		}
 	case TypeInteger:

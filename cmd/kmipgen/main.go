@@ -383,7 +383,7 @@ var {{.TypeName}}Enum = New{{.TypeName}}Enum()
 
 func New{{.TypeName}}Enum() {{ttlvPackage}}Enum {
 	m := map[{{.TypeName}}]string {
-{{range .Vals}}        {{$typeName}}{{.Name}}: "{{.Name}}",
+{{range .Vals}}        {{$typeName}}{{.Name}}: "{{.FullName}}",
 {{end}}
 	}
 

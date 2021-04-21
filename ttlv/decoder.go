@@ -227,8 +227,14 @@ func (dec *Decoder) unmarshal(val reflect.Value, ttlv TTLV) error {
 
 	switch val.Kind() {
 	case reflect.Interface:
-		// set blank interface equal to the TTLV.Value()
-		val.Set(reflect.ValueOf(ttlv.Value()))
+		if ttlv.Type() == TypeStructure {
+			// if the value is a structure, set the whole TTLV
+			// as the value.
+			val.Set(reflect.ValueOf(ttlv))
+		} else {
+			// set blank interface equal to the TTLV.Value()
+			val.Set(reflect.ValueOf(ttlv.Value()))
+		}
 		return nil
 	case reflect.Slice:
 		typ := val.Type()

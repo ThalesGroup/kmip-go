@@ -32,6 +32,68 @@ func clientConn(t *testing.T) *tls.Conn {
 	return conn
 }
 
+func TestCreateKeyPair(t *testing.T) {
+	conn := clientConn(t)
+	defer conn.Close()
+
+	biID := uuid.New()
+
+	payload := CreateKeyPairRequestPayload{}
+	payload.CommonTemplateAttribute = &TemplateAttribute{}
+	payload.CommonTemplateAttribute.Append(kmip14.TagCryptographicAlgorithm, kmip14.CryptographicAlgorithmRSA)
+	payload.CommonTemplateAttribute.Append(kmip14.TagCryptographicLength, 1024)
+	payload.CommonTemplateAttribute.Append(kmip14.TagCryptographicUsageMask, kmip14.CryptographicUsageMaskSign|kmip14.CryptographicUsageMaskVerify)
+
+	msg := RequestMessage{
+		RequestHeader: RequestHeader{
+			ProtocolVersion: ProtocolVersion{
+				ProtocolVersionMajor: 1,
+				ProtocolVersionMinor: 4,
+			},
+			BatchCount: 1,
+		},
+		BatchItem: []RequestBatchItem{
+			{
+				UniqueBatchItemID: biID[:],
+				Operation:         kmip14.OperationCreateKeyPair,
+				RequestPayload:    &payload,
+			},
+		},
+	}
+
+	req, err := ttlv.Marshal(msg)
+	require.NoError(t, err)
+
+	t.Log(req)
+
+	_, err = conn.Write(req)
+	require.NoError(t, err)
+
+	decoder := ttlv.NewDecoder(bufio.NewReader(conn))
+	resp, err := decoder.NextTTLV()
+	require.NoError(t, err)
+
+	t.Log(resp)
+
+	var respMsg ResponseMessage
+	err = decoder.DecodeValue(&respMsg, resp)
+	require.NoError(t, err)
+
+	assert.Equal(t, 1, respMsg.ResponseHeader.BatchCount)
+	assert.Len(t, respMsg.BatchItem, 1)
+	bi := respMsg.BatchItem[0]
+	assert.Equal(t, kmip14.OperationCreateKeyPair, bi.Operation)
+	assert.NotEmpty(t, bi.UniqueBatchItemID)
+	assert.Equal(t, kmip14.ResultStatusSuccess, bi.ResultStatus)
+
+	var respPayload CreateKeyPairResponsePayload
+	err = decoder.DecodeValue(&respPayload, bi.ResponsePayload.(ttlv.TTLV))
+	require.NoError(t, err)
+
+	assert.NotEmpty(t, respPayload.PrivateKeyUniqueIdentifier)
+	assert.NotEmpty(t, respPayload.PublicKeyUniqueIdentifier)
+}
+
 func TestRequest(t *testing.T) {
 	conn := clientConn(t)
 	defer conn.Close()
@@ -84,13 +146,15 @@ func TestRequest(t *testing.T) {
 	assert.NotEmpty(t, bi.UniqueBatchItemID)
 	assert.Equal(t, kmip14.ResultStatusSuccess, bi.ResultStatus)
 
-	var protVer ProtocolVersion
-	err = decoder.DecodeValue(&protVer, bi.ResponsePayload.(ttlv.TTLV))
+	var discVerRespPayload struct {
+		ProtocolVersion ProtocolVersion
+	}
+	err = decoder.DecodeValue(&discVerRespPayload, bi.ResponsePayload.(ttlv.TTLV))
 	require.NoError(t, err)
 	assert.Equal(t, ProtocolVersion{
 		ProtocolVersionMajor: 1,
 		ProtocolVersionMinor: 2,
-	}, protVer)
+	}, discVerRespPayload.ProtocolVersion)
 }
 
 func TestTemplateAttribute_marshal(t *testing.T) {

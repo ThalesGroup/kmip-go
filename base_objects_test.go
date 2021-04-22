@@ -32,6 +32,74 @@ func clientConn(t *testing.T) *tls.Conn {
 	return conn
 }
 
+func TestCreateKey(t *testing.T) {
+	conn := clientConn(t)
+	defer conn.Close()
+
+	biID := uuid.New()
+
+	payload := CreateRequestPayload{
+		ObjectType: kmip14.ObjectTypeSymmetricKey,
+	}
+
+	payload.TemplateAttribute.Append(kmip14.TagCryptographicAlgorithm, kmip14.CryptographicAlgorithmAES)
+	payload.TemplateAttribute.Append(kmip14.TagCryptographicLength, 256)
+	payload.TemplateAttribute.Append(kmip14.TagCryptographicUsageMask, kmip14.CryptographicUsageMaskEncrypt|kmip14.CryptographicUsageMaskDecrypt)
+	payload.TemplateAttribute.Append(kmip14.TagName, Name{
+		NameValue: "Key1",
+		NameType:  kmip14.NameTypeUninterpretedTextString,
+	})
+
+	msg := RequestMessage{
+		RequestHeader: RequestHeader{
+			ProtocolVersion: ProtocolVersion{
+				ProtocolVersionMajor: 1,
+				ProtocolVersionMinor: 4,
+			},
+			BatchCount: 1,
+		},
+		BatchItem: []RequestBatchItem{
+			{
+				UniqueBatchItemID: biID[:],
+				Operation:         kmip14.OperationCreate,
+				RequestPayload:    &payload,
+			},
+		},
+	}
+
+	req, err := ttlv.Marshal(msg)
+	require.NoError(t, err)
+
+	t.Log(req)
+
+	_, err = conn.Write(req)
+	require.NoError(t, err)
+
+	decoder := ttlv.NewDecoder(bufio.NewReader(conn))
+	resp, err := decoder.NextTTLV()
+	require.NoError(t, err)
+
+	t.Log(resp)
+
+	var respMsg ResponseMessage
+	err = decoder.DecodeValue(&respMsg, resp)
+	require.NoError(t, err)
+
+	assert.Equal(t, 1, respMsg.ResponseHeader.BatchCount)
+	assert.Len(t, respMsg.BatchItem, 1)
+	bi := respMsg.BatchItem[0]
+	assert.Equal(t, kmip14.OperationCreate, bi.Operation)
+	assert.NotEmpty(t, bi.UniqueBatchItemID)
+	assert.Equal(t, kmip14.ResultStatusSuccess, bi.ResultStatus)
+
+	var respPayload CreateResponsePayload
+	err = decoder.DecodeValue(&respPayload, bi.ResponsePayload.(ttlv.TTLV))
+	require.NoError(t, err)
+
+	assert.Equal(t, kmip14.ObjectTypeSymmetricKey, respPayload.ObjectType)
+	assert.NotEmpty(t, respPayload.UniqueIdentifier)
+}
+
 func TestCreateKeyPair(t *testing.T) {
 	conn := clientConn(t)
 	defer conn.Close()

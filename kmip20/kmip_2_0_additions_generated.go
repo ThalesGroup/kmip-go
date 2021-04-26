@@ -7,6 +7,9 @@ import (
 
 const (
 	TagAdjustmentValue                    ttlv.Tag = 0x066942
+	TagCommonProtectionStorageMasks       ttlv.Tag = 0x066943
+	TagPrivateProtectionStorageMasks      ttlv.Tag = 0x066944
+	TagPublicProtectionStorageMasks       ttlv.Tag = 0x066945
 	TagAttributes                         ttlv.Tag = 0x420125
 	TagCommonAttributes                   ttlv.Tag = 0x420126
 	TagPrivateKeyAttributes               ttlv.Tag = 0x420127
@@ -1954,6 +1957,9 @@ func RegisterGeneratedDefinitions(r *ttlv.Registry) {
 
 	tags := map[ttlv.Tag]string{
 		TagAdjustmentValue:                    "Adjustment Value",
+		TagCommonProtectionStorageMasks:       "Common Protection Storage Masks",
+		TagPrivateProtectionStorageMasks:      "Private Protection Storage Masks",
+		TagPublicProtectionStorageMasks:       "Public Protection Storage Masks",
 		TagAttributes:                         "Attributes",
 		TagCommonAttributes:                   "Common Attributes",
 		TagPrivateKeyAttributes:               "Private Key Attributes",

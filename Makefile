@@ -96,5 +96,8 @@ tools: kmipgen
 pykmip-server: up
 	$(COMPOSE) exec pykmip-server tail -f server.log
 
+gen-certs:
+	openssl req -x509 -newkey rsa:4096 -keyout pykmip-server/server.key -out pykmip-server/server.cert -days 3650 -nodes -subj '/CN=localhost'
+
 .PHONY: all build builddir run artifacts vet lint clean fmt test testall testreport up down pull builder runc ci bash fish image prep vendor.update vendor.ensure tools buildtools migratetool db.migrate
 

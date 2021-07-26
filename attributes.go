@@ -49,22 +49,22 @@ type Name struct {
 //
 // Initial Counter Value is the starting counter value for CTR mode (for [RFC3686] it is 1).
 type CryptographicParameters struct {
-	BlockCipherMode           kmip14.BlockCipherMode           `ttlv:",omitempty"`
-	PaddingMethod             kmip14.PaddingMethod             `ttlv:",omitempty"`
-	HashingAlgorithm          kmip14.HashingAlgorithm          `ttlv:",omitempty"`
-	KeyRoleType               kmip14.KeyRoleType               `ttlv:",omitempty"`
-	DigitalSignatureAlgorithm kmip14.DigitalSignatureAlgorithm `ttlv:",omitempty"`
-	CryptographicAlgorithm    kmip14.CryptographicAlgorithm    `ttlv:",omitempty"`
-	RandomIV                  bool                             `ttlv:",omitempty"`
-	IVLength                  int                              `ttlv:",omitempty"`
-	TagLength                 int                              `ttlv:",omitempty"`
-	FixedFieldLength          int                              `ttlv:",omitempty"`
-	InvocationFieldLength     int                              `ttlv:",omitempty"`
-	CounterLength             int                              `ttlv:",omitempty"`
-	InitialCounterValue       int                              `ttlv:",omitempty"`
-	SaltLength                int                              `ttlv:",omitempty"`
-	MaskGenerator             kmip14.MaskGenerator             `ttlv:",omitempty" default:"1"` // defaults to MGF1
-	MaskHashingAlgorithm      kmip14.HashingAlgorithm          `ttlv:",omitempty" default:"4"` // defaults to SHA-1
-	PSource                   []byte                           `ttlv:",omitempty"`
-	TrailerField              int                              `ttlv:",omitempty"`
+	BlockCipherMode               kmip14.BlockCipherMode           `ttlv:",omitempty"`
+	PaddingMethod                 kmip14.PaddingMethod             `ttlv:",omitempty"`
+	HashingAlgorithm              kmip14.HashingAlgorithm          `ttlv:",omitempty"`
+	KeyRoleType                   kmip14.KeyRoleType               `ttlv:",omitempty"`
+	DigitalSignatureAlgorithm     kmip14.DigitalSignatureAlgorithm `ttlv:",omitempty"`
+	CryptographicAlgorithm        kmip14.CryptographicAlgorithm    `ttlv:",omitempty"`
+	RandomIV                      bool                             `ttlv:",omitempty"`
+	IVLength                      int                              `ttlv:",omitempty"`
+	TagLength                     int                              `ttlv:",omitempty"`
+	FixedFieldLength              int                              `ttlv:",omitempty"`
+	InvocationFieldLength         int                              `ttlv:",omitempty"`
+	CounterLength                 int                              `ttlv:",omitempty"`
+	InitialCounterValue           int                              `ttlv:",omitempty"`
+	SaltLength                    int                              `ttlv:",omitempty"`
+	MaskGenerator                 kmip14.MaskGenerator             `ttlv:",omitempty" default:"1"` // defaults to MGF1
+	MaskGeneratorHashingAlgorithm kmip14.HashingAlgorithm          `ttlv:",omitempty" default:"4"` // defaults to SHA-1
+	PSource                       []byte                           `ttlv:",omitempty"`
+	TrailerField                  int                              `ttlv:",omitempty"`
 }

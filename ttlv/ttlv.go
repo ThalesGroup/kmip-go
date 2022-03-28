@@ -1073,13 +1073,12 @@ func Print(w io.Writer, prefix, indent string, t TTLV) error {
 			return err
 		}
 
-		switch verr {
-		case ErrHeaderTruncated:
+		if errors.Is(verr, ErrHeaderTruncated) {
 			// print the err, and as much of the truncated header as we have
 			if _, err := fmt.Fprintf(w, " %#x", []byte(t)); err != nil {
 				return err
 			}
-		default:
+		} else {
 			// Something is wrong with the value.  Print the error, and the value
 			if _, err := fmt.Fprintf(w, " %#x", t.ValueRaw()); err != nil {
 				return err

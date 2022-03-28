@@ -27,6 +27,8 @@ linters-settings:
   dupl:
     # tokens count to trigger issue, 150 by default
     threshold: 100
+  exhaustive:
+    default-signifies-exhaustive: true
   goconst:
     # minimal length of string constant, 3 by default
     min-len: 3
@@ -174,10 +176,6 @@ issues:
     # enabling this checker, even though it isn't listed above.
     - path: .
       linters:
-        - errchkjson
-        - errorlint
-        - exhaustive
-        - gofumpt
         - ireturn
         - thelper
         - ifshort
@@ -194,6 +192,7 @@ issues:
         - gochecknoglobals
         - wsl
         - nlreturn
+        - errchkjson
     - path: cmd
       linters:
         # init(), globals, and prints are pretty common in main packages

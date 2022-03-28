@@ -276,6 +276,7 @@ func indirect(v reflect.Value) reflect.Value {
 		if v.IsNil() {
 			return invalidValue
 		}
+	default:
 	}
 
 	return v
@@ -297,6 +298,7 @@ func isEmptyValue(v reflect.Value) bool {
 		return v.Float() == 0
 	case reflect.Interface, reflect.Ptr:
 		return v.IsNil()
+	default:
 	}
 
 	switch v.Type() {
@@ -368,6 +370,7 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 		reflect.Complex128,
 		reflect.Interface:
 		return e.marshalingError(tag, v.Type(), ErrUnsupportedTypeError)
+	default:
 	}
 
 	// skip if value is empty and tags include omitempty
@@ -404,6 +407,7 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 		}
 
 		return nil
+	default:
 	}
 
 	if tag == TagNone {
@@ -878,7 +882,7 @@ func (ti *typeInfo) getFieldsInfo() error {
 		fi, err := getFieldInfo(ti.typ, ti.typ.Field(i))
 
 		switch {
-		case err == errSkip:
+		case err == errSkip: //nolint:errorlint
 			// skip
 		case err != nil:
 			return err

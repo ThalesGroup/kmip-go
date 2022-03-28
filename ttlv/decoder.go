@@ -260,6 +260,7 @@ func (dec *Decoder) unmarshal(val reflect.Value, ttlv TTLV) error {
 		}
 
 		return nil
+	default:
 	}
 
 	typeMismatchErr := func() error {

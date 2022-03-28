@@ -46,6 +46,7 @@ type CreateHandler struct {
 
 func (h *CreateHandler) HandleItem(ctx context.Context, req *Request) (*ResponseBatchItem, error) {
 	var payload CreateRequestPayload
+
 	err := req.DecodePayload(&payload)
 	if err != nil {
 		return nil, err

@@ -41,7 +41,6 @@ func TestUnmarshal_known(t *testing.T) {
 				require.Equal(t, sample.v, reflect.ValueOf(v).Elem().Interface())
 			}
 		})
-
 	}
 }
 
@@ -196,6 +195,7 @@ func TestUnmarshal(t *testing.T) {
 	type A struct {
 		Comment string
 	}
+
 	tests = append(tests,
 		unmarshalTest{
 			name: "simplestruct",
@@ -377,7 +377,6 @@ func TestUnmarshal(t *testing.T) {
 				assert.Equal(t, v.Elem().Interface(), vv.Elem().Interface())
 			})
 		})
-
 	}
 }
 

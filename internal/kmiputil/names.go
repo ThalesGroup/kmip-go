@@ -20,6 +20,7 @@ func NormalizeName(s string) string {
 		case '(', ')':
 			return ' '
 		}
+
 		return r
 	}, s)
 
@@ -37,13 +38,13 @@ func NormalizeName(s string) string {
 		default:
 			return '_'
 		}
+
 		return r
 	}, s)
 
 	words := strings.Split(s, " ")
 
 	for i, w := range words {
-
 		if i == 0 {
 			// 4. If the first word begins with a digit, move all digits at start of first word to end of first word
 			w = startingDigits.ReplaceAllString(w, `$2$1`)

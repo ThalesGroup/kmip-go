@@ -180,6 +180,7 @@ func (dec *Decoder) Decode(v interface{}) error {
 	if err != nil {
 		return err
 	}
+
 	return dec.DecodeValue(v, ttlv)
 }
 
@@ -191,6 +192,7 @@ func (dec *Decoder) DecodeValue(v interface{}, ttlv TTLV) error {
 	if val.Kind() != reflect.Ptr {
 		return merry.New("non-pointer passed to Decode")
 	}
+
 	return dec.unmarshal(val, ttlv)
 }
 
@@ -212,6 +214,7 @@ func (dec *Decoder) unmarshal(val reflect.Value, ttlv TTLV) error {
 		if val.IsNil() {
 			val.Set(reflect.New(val.Type().Elem()))
 		}
+
 		val = val.Elem()
 	}
 
@@ -236,6 +239,7 @@ func (dec *Decoder) unmarshal(val reflect.Value, ttlv TTLV) error {
 			// set blank interface equal to the TTLV.Value()
 			val.Set(reflect.ValueOf(ttlv.Value()))
 		}
+
 		return nil
 	case reflect.Slice:
 		typ := val.Type()
@@ -254,6 +258,7 @@ func (dec *Decoder) unmarshal(val reflect.Value, ttlv TTLV) error {
 			val.SetLen(n)
 			return err
 		}
+
 		return nil
 	}
 
@@ -266,6 +271,7 @@ func (dec *Decoder) unmarshal(val reflect.Value, ttlv TTLV) error {
 			Val:    val.Type(),
 		}
 		err := merry.WrapSkipping(e, 1).WithCause(ErrUnsupportedTypeError)
+
 		return err
 	}
 
@@ -279,31 +285,37 @@ func (dec *Decoder) unmarshal(val reflect.Value, ttlv TTLV) error {
 		err := dec.unmarshalStructure(ttlv, val)
 		// restore currStruct
 		dec.currStruct = currStruct
+
 		return err
 	case TypeInterval:
 		if val.Kind() != reflect.Int64 {
 			return typeMismatchErr()
 		}
+
 		val.SetInt(int64(ttlv.ValueInterval()))
 	case TypeDateTime, TypeDateTimeExtended:
 		if val.Type() != timeType {
 			return typeMismatchErr()
 		}
+
 		val.Set(reflect.ValueOf(ttlv.ValueDateTime()))
 	case TypeByteString:
 		if val.Kind() != reflect.Slice && val.Type().Elem() != byteType {
 			return typeMismatchErr()
 		}
+
 		val.SetBytes(ttlv.ValueByteString())
 	case TypeTextString:
 		if val.Kind() != reflect.String {
 			return typeMismatchErr()
 		}
+
 		val.SetString(ttlv.ValueTextString())
 	case TypeBoolean:
 		if val.Kind() != reflect.Bool {
 			return typeMismatchErr()
 		}
+
 		val.SetBool(ttlv.ValueBoolean())
 	// nolint:dupl
 	case TypeEnumeration:
@@ -313,12 +325,14 @@ func (dec *Decoder) unmarshal(val reflect.Value, ttlv TTLV) error {
 			if val.OverflowInt(i) {
 				return dec.newUnmarshalerError(ttlv, val.Type(), ErrIntOverflow)
 			}
+
 			val.SetInt(i)
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32:
 			i := uint64(ttlv.ValueEnumeration())
 			if val.OverflowUint(i) {
 				return dec.newUnmarshalerError(ttlv, val.Type(), ErrIntOverflow)
 			}
+
 			val.SetUint(i)
 		default:
 			return typeMismatchErr()
@@ -331,12 +345,14 @@ func (dec *Decoder) unmarshal(val reflect.Value, ttlv TTLV) error {
 			if val.OverflowInt(i) {
 				return dec.newUnmarshalerError(ttlv, val.Type(), ErrIntOverflow)
 			}
+
 			val.SetInt(i)
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32:
 			i := uint64(ttlv.ValueInteger())
 			if val.OverflowUint(i) {
 				return dec.newUnmarshalerError(ttlv, val.Type(), ErrIntOverflow)
 			}
+
 			val.SetUint(i)
 		default:
 			return typeMismatchErr()
@@ -354,10 +370,12 @@ func (dec *Decoder) unmarshal(val reflect.Value, ttlv TTLV) error {
 		if val.Type() != bigIntType {
 			return typeMismatchErr()
 		}
+
 		val.Set(reflect.ValueOf(*ttlv.ValueBigInteger()))
 	default:
 		return dec.newUnmarshalerError(ttlv, val.Type(), ErrInvalidType)
 	}
+
 	return nil
 }
 
@@ -375,8 +393,10 @@ func (dec *Decoder) unmarshalStructure(ttlv TTLV, val reflect.Value) error {
 
 	// push currStruct (caller will pop)
 	dec.currStruct = val.Type()
+
 	for n := ttlv.ValueStructure(); n != nil; n = n.Next() {
 		fldIdx := -1
+
 		for i := range fields {
 			if fields[i].flags.any() {
 				// if this is the first any field found, keep track
@@ -400,6 +420,7 @@ func (dec *Decoder) unmarshalStructure(ttlv TTLV, val reflect.Value) error {
 			err := dec.unmarshal(val.FieldByIndex(fields[fldIdx].index), n)
 			// restore currField
 			dec.currField = currField
+
 			if err != nil {
 				return err
 			}
@@ -407,6 +428,7 @@ func (dec *Decoder) unmarshalStructure(ttlv TTLV, val reflect.Value) error {
 			return dec.newUnmarshalerError(ttlv, val.Type(), ErrUnexpectedValue)
 		}
 	}
+
 	return nil
 }
 
@@ -428,6 +450,7 @@ func (dec *Decoder) NextTTLV() (TTLV, error) {
 	buf := make([]byte, fullLen)
 
 	var totRead int
+
 	for {
 		n, err := dec.bufr.Read(buf[totRead:])
 		if err != nil {
@@ -437,9 +460,8 @@ func (dec *Decoder) NextTTLV() (TTLV, error) {
 		totRead += n
 		if totRead >= fullLen {
 			// we've read off a single full message
-			return TTLV(buf), nil
-		}
-		// keep reading
+			return buf, nil
+		} // else keep reading
 	}
 }
 
@@ -451,6 +473,7 @@ func (dec *Decoder) newUnmarshalerError(ttlv TTLV, valType reflect.Type, cause e
 		Type:   ttlv.Type(),
 		Val:    valType,
 	}
+
 	return merry.WrapSkipping(e, 1).WithCause(cause)
 }
 
@@ -470,5 +493,6 @@ func (e *UnmarshalerError) Error() string {
 	if e.Struct != nil {
 		msg += " in struct field " + e.Struct.Name() + "." + e.Field
 	}
+
 	return msg
 }

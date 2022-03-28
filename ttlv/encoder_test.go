@@ -1338,7 +1338,6 @@ func TestEncoder_EncodeValue(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		testName := tc.name
 		if testName == "" {
 			testName = fmt.Sprintf("%T", tc.v)
@@ -1366,7 +1365,6 @@ func TestEncoder_EncodeValue(t *testing.T) {
 
 			require.Equal(t, TTLV(buf2.Bytes()), TTLV(buf.Bytes()))
 		})
-
 	}
 }
 
@@ -1633,7 +1631,6 @@ func BenchmarkEncoder_EncodeByteString(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		enc.EncodeTextString(TagCertificateIssuer, "al;kjsaflksjdflakjsdfl;aksjdflaksjdflaksjdfl;ksjd")
 		require.NoError(b, enc.Flush())
-
 	}
 }
 
@@ -1642,6 +1639,5 @@ func BenchmarkEncoder_EncodeInt(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		enc.EncodeInteger(TagCertificateIssuer, 8)
 		require.NoError(b, enc.Flush())
-
 	}
 }

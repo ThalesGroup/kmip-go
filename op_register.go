@@ -38,6 +38,7 @@ type RegisterHandler struct {
 
 func (h *RegisterHandler) HandleItem(ctx context.Context, req *Request) (item *ResponseBatchItem, err error) {
 	var payload RegisterRequestPayload
+
 	err = req.DecodePayload(&payload)
 	if err != nil {
 		return nil, merry.Prepend(err, "decoding request")
@@ -45,6 +46,7 @@ func (h *RegisterHandler) HandleItem(ctx context.Context, req *Request) (item *R
 
 	if !h.SkipValidation {
 		var payloadPresent bool
+
 		switch payload.ObjectType {
 		default:
 			return nil, WithResultReason(merry.UserError("Object Type is not recognized"), kmip14.ResultReasonInvalidField)
@@ -65,6 +67,7 @@ func (h *RegisterHandler) HandleItem(ctx context.Context, req *Request) (item *R
 		case kmip14.ObjectTypeOpaqueObject:
 			payloadPresent = payload.OpaqueObject != nil
 		}
+
 		if !payloadPresent {
 			return nil, WithResultReason(merry.UserErrorf("Object Type %s does not match type of cryptographic object provided", payload.ObjectType.String()), kmip14.ResultReasonInvalidField)
 		}

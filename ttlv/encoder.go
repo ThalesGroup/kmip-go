@@ -91,13 +91,15 @@ var (
 // 17. structs marshal to Structure.  Each field of the struct will be marshaled into the
 //     values of the Structure according to the above rules.
 //
-// Any other golang type will return *MarshalerError with cause ErrUnsupportedTypeError
+// Any other golang type will return *MarshalerError with cause ErrUnsupportedTypeError.
 func Marshal(v interface{}) (TTLV, error) {
 	buf := bytes.NewBuffer(nil)
+
 	err := NewEncoder(buf).Encode(v)
 	if err != nil {
 		return nil, err
 	}
+
 	return buf.Bytes(), nil
 }
 
@@ -130,6 +132,7 @@ func (e *Encoder) EncodeValue(tag Tag, v interface{}) error {
 	if err != nil {
 		return err
 	}
+
 	return e.Flush()
 }
 
@@ -142,6 +145,7 @@ func (e *Encoder) EncodeStructure(tag Tag, f func(e *Encoder) error) error {
 	err := f(e)
 	e.encBuf.end(i)
 	e.encodeDepth--
+
 	return err
 }
 
@@ -193,8 +197,10 @@ func (e *Encoder) Flush() error {
 	if e.encodeDepth > 0 {
 		return nil
 	}
+
 	_, err := e.encBuf.WriteTo(e.w)
 	e.encBuf.Reset()
+
 	return err
 }
 
@@ -213,9 +219,11 @@ func (e *MarshalerError) Error() string {
 	if e.Type != nil {
 		msg += " of type " + e.Type.String()
 	}
+
 	if e.Struct != "" {
 		msg += " in struct field " + e.Struct + "." + e.Field
 	}
+
 	return msg
 }
 
@@ -226,6 +234,7 @@ func (e *Encoder) marshalingError(tag Tag, t reflect.Type, cause error) merry.Er
 		Field:  e.currField,
 		Tag:    tag,
 	}
+
 	return merry.WrapSkipping(err, 1).WithCause(cause)
 }
 
@@ -244,26 +253,31 @@ var (
 var invalidValue = reflect.Value{}
 
 // indirect dives into interfaces values, and one level deep into pointers
-// returns an invalid value if the resolved value is nil or invalid
+// returns an invalid value if the resolved value is nil or invalid.
 func indirect(v reflect.Value) reflect.Value {
 	if !v.IsValid() {
 		return v
 	}
+
 	if v.Kind() == reflect.Interface {
 		v = v.Elem()
 	}
+
 	if !v.IsValid() {
 		return v
 	}
+
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
 	}
+
 	switch v.Kind() {
 	case reflect.Func, reflect.Slice, reflect.Map, reflect.Chan, reflect.Ptr, reflect.Interface:
 		if v.IsNil() {
 			return invalidValue
 		}
 	}
+
 	return v
 }
 
@@ -292,6 +306,7 @@ func isEmptyValue(v reflect.Value) bool {
 		i := v.Interface().(big.Int)
 		return zeroBigInt.Cmp(&i) == 0
 	}
+
 	return false
 }
 
@@ -314,6 +329,7 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 	if err != nil {
 		return err
 	}
+
 	if tag == TagNone {
 		tag = tagForMarshal(v, typeInfo, fi)
 	}
@@ -329,14 +345,17 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 		if flags.omitEmpty() && isEmptyValue(v) {
 			return nil
 		}
+
 		return v.Interface().(Marshaler).MarshalTTLV(e, tag)
 	case v.CanAddr():
 		pv := v.Addr()
+
 		pvtyp := pv.Type()
 		if pvtyp.Implements(marshalerType) {
 			if flags.omitEmpty() && isEmptyValue(v) {
 				return nil
 			}
+
 			return pv.Interface().(Marshaler).MarshalTTLV(e, tag)
 		}
 	}
@@ -363,6 +382,7 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 			// special case, encode as a ByteString, handled below
 			break
 		}
+
 		fallthrough
 	case reflect.Array:
 		for i := 0; i < v.Len(); i++ {
@@ -376,11 +396,13 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 				*fi2 = *fi
 				fi2.flags &^= fOmitEmpty
 			}
+
 			err := e.encode(tag, v.Index(i), fi2)
 			if err != nil {
 				return err
 			}
 		}
+
 		return nil
 	}
 
@@ -400,22 +422,27 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 		switch typ.Kind() {
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32:
 			i := v.Int()
+
 			if flags.bitmask() || (enumMap != nil && enumMap.Bitmask()) {
 				e.encBuf.encodeInt(tag, int32(i))
 			} else {
 				e.encBuf.encodeEnum(tag, uint32(i))
 			}
+
 			return nil
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32:
 			i := v.Uint()
+
 			if flags.bitmask() || (enumMap != nil && enumMap.Bitmask()) {
 				e.encBuf.encodeInt(tag, int32(i))
 			} else {
 				e.encBuf.encodeEnum(tag, uint32(i))
 			}
+
 			return nil
 		case reflect.String:
 			s := v.String()
+
 			if flags.bitmask() || (enumMap != nil && enumMap.Bitmask()) {
 				i, err := ParseInt(s, enumMap)
 				if err == nil {
@@ -428,7 +455,6 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 					// if we couldn't parse the string as an enum value
 					return e.marshalingError(tag, typ, err)
 				}
-
 			} else {
 				i, err := ParseEnum(s, enumMap)
 				if err == nil {
@@ -441,7 +467,6 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 					// if we couldn't parse the string as an enum value
 					return e.marshalingError(tag, typ, err)
 				}
-
 			}
 		default:
 			if flags.enum() || flags.bitmask() {
@@ -458,10 +483,12 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 		} else {
 			e.encBuf.encodeDateTime(tag, v.Interface().(time.Time))
 		}
+
 		return nil
 	case bigIntType:
 		bi := v.Interface().(big.Int)
 		e.encBuf.encodeBigInt(tag, &bi)
+
 		return nil
 	case bigIntPtrType:
 		e.encBuf.encodeBigInt(tag, v.Interface().(*big.Int))
@@ -524,10 +551,12 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 					return err
 				}
 			}
+
 			return nil
 		})
 		// pop current struct
 		e.currStruct = currStruct
+
 		return err
 	case reflect.String:
 		e.encBuf.encodeTextString(tag, v.String())
@@ -541,20 +570,24 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 		if i > math.MaxInt32 {
 			return e.marshalingError(tag, typ, ErrIntOverflow)
 		}
+
 		e.encBuf.encodeInt(tag, int32(i))
+
 		return nil
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32:
 		u := v.Uint()
 		if u > math.MaxInt32 {
 			return e.marshalingError(tag, typ, ErrIntOverflow)
 		}
+
 		e.encBuf.encodeInt(tag, int32(u))
+
 		return nil
 	case reflect.Uint64:
 		u := v.Uint()
 		e.encBuf.encodeLongInt(tag, int64(u))
-		return nil
 
+		return nil
 	case reflect.Int64:
 		e.encBuf.encodeLongInt(tag, v.Int())
 		return nil
@@ -564,6 +597,7 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 		// all kinds should have been handled by now
 		panic(errors.New("should never get here"))
 	}
+
 	return nil
 }
 
@@ -586,10 +620,11 @@ func tagForMarshal(v reflect.Value, ti typeInfo, fi *fieldInfo) Tag {
 	if fi != nil {
 		return fi.tag
 	}
+
 	return ti.inferredTag
 }
 
-// encBuf encodes basic KMIP types into TTLV
+// encBuf encodes basic KMIP types into TTLV.
 type encBuf struct {
 	bytes.Buffer
 }
@@ -600,6 +635,7 @@ func (h *encBuf) begin(tag Tag, typ Type) int {
 	_ = h.WriteByte(byte(tag))
 	_ = h.WriteByte(byte(typ))
 	_, _ = h.Write(zeros[:4])
+
 	return h.Len()
 }
 
@@ -608,6 +644,7 @@ func (h *encBuf) end(i int) {
 	if m := n % 8; m > 0 {
 		_, _ = h.Write(zeros[:8-m])
 	}
+
 	binary.BigEndian.PutUint32(h.Bytes()[i-4:], uint32(n))
 }
 
@@ -655,6 +692,7 @@ func (h *encBuf) encodeBigInt(tag Tag, i *big.Int) {
 		if m := l % 8; m > 0 {
 			_, _ = h.Write(zeros[:8-m])
 		}
+
 		_, _ = h.Write(b)
 	case -1:
 		length := uint(i.BitLen()/8+1) * 8
@@ -666,13 +704,16 @@ func (h *encBuf) encodeBigInt(tag Tag, i *big.Int) {
 		if len(b) >= 2 && b[0] == 0xff && b[1]&0x80 != 0 {
 			b = b[1:]
 		}
+
 		l := len(b)
 		// pad front with ones to multiple of 8
 		if m := l % 8; m > 0 {
 			_, _ = h.Write(ones[:8-m])
 		}
+
 		_, _ = h.Write(b)
 	}
+
 	h.end(ii)
 }
 
@@ -727,6 +768,7 @@ func (h *encBuf) encodeByteString(tag Tag, b []byte) {
 	if b == nil {
 		return
 	}
+
 	i := h.begin(tag, TypeByteString)
 	_, _ = h.Write(b)
 	h.end(i)
@@ -736,6 +778,7 @@ func getTypeInfo(typ reflect.Type) (ti typeInfo, err error) {
 	ti.inferredTag, _ = DefaultRegistry.ParseTag(typ.Name())
 	ti.typ = typ
 	err = ti.getFieldsInfo()
+
 	return ti, err
 }
 
@@ -766,6 +809,7 @@ func getFieldInfo(typ reflect.Type, sf reflect.StructField) (fieldInfo, error) {
 			case "":
 			default:
 				var err error
+
 				fi.explicitTag, err = DefaultRegistry.ParseTag(value)
 				if err != nil {
 					return fi, err
@@ -796,6 +840,7 @@ func getFieldInfo(typ reflect.Type, sf reflect.StructField) (fieldInfo, error) {
 	// for this field is derived from either the field name,
 	// the field tags, or the field type.
 	var err error
+
 	fi.ti, err = getTypeInfo(sf.Type)
 	if err != nil {
 		return fi, err
@@ -816,9 +861,11 @@ func getFieldInfo(typ reflect.Type, sf reflect.StructField) (fieldInfo, error) {
 	if fi.tag == TagNone {
 		fi.tag = fi.explicitTag
 	}
+
 	if fi.tag == TagNone {
 		fi.tag, _ = DefaultRegistry.ParseTag(fi.name)
 	}
+
 	return fi, nil
 }
 
@@ -829,6 +876,7 @@ func (ti *typeInfo) getFieldsInfo() error {
 
 	for i := 0; i < ti.typ.NumField(); i++ {
 		fi, err := getFieldInfo(ti.typ, ti.typ.Field(i))
+
 		switch {
 		case err == errSkip:
 			// skip
@@ -843,16 +891,19 @@ func (ti *typeInfo) getFieldsInfo() error {
 
 	// verify that multiple fields don't have the same tag
 	names := map[Tag]string{}
+
 	for _, f := range ti.valueFields {
 		if f.flags.any() {
 			// ignore any fields
 			continue
 		}
+
 		tag := f.tag
 		if tag != TagNone {
 			if fname, ok := names[tag]; ok {
 				return merry.Here(ErrTagConflict).Appendf("field resolves to the same tag (%s) as other field (%s)", tag, fname)
 			}
+
 			names[tag] = f.name
 		}
 	}

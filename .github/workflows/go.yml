@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go: ['v1.16.x', 'v1.18.x']
+        go: ['v1.17.x', 'v1.18.x']
     steps:
     - uses: actions/setup-go@v3
       with:

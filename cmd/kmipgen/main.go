@@ -6,8 +6,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/ansel1/merry"
-	"github.com/gemalto/kmip-go/internal/kmiputil"
 	"go/format"
 	"log"
 	"os"
@@ -16,6 +14,9 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+
+	"github.com/ansel1/merry"
+	"github.com/gemalto/kmip-go/internal/kmiputil"
 )
 
 // Specifications is the struct which the specifications JSON is unmarshaled into.
@@ -54,7 +55,6 @@ type EnumDef struct {
 }
 
 func main() {
-
 	flag.Usage = func() {
 		_, _ = fmt.Fprintln(flag.CommandLine.Output(), "Usage of kmipgen:")
 		_, _ = fmt.Fprintln(flag.CommandLine.Output(), "")
@@ -285,7 +285,6 @@ func prepareInput(s *Specifications) (*inputs, error) {
 }
 
 func genCode(s *Specifications) (string, error) {
-
 	buf := bytes.NewBuffer(nil)
 
 	in, err := prepareInput(s)

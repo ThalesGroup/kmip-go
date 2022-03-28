@@ -6,7 +6,7 @@ import (
 )
 
 func RegisterTypes(r *Registry) {
-	var m = map[string]Type{
+	m := map[string]Type{
 		"BigInteger":       TypeBigInteger,
 		"Boolean":          TypeBoolean,
 		"ByteString":       TypeByteString,

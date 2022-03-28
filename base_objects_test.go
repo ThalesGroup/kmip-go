@@ -3,12 +3,13 @@ package kmip
 import (
 	"bufio"
 	"crypto/tls"
+	"testing"
+
 	"github.com/gemalto/kmip-go/kmip14"
 	"github.com/gemalto/kmip-go/ttlv"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 // clientConn returns a connection to the test kmip server.  Should be closed at end of test.

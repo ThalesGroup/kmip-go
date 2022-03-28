@@ -30,7 +30,7 @@ clean:
 	rm -rf build/*
 
 fmt:
-	go fmt ./...
+	gofumpt -w -l .
 
 # generates go code structures representing all the enums, mask, and tags defined
 # in the KMIP spec.  The source specifications are stored in kmip14/kmip_1_4.json
@@ -90,7 +90,8 @@ update:
 # install tools used by the build.  typically only needs to be run once
 # to initialize a workspace.
 tools: kmipgen
-	go get -u golang.org/x/tools/cmd/cover
+	go install mvdan.cc/gofumpt@latest
+	go install golang.org/x/tools/cmd/cover@latest
 	sh -c "$$(wget -O - -q https://install.goreleaser.com/github.com/golangci/golangci-lint.sh || echo exit 2)" -- -b $(shell go env GOPATH)/bin $(GOLANGCI_LINT_VERSION)
 
 pykmip-server: up

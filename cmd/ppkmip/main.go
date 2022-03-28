@@ -9,21 +9,23 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	_ "github.com/gemalto/kmip-go/kmip14"
-	_ "github.com/gemalto/kmip-go/kmip20"
-	"github.com/gemalto/kmip-go/ttlv"
 	"io"
 	"io/ioutil"
 	"os"
 	"strings"
+
+	_ "github.com/gemalto/kmip-go/kmip14"
+	_ "github.com/gemalto/kmip-go/kmip20"
+	"github.com/gemalto/kmip-go/ttlv"
 )
 
-const FormatJSON = "json"
-const FormatXML = "xml"
-const FormatHex = "hex"
+const (
+	FormatJSON = "json"
+	FormatXML  = "xml"
+	FormatHex  = "hex"
+)
 
 func main() {
-
 	flag.Usage = func() {
 		s := `ppkmip - kmip pretty printer
 

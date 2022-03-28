@@ -5,22 +5,25 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/ansel1/merry"
 	"io"
 	"math"
 	"math/big"
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/ansel1/merry"
 )
 
 const structFieldTag = "ttlv"
 
-var ErrIntOverflow = fmt.Errorf("value exceeds max int value %d", math.MaxInt32)
-var ErrUnsupportedEnumTypeError = errors.New("unsupported type for enums, must be string, or int types")
-var ErrUnsupportedTypeError = errors.New("marshaling/unmarshaling is not supported for this type")
-var ErrNoTag = errors.New("unable to determine tag for field")
-var ErrTagConflict = errors.New("tag conflict")
+var (
+	ErrIntOverflow              = fmt.Errorf("value exceeds max int value %d", math.MaxInt32)
+	ErrUnsupportedEnumTypeError = errors.New("unsupported type for enums, must be string, or int types")
+	ErrUnsupportedTypeError     = errors.New("marshaling/unmarshaling is not supported for this type")
+	ErrNoTag                    = errors.New("unable to determine tag for field")
+	ErrTagConflict              = errors.New("tag conflict")
+)
 
 // Marshal encodes a golang value into a KMIP value.
 //
@@ -226,15 +229,17 @@ func (e *Encoder) marshalingError(tag Tag, t reflect.Type, cause error) merry.Er
 	return merry.WrapSkipping(err, 1).WithCause(cause)
 }
 
-var byteType = reflect.TypeOf(byte(0))
-var marshalerType = reflect.TypeOf((*Marshaler)(nil)).Elem()
-var unmarshalerType = reflect.TypeOf((*Unmarshaler)(nil)).Elem()
-var timeType = reflect.TypeOf((*time.Time)(nil)).Elem()
-var bigIntPtrType = reflect.TypeOf((*big.Int)(nil))
-var bigIntType = bigIntPtrType.Elem()
-var durationType = reflect.TypeOf(time.Nanosecond)
-var ttlvType = reflect.TypeOf((*TTLV)(nil)).Elem()
-var tagType = reflect.TypeOf(Tag(0))
+var (
+	byteType        = reflect.TypeOf(byte(0))
+	marshalerType   = reflect.TypeOf((*Marshaler)(nil)).Elem()
+	unmarshalerType = reflect.TypeOf((*Unmarshaler)(nil)).Elem()
+	timeType        = reflect.TypeOf((*time.Time)(nil)).Elem()
+	bigIntPtrType   = reflect.TypeOf((*big.Int)(nil))
+	bigIntType      = bigIntPtrType.Elem()
+	durationType    = reflect.TypeOf(time.Nanosecond)
+	ttlvType        = reflect.TypeOf((*TTLV)(nil)).Elem()
+	tagType         = reflect.TypeOf(Tag(0))
+)
 
 var invalidValue = reflect.Value{}
 
@@ -291,7 +296,6 @@ func isEmptyValue(v reflect.Value) bool {
 }
 
 func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
-
 	// if pointer or interface
 	v = indirect(v)
 	if !v.IsValid() {
@@ -623,8 +627,10 @@ func (h *encBuf) writeIntVal(tag Tag, typ Type, val uint32) {
 	h.end(s)
 }
 
-var ones = [8]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
-var zeros = [8]byte{}
+var (
+	ones  = [8]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
+	zeros = [8]byte{}
+)
 
 func (h *encBuf) encodeBigInt(tag Tag, i *big.Int) {
 	if i == nil {
@@ -736,7 +742,6 @@ func getTypeInfo(typ reflect.Type) (ti typeInfo, err error) {
 var errSkip = errors.New("skip")
 
 func getFieldInfo(typ reflect.Type, sf reflect.StructField) (fieldInfo, error) {
-
 	var fi fieldInfo
 
 	// skip anonymous and unexported fields
@@ -818,7 +823,6 @@ func getFieldInfo(typ reflect.Type, sf reflect.StructField) (fieldInfo, error) {
 }
 
 func (ti *typeInfo) getFieldsInfo() error {
-
 	if ti.typ.Kind() != reflect.Struct {
 		return nil
 	}

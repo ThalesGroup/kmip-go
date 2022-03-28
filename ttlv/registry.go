@@ -1,9 +1,10 @@
 package ttlv
 
 import (
+	"sort"
+
 	"github.com/ansel1/merry"
 	"github.com/gemalto/kmip-go/internal/kmiputil"
-	"sort"
 )
 
 // DefaultRegistry holds the default mappings of types, tags, enums, and bitmasks
@@ -19,8 +20,10 @@ func init() {
 	RegisterTypes(&DefaultRegistry)
 }
 
-var ErrInvalidHexString = kmiputil.ErrInvalidHexString
-var ErrUnregisteredEnumName = merry.New("unregistered enum name")
+var (
+	ErrInvalidHexString     = kmiputil.ErrInvalidHexString
+	ErrUnregisteredEnumName = merry.New("unregistered enum name")
+)
 
 // NormalizeName tranforms KMIP names from the spec into the
 // normalized form of the name.  Typically, this means removing spaces,

@@ -2,10 +2,11 @@ package ttlv
 
 import (
 	"fmt"
-	"github.com/ansel1/merry"
-	"github.com/gemalto/kmip-go/internal/kmiputil"
 	"strconv"
 	"strings"
+
+	"github.com/ansel1/merry"
+	"github.com/gemalto/kmip-go/internal/kmiputil"
 )
 
 // FormatType formats a byte as a KMIP Type string,
@@ -110,7 +111,6 @@ func FormatInt(i int32, enumMap EnumMap) string {
 				sb.WriteString(name)
 				v ^= v1
 			}
-
 		}
 		if v == 0 {
 			break

@@ -3,6 +3,7 @@ package kmip
 import (
 	"errors"
 	"fmt"
+
 	"github.com/ansel1/merry"
 	"github.com/gemalto/kmip-go/kmip14"
 )

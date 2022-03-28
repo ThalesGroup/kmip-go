@@ -3,8 +3,9 @@ package kmiputil
 import (
 	"encoding/binary"
 	"encoding/hex"
-	"github.com/ansel1/merry"
 	"strings"
+
+	"github.com/ansel1/merry"
 )
 
 var ErrInvalidHexString = merry.New("invalid hex string")

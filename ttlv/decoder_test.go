@@ -4,16 +4,17 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/ansel1/merry"
-	. "github.com/gemalto/kmip-go/kmip14"
-	. "github.com/gemalto/kmip-go/ttlv"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"math"
 	"math/big"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/ansel1/merry"
+	. "github.com/gemalto/kmip-go/kmip14"
+	. "github.com/gemalto/kmip-go/ttlv"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestUnmarshal_known(t *testing.T) {
@@ -39,14 +40,12 @@ func TestUnmarshal_known(t *testing.T) {
 			default:
 				require.Equal(t, sample.v, reflect.ValueOf(v).Elem().Interface())
 			}
-
 		})
 
 	}
 }
 
 func TestUnmarshal(t *testing.T) {
-
 	type unmarshalTest struct {
 		name                   string
 		in, ptr, expected      interface{}
@@ -323,7 +322,6 @@ func TestUnmarshal(t *testing.T) {
 			test.name = fmt.Sprintf("%T into %T", test.in, test.ptr)
 		}
 		t.Run(test.name, func(t *testing.T) {
-
 			b, err := Marshal(Value{Tag: TagBatchCount, Value: test.in})
 			require.NoError(t, err)
 
@@ -381,7 +379,6 @@ func TestUnmarshal(t *testing.T) {
 		})
 
 	}
-
 }
 
 func TestUnmarshal_tagfield(t *testing.T) {
@@ -403,7 +400,6 @@ func TestUnmarshal_tagfield(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, M{TagComment, "red"}, m)
-
 }
 
 func TestUnmarshal_tagPrecedence(t *testing.T) {
@@ -582,7 +578,6 @@ func TestDecoder_DisallowUnknownFields(t *testing.T) {
 			err = dec.Decode(&a)
 			require.Error(t, err)
 			require.True(t, merry.Is(err, ErrUnexpectedValue))
-
 		})
 	}
 }

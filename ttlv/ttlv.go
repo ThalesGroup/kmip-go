@@ -7,13 +7,14 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"github.com/ansel1/merry"
-	"github.com/gemalto/kmip-go/internal/kmiputil"
 	"io"
 	"math/big"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/ansel1/merry"
+	"github.com/gemalto/kmip-go/internal/kmiputil"
 )
 
 //nolint:deadcode,varcheck
@@ -29,11 +30,13 @@ const (
 	lenHeader      = lenTag + 1 + lenLen // tag + type + len
 )
 
-var ErrValueTruncated = errors.New("value truncated")
-var ErrHeaderTruncated = errors.New("header truncated")
-var ErrInvalidLen = errors.New("invalid length")
-var ErrInvalidType = errors.New("invalid KMIP type")
-var ErrInvalidTag = errors.New("invalid tag")
+var (
+	ErrValueTruncated  = errors.New("value truncated")
+	ErrHeaderTruncated = errors.New("header truncated")
+	ErrInvalidLen      = errors.New("invalid length")
+	ErrInvalidType     = errors.New("invalid KMIP type")
+	ErrInvalidTag      = errors.New("invalid tag")
+)
 
 // TTLV is a byte slice that begins with a TTLV encoded block.  The methods of TTLV operate on the
 // TTLV value located at the beginning of the slice.  Any bytes in the slice after
@@ -288,7 +291,6 @@ func (t TTLV) ValidHeader() error {
 		return ErrInvalidType
 	}
 	return nil
-
 }
 
 func (t TTLV) Next() TTLV {
@@ -552,7 +554,6 @@ func unmarshalXMLTval(buf *encBuf, tval *xmltval, attrTag Tag) error {
 }
 
 func (t *TTLV) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-
 	var out xmltval
 	err := d.DecodeElement(&out, &start)
 	if err != nil {
@@ -568,8 +569,10 @@ func (t *TTLV) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	return nil
 }
 
-var maxJSONInt = int64(1) << 52
-var maxJSONBigInt = big.NewInt(maxJSONInt)
+var (
+	maxJSONInt    = int64(1) << 52
+	maxJSONBigInt = big.NewInt(maxJSONInt)
+)
 
 func (t *TTLV) UnmarshalJSON(b []byte) error {
 	return t.unmarshalJSON(b, TagNone)
@@ -960,7 +963,6 @@ func (t *TTLV) UnmarshalTTLV(_ *Decoder, ttlv TTLV) error {
 // try and print as much of the value as it can decode, and return
 // a parsing error.
 func Print(w io.Writer, prefix, indent string, t TTLV) error {
-
 	currIndent := prefix
 
 	tag := t.Tag()
@@ -1035,7 +1037,6 @@ func Print(w io.Writer, prefix, indent string, t TTLV) error {
 // the segments of the TTLV.  Like Print, this is safe to call even on invalid TTLV
 // values.  An error will only be returned if there is a problem with the writer.
 func PrintPrettyHex(w io.Writer, prefix, indent string, t TTLV) error {
-
 	currIndent := prefix
 	b := []byte(t)
 
@@ -1077,7 +1078,6 @@ func PrintPrettyHex(w io.Writer, prefix, indent string, t TTLV) error {
 		s = s.Next()
 	}
 	return nil
-
 }
 
 var one = big.NewInt(1)

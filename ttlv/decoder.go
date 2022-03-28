@@ -4,9 +4,10 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
-	"github.com/ansel1/merry"
 	"io"
 	"reflect"
+
+	"github.com/ansel1/merry"
 )
 
 var ErrUnexpectedValue = errors.New("no field was found to unmarshal value into")
@@ -358,11 +359,9 @@ func (dec *Decoder) unmarshal(val reflect.Value, ttlv TTLV) error {
 		return dec.newUnmarshalerError(ttlv, val.Type(), ErrInvalidType)
 	}
 	return nil
-
 }
 
 func (dec *Decoder) unmarshalStructure(ttlv TTLV, val reflect.Value) error {
-
 	ti, err := getTypeInfo(val.Type())
 	if err != nil {
 		return dec.newUnmarshalerError(ttlv, val.Type(), err)

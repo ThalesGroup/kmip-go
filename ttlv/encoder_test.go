@@ -21,8 +21,8 @@ import (
 
 func parseBigInt(s string) *big.Int {
 	i := &big.Int{}
-	_, ok := i.SetString(s, 10)
-	if !ok {
+
+	if _, ok := i.SetString(s, 10); !ok {
 		panic(fmt.Errorf("can't parse as big int: %v", s))
 	}
 	return i

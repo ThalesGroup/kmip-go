@@ -347,8 +347,7 @@ func (t TTLV) MarshalXML(e *xml.Encoder, _ xml.StartElement) error {
 		Inner    []byte `xml:",innerxml"`
 	}{}
 
-	tagS := t.Tag().String()
-	if strings.HasPrefix(tagS, "0x") {
+	if tagS := t.Tag().String(); strings.HasPrefix(tagS, "0x") {
 		out.XMLName.Local = "TTLV"
 		out.Tag = tagS
 	} else {
@@ -1038,8 +1037,7 @@ func (t *TTLV) UnmarshalTTLV(_ *Decoder, ttlv TTLV) error {
 		return nil
 	}
 
-	l := len(ttlv)
-	if len(*t) < l {
+	if l := len(ttlv); len(*t) < l {
 		*t = make([]byte, l)
 	} else {
 		*t = (*t)[:l]

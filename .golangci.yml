@@ -100,7 +100,7 @@ linters:
     - forbidigo
     - forcetypeassert
 ##    - funlen              # checks function length.  don't care
-    - gci
+#    - gci                  # not sure why this is complaining
 ##    - gochecknoglobals    # too common
     - gochecknoinits
 #    - gocognit          # too many findings, will take time to evaluate
@@ -122,7 +122,7 @@ linters:
     - grouper
     - ifshort
     - importas
-    - ireturn
+#    - ireturn              # there are valid use cases for this pattern.  too strict.
 ##    - lll                 # checks line length.  not enforced
 #    - maintidx             # look at this later
     - makezero
@@ -174,12 +174,6 @@ issues:
   exclude-rules:
     # Explicitly exclude the typecheck plugin.  There is some bug in golangci which is
     # enabling this checker, even though it isn't listed above.
-    - path: .
-      linters:
-        - ireturn
-        - thelper
-        - ifshort
-        - forcetypeassert
     # Exclude some linters from running on tests files.
     - path: _test\.go
       linters:
@@ -193,6 +187,7 @@ issues:
         - wsl
         - nlreturn
         - errchkjson
+        - forcetypeassert
     - path: cmd
       linters:
         # init(), globals, and prints are pretty common in main packages

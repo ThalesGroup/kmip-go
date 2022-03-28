@@ -219,13 +219,13 @@ func (dec *Decoder) unmarshal(val reflect.Value, ttlv TTLV) error {
 	}
 
 	if val.Type().Implements(unmarshalerType) {
-		return val.Interface().(Unmarshaler).UnmarshalTTLV(dec, ttlv)
+		return val.Interface().(Unmarshaler).UnmarshalTTLV(dec, ttlv) //nolint:forcetypeassert
 	}
 
 	if val.CanAddr() {
 		valAddr := val.Addr()
 		if valAddr.CanInterface() && valAddr.Type().Implements(unmarshalerType) {
-			return valAddr.Interface().(Unmarshaler).UnmarshalTTLV(dec, ttlv)
+			return valAddr.Interface().(Unmarshaler).UnmarshalTTLV(dec, ttlv) //nolint:forcetypeassert
 		}
 	}
 

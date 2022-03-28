@@ -303,9 +303,9 @@ func isEmptyValue(v reflect.Value) bool {
 
 	switch v.Type() {
 	case timeType:
-		return v.Interface().(time.Time).IsZero()
+		return v.Interface().(time.Time).IsZero() //nolint:forcetypeassert
 	case bigIntType:
-		i := v.Interface().(big.Int)
+		i := v.Interface().(big.Int) //nolint:forcetypeassert
 		return zeroBigInt.Cmp(&i) == 0
 	}
 
@@ -348,7 +348,7 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 			return nil
 		}
 
-		return v.Interface().(Marshaler).MarshalTTLV(e, tag)
+		return v.Interface().(Marshaler).MarshalTTLV(e, tag) //nolint:forcetypeassert
 	case v.CanAddr():
 		pv := v.Addr()
 
@@ -358,7 +358,7 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 				return nil
 			}
 
-			return pv.Interface().(Marshaler).MarshalTTLV(e, tag)
+			return pv.Interface().(Marshaler).MarshalTTLV(e, tag) //nolint:forcetypeassert
 		}
 	}
 
@@ -483,19 +483,19 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 	switch typ {
 	case timeType:
 		if flags.dateTimeExt() {
-			e.encBuf.encodeDateTimeExtended(tag, v.Interface().(time.Time))
+			e.encBuf.encodeDateTimeExtended(tag, v.Interface().(time.Time)) //nolint:forcetypeassert
 		} else {
-			e.encBuf.encodeDateTime(tag, v.Interface().(time.Time))
+			e.encBuf.encodeDateTime(tag, v.Interface().(time.Time)) //nolint:forcetypeassert
 		}
 
 		return nil
 	case bigIntType:
-		bi := v.Interface().(big.Int)
+		bi := v.Interface().(big.Int) //nolint:forcetypeassert
 		e.encBuf.encodeBigInt(tag, &bi)
 
 		return nil
 	case bigIntPtrType:
-		e.encBuf.encodeBigInt(tag, v.Interface().(*big.Int))
+		e.encBuf.encodeBigInt(tag, v.Interface().(*big.Int)) //nolint:forcetypeassert
 		return nil
 	case durationType:
 		e.encBuf.encodeInterval(tag, time.Duration(v.Int()))
@@ -613,7 +613,7 @@ func tagForMarshal(v reflect.Value, ti typeInfo, fi *fieldInfo) Tag {
 
 	// the value of the TTLVTag field of type Tag
 	if v.IsValid() && ti.tagField != nil && ti.tagField.ti.typ == tagType {
-		tag := v.FieldByIndex(ti.tagField.index).Interface().(Tag)
+		tag := v.FieldByIndex(ti.tagField.index).Interface().(Tag) //nolint:forcetypeassert
 		if tag != TagNone {
 			return tag
 		}

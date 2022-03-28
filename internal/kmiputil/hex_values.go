@@ -44,7 +44,7 @@ func ParseHexValue(s string, max int) ([]byte, error) {
 	}
 	b, err := hex.DecodeString(s[2:])
 	if err != nil {
-		return nil, merry.WithCause(ErrInvalidHexString, err)
+		return nil, merry.WithCause(ErrInvalidHexString, err).Append(err.Error())
 	}
 
 	if max > 0 {

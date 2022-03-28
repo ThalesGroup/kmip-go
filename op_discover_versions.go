@@ -20,6 +20,7 @@ type DiscoverVersionsHandler struct {
 
 func (h *DiscoverVersionsHandler) HandleItem(ctx context.Context, req *Request) (item *ResponseBatchItem, err error) {
 	var payload DiscoverVersionsRequestPayload
+
 	err = req.DecodePayload(&payload)
 	if err != nil {
 		return nil, err
@@ -39,6 +40,7 @@ func (h *DiscoverVersionsHandler) HandleItem(ctx context.Context, req *Request) 
 			}
 		}
 	}
+
 	return &ResponseBatchItem{
 		ResponsePayload: respPayload,
 	}, nil

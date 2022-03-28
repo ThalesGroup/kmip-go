@@ -6,8 +6,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/ansel1/merry"
-	"github.com/gemalto/kmip-go/internal/kmiputil"
 	"go/format"
 	"log"
 	"os"
@@ -16,6 +14,9 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+
+	"github.com/ansel1/merry"
+	"github.com/gemalto/kmip-go/internal/kmiputil"
 )
 
 // Specifications is the struct which the specifications JSON is unmarshaled into.
@@ -54,7 +55,6 @@ type EnumDef struct {
 }
 
 func main() {
-
 	flag.Usage = func() {
 		_, _ = fmt.Fprintln(flag.CommandLine.Output(), "Usage of kmipgen:")
 		_, _ = fmt.Fprintln(flag.CommandLine.Output(), "")
@@ -133,6 +133,7 @@ func run(inFilename, outFilename, packageName string) error {
 			if err != nil {
 				fmt.Println("error syncing file: ", err.Error())
 			}
+
 			err = f.Close()
 			if err != nil {
 				fmt.Println("error closing file: ", err.Error())
@@ -185,6 +186,7 @@ func parseUint32(v interface{}) (uint32, error) {
 		if err != nil {
 			return 0, err
 		}
+
 		if b != nil {
 			return kmiputil.DecodeUint32(b), nil
 		}
@@ -216,7 +218,6 @@ func prepareInput(s *Specifications) (*inputs, error) {
 	// prepare tag inputs
 	// normalize all the value names
 	for key, value := range s.Tags {
-
 		i, err := parseUint32(value)
 		if err != nil {
 			return nil, merry.Prependf(err, "invalid tag value (%v)", value)
@@ -260,6 +261,7 @@ func prepareInput(s *Specifications) (*inputs, error) {
 		for _, t := range v.Tags {
 			ev.Tags = append(ev.Tags, kmiputil.NormalizeName(t))
 		}
+
 		return ev, nil
 	}
 
@@ -269,6 +271,7 @@ func prepareInput(s *Specifications) (*inputs, error) {
 		if err != nil {
 			return nil, merry.Prependf(err, "error parsing enum %v", v.Name)
 		}
+
 		in.Enums = append(in.Enums, ev)
 	}
 
@@ -277,6 +280,7 @@ func prepareInput(s *Specifications) (*inputs, error) {
 		if err != nil {
 			return nil, merry.Prependf(err, "error parsing mask %v", v.Name)
 		}
+
 		ev.BitMask = true
 		in.Masks = append(in.Masks, ev)
 	}
@@ -285,7 +289,6 @@ func prepareInput(s *Specifications) (*inputs, error) {
 }
 
 func genCode(s *Specifications) (string, error) {
-
 	buf := bytes.NewBuffer(nil)
 
 	in, err := prepareInput(s)
@@ -316,6 +319,7 @@ func genCode(s *Specifications) (string, error) {
 		// The user can compile the output to see the error.
 		log.Printf("warning: internal error: invalid Go generated: %s", err)
 		log.Printf("warning: compile the package to analyze the error")
+
 		return buf.String(), nil
 	}
 

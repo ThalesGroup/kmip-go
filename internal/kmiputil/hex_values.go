@@ -3,8 +3,9 @@ package kmiputil
 import (
 	"encoding/binary"
 	"encoding/hex"
-	"github.com/ansel1/merry"
 	"strings"
+
+	"github.com/ansel1/merry"
 )
 
 var ErrInvalidHexString = merry.New("invalid hex string")
@@ -25,6 +26,7 @@ func pad(b []byte, l int) []byte {
 		copy(b2[l-len(b):], b)
 		b = b2
 	}
+
 	return b
 }
 
@@ -42,9 +44,10 @@ func ParseHexValue(s string, max int) ([]byte, error) {
 	if !strings.HasPrefix(s, "0x") {
 		return nil, nil
 	}
+
 	b, err := hex.DecodeString(s[2:])
 	if err != nil {
-		return nil, merry.WithCause(ErrInvalidHexString, err)
+		return nil, merry.WithCause(ErrInvalidHexString, err).Append(err.Error())
 	}
 
 	if max > 0 {

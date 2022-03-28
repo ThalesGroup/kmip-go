@@ -1,9 +1,10 @@
 package ttlv
 
 import (
+	"sort"
+
 	"github.com/ansel1/merry"
 	"github.com/gemalto/kmip-go/internal/kmiputil"
-	"sort"
 )
 
 // DefaultRegistry holds the default mappings of types, tags, enums, and bitmasks
@@ -19,8 +20,10 @@ func init() {
 	RegisterTypes(&DefaultRegistry)
 }
 
-var ErrInvalidHexString = kmiputil.ErrInvalidHexString
-var ErrUnregisteredEnumName = merry.New("unregistered enum name")
+var (
+	ErrInvalidHexString     = kmiputil.ErrInvalidHexString
+	ErrUnregisteredEnumName = merry.New("unregistered enum name")
+)
 
 // NormalizeName tranforms KMIP names from the spec into the
 // normalized form of the name.  Typically, this means removing spaces,
@@ -72,12 +75,14 @@ func NewBitmask() Enum {
 // in the KMIP spec.
 func (e *Enum) RegisterValue(v uint32, name string) {
 	nn := NormalizeName(name)
+
 	if e.valuesToName == nil {
 		e.valuesToName = map[uint32]string{}
 		e.nameToValue = map[string]uint32{}
 		e.valuesToCanonicalName = map[uint32]string{}
 		e.canonicalNamesToValue = map[string]uint32{}
 	}
+
 	e.valuesToName[v] = nn
 	e.nameToValue[nn] = v
 	e.valuesToCanonicalName[v] = name
@@ -88,7 +93,9 @@ func (e *Enum) Name(v uint32) (string, bool) {
 	if e == nil {
 		return "", false
 	}
+
 	name, ok := e.valuesToName[v]
+
 	return name, ok
 }
 
@@ -96,7 +103,9 @@ func (e *Enum) CanonicalName(v uint32) (string, bool) {
 	if e == nil {
 		return "", false
 	}
+
 	name, ok := e.valuesToCanonicalName[v]
+
 	return name, ok
 }
 
@@ -104,10 +113,12 @@ func (e *Enum) Value(name string) (uint32, bool) {
 	if e == nil {
 		return 0, false
 	}
+
 	v, ok := e.nameToValue[name]
 	if !ok {
 		v, ok = e.canonicalNamesToValue[name]
 	}
+
 	return v, ok
 }
 
@@ -118,6 +129,7 @@ func (e *Enum) Values() []uint32 {
 	}
 	// Always list them in order of value so output is stable.
 	sort.Sort(uint32Slice(values))
+
 	return values
 }
 
@@ -125,6 +137,7 @@ func (e *Enum) Bitmask() bool {
 	if e == nil {
 		return false
 	}
+
 	return e.bitMask
 }
 
@@ -149,6 +162,7 @@ func (r *Registry) RegisterEnum(t Tag, def EnumMap) {
 	if r.enums == nil {
 		r.enums = map[Tag]EnumMap{}
 	}
+
 	r.enums[t] = def
 }
 
@@ -158,6 +172,7 @@ func (r *Registry) EnumForTag(t Tag) EnumMap {
 	if r.enums == nil {
 		return nil
 	}
+
 	return r.enums[t]
 }
 
@@ -165,6 +180,7 @@ func (r *Registry) IsBitmask(t Tag) bool {
 	if e := r.EnumForTag(t); e != nil {
 		return e.Bitmask()
 	}
+
 	return false
 }
 
@@ -172,6 +188,7 @@ func (r *Registry) IsEnum(t Tag) bool {
 	if e := r.EnumForTag(t); e != nil {
 		return !e.Bitmask()
 	}
+
 	return false
 }
 
@@ -211,8 +228,10 @@ func (r *Registry) ParseInt(t Tag, s string) (int32, error) {
 	return ParseInt(s, r.EnumForTag(t))
 }
 
-// returns TagNone if not found.
-// returns error if s is a malformed hex string, or a hex string of incorrect length
+// ParseTag parses a string into Tag according the rules
+// in the KMIP Profiles regarding encoding tag values.
+// Returns TagNone if not found.
+// Returns error if s is a malformed hex string, or a hex string of incorrect length
 func (r *Registry) ParseTag(s string) (Tag, error) {
 	return ParseTag(s, &r.tags)
 }

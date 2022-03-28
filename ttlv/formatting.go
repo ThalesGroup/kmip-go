@@ -2,10 +2,11 @@ package ttlv
 
 import (
 	"fmt"
-	"github.com/ansel1/merry"
-	"github.com/gemalto/kmip-go/internal/kmiputil"
 	"strconv"
 	"strings"
+
+	"github.com/ansel1/merry"
+	"github.com/gemalto/kmip-go/internal/kmiputil"
 )
 
 // FormatType formats a byte as a KMIP Type string,
@@ -24,6 +25,7 @@ func FormatType(b byte, enumMap EnumMap) string {
 			return s
 		}
 	}
+
 	return fmt.Sprintf("%#02x", b)
 }
 
@@ -40,6 +42,7 @@ func FormatTag(v uint32, enumMap EnumMap) string {
 			return s
 		}
 	}
+
 	return fmt.Sprintf("%#06x", v)
 }
 
@@ -58,6 +61,7 @@ func FormatTagCanonical(v uint32, enumMap EnumMap) string {
 			return s
 		}
 	}
+
 	return fmt.Sprintf("%#06x", v)
 }
 
@@ -74,6 +78,7 @@ func FormatEnum(v uint32, enumMap EnumMap) string {
 			return s
 		}
 	}
+
 	return fmt.Sprintf("%#08x", v)
 }
 
@@ -89,10 +94,12 @@ func FormatInt(i int32, enumMap EnumMap) string {
 	if enumMap == nil {
 		return fmt.Sprintf("%#08x", i)
 	}
+
 	values := enumMap.Values()
 	if len(values) == 0 {
 		return fmt.Sprintf("%#08x", i)
 	}
+
 	v := uint32(i)
 
 	// bitmask
@@ -101,27 +108,33 @@ func FormatInt(i int32, enumMap EnumMap) string {
 	// the remaining value as hex.
 
 	var sb strings.Builder
+
 	for _, v1 := range values {
 		if v1&v == v1 {
 			if name, ok := enumMap.Name(v1); ok {
 				if sb.Len() > 0 {
 					sb.WriteString("|")
 				}
+
 				sb.WriteString(name)
+
 				v ^= v1
 			}
-
 		}
+
 		if v == 0 {
 			break
 		}
 	}
+
 	if v != 0 {
 		if sb.Len() > 0 {
 			sb.WriteString("|")
 		}
+
 		_, _ = fmt.Fprintf(&sb, "%#08x", v)
 	}
+
 	return sb.String()
 }
 
@@ -146,10 +159,12 @@ func ParseEnum(s string, enumMap EnumMap) (uint32, error) {
 		// it was a raw number
 		return uint32(u), nil
 	}
+
 	v, err := parseHexOrName(s, 4, enumMap)
 	if err != nil {
 		return 0, merry.Here(err)
 	}
+
 	return v, nil
 }
 
@@ -170,11 +185,13 @@ func ParseInt(s string, enumMap EnumMap) (int32, error) {
 		// it was a raw number
 		return int32(i), nil
 	}
+
 	if !strings.ContainsAny(s, "| ") {
 		v, err := parseHexOrName(s, 4, enumMap)
 		if err != nil {
 			return 0, merry.Here(err)
 		}
+
 		return int32(v), nil
 	}
 
@@ -182,16 +199,20 @@ func ParseInt(s string, enumMap EnumMap) (int32, error) {
 	s = strings.ReplaceAll(s, "|", " ")
 	parts := strings.Split(s, " ")
 	var v uint32
+
 	for _, part := range parts {
 		if len(part) == 0 {
 			continue
 		}
+
 		i, err := parseHexOrName(part, 4, enumMap)
 		if err != nil {
 			return 0, merry.Here(err)
 		}
+
 		v |= i
 	}
+
 	return int32(v), nil
 }
 
@@ -200,14 +221,17 @@ func parseHexOrName(s string, max int, enumMap EnumMap) (uint32, error) {
 	if err != nil {
 		return 0, err
 	}
+
 	if b != nil {
 		return kmiputil.DecodeUint32(b), nil
 	}
+
 	if enumMap != nil {
 		if v, ok := enumMap.Value(s); ok {
 			return v, nil
 		}
 	}
+
 	return 0, merry.Append(ErrUnregisteredEnumName, s)
 }
 
@@ -226,6 +250,7 @@ func ParseTag(s string, enumMap EnumMap) (Tag, error) {
 	if err != nil {
 		return 0, merry.Here(err)
 	}
+
 	return Tag(v), nil
 }
 
@@ -246,14 +271,17 @@ func ParseType(s string, enumMap EnumMap) (Type, error) {
 	if err != nil {
 		return 0, merry.Here(err)
 	}
+
 	if b != nil {
 		return Type(b[0]), nil
 	}
+
 	if enumMap != nil {
 		if v, ok := enumMap.Value(s); ok {
 			return Type(v), nil
 		}
 	}
+
 	return 0, merry.Here(ErrUnregisteredEnumName).Append(s)
 }
 

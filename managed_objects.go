@@ -1,8 +1,9 @@
 package kmip
 
 import (
-	"github.com/gemalto/kmip-go/kmip14"
 	"math/big"
+
+	"github.com/gemalto/kmip-go/kmip14"
 )
 
 // 2.2

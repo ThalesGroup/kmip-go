@@ -3,12 +3,19 @@ package kmiputil
 import (
 	"regexp"
 	"strings"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
-var nonWordAtWordBoundary = regexp.MustCompile(`(\W)([a-zA-Z][a-z])`)
-var startingDigits = regexp.MustCompile(`^([\d]+)(.*)`)
+var (
+	nonWordAtWordBoundary = regexp.MustCompile(`(\W)([a-zA-Z][a-z])`)
+	startingDigits        = regexp.MustCompile(`^([\d]+)(.*)`)
+)
 
-// implementation of 5.4.1.1 and 5.5.1.1
+// NormalizeName converts a string into the CamelCase format required for the XML and JSON encoding
+// of KMIP values.  It should be used for tag names, type names, and enumeration value names.
+// Implementation of 5.4.1.1 and 5.5.1.1 from the KMIP Profiles specification.
 func NormalizeName(s string) string {
 	// 1. Replace round brackets ‘(‘, ‘)’ with spaces
 	s = strings.Map(func(r rune) rune {
@@ -16,6 +23,7 @@ func NormalizeName(s string) string {
 		case '(', ')':
 			return ' '
 		}
+
 		return r
 	}, s)
 
@@ -33,23 +41,22 @@ func NormalizeName(s string) string {
 		default:
 			return '_'
 		}
+
 		return r
 	}, s)
 
 	words := strings.Split(s, " ")
 
 	for i, w := range words {
-
 		if i == 0 {
 			// 4. If the first word begins with a digit, move all digits at start of first word to end of first word
 			w = startingDigits.ReplaceAllString(w, `$2$1`)
 		}
 
 		// 5. Capitalize the first letter of each word
-		words[i] = strings.Title(w)
+		words[i] = cases.Title(language.AmericanEnglish, cases.NoLower).String(w)
 	}
 
 	// 6. Concatenate all words with spaces removed
 	return strings.Join(words, "")
-
 }

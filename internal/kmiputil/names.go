@@ -3,6 +3,9 @@ package kmiputil
 import (
 	"regexp"
 	"strings"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 var (
@@ -51,7 +54,7 @@ func NormalizeName(s string) string {
 		}
 
 		// 5. Capitalize the first letter of each word
-		words[i] = strings.Title(w)
+		words[i] = cases.Title(language.AmericanEnglish, cases.NoLower).String(w)
 	}
 
 	// 6. Concatenate all words with spaces removed

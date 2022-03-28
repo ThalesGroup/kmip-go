@@ -228,8 +228,10 @@ func (r *Registry) ParseInt(t Tag, s string) (int32, error) {
 	return ParseInt(s, r.EnumForTag(t))
 }
 
-// returns TagNone if not found.
-// returns error if s is a malformed hex string, or a hex string of incorrect length
+// ParseTag parses a string into Tag according the rules
+// in the KMIP Profiles regarding encoding tag values.
+// Returns TagNone if not found.
+// Returns error if s is a malformed hex string, or a hex string of incorrect length
 func (r *Registry) ParseTag(s string) (Tag, error) {
 	return ParseTag(s, &r.tags)
 }

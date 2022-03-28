@@ -6,7 +6,7 @@ import (
 )
 
 func RegisterTypes(r *Registry) {
-	var m = map[string]Type{
+	m := map[string]Type{
 		"BigInteger":       TypeBigInteger,
 		"Boolean":          TypeBoolean,
 		"ByteString":       TypeByteString,
@@ -78,6 +78,7 @@ func (t *DateTimeExtended) UnmarshalTTLV(d *Decoder, ttlv TTLV) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -111,6 +112,7 @@ type Value struct {
 // UnmarshalTTLV implements Unmarshaler
 func (t *Value) UnmarshalTTLV(d *Decoder, ttlv TTLV) error {
 	t.Tag = ttlv.Tag()
+
 	switch ttlv.Type() {
 	case TypeStructure:
 		var v Values
@@ -121,6 +123,7 @@ func (t *Value) UnmarshalTTLV(d *Decoder, ttlv TTLV) error {
 			if err != nil {
 				return err
 			}
+
 			ttlv = ttlv.Next()
 		}
 
@@ -128,6 +131,7 @@ func (t *Value) UnmarshalTTLV(d *Decoder, ttlv TTLV) error {
 	default:
 		t.Value = ttlv.Value()
 	}
+
 	return nil
 }
 
@@ -145,6 +149,7 @@ func (t Value) MarshalTTLV(e *Encoder, tag Tag) error {
 					return err
 				}
 			}
+
 			return nil
 		})
 	}

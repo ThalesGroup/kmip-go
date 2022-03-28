@@ -2,18 +2,17 @@ package kmip
 
 import (
 	"context"
-	//"github.com/gemalto/kmip-go/kmip14"
 )
 
 // DestroyRequestPayload ////////////////////////////////////////
 //
 type DestroyRequestPayload struct {
-	UniqueIdentifier  string
+	UniqueIdentifier string
 }
 
-// DestroyResponsePayload 
+// DestroyResponsePayload
 type DestroyResponsePayload struct {
-	UniqueIdentifier  string
+	UniqueIdentifier string
 }
 
 type DestroyHandler struct {
@@ -22,6 +21,7 @@ type DestroyHandler struct {
 
 func (h *DestroyHandler) HandleItem(ctx context.Context, req *Request) (*ResponseBatchItem, error) {
 	var payload DestroyRequestPayload
+
 	err := req.DecodePayload(&payload)
 	if err != nil {
 		return nil, err
@@ -32,7 +32,7 @@ func (h *DestroyHandler) HandleItem(ctx context.Context, req *Request) (*Respons
 		return nil, err
 	}
 
-	//req.Key = respPayload.Key
+	// req.Key = respPayload.Key
 
 	return &ResponseBatchItem{
 		ResponsePayload: respPayload,

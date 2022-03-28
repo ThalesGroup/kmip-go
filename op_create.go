@@ -2,6 +2,9 @@ package kmip
 
 import (
 	"context"
+
+	"github.com/ansel1/merry"
+
 	"github.com/gemalto/kmip-go/kmip14"
 )
 
@@ -45,6 +48,7 @@ type CreateHandler struct {
 
 func (h *CreateHandler) HandleItem(ctx context.Context, req *Request) (*ResponseBatchItem, error) {
 	var payload CreateRequestPayload
+
 	err := req.DecodePayload(&payload)
 	if err != nil {
 		return nil, err
@@ -55,7 +59,14 @@ func (h *CreateHandler) HandleItem(ctx context.Context, req *Request) (*Response
 		return nil, err
 	}
 
-	req.IDPlaceholder = respPayload.TemplateAttribute.GetTag(kmip14.TagUniqueIdentifier).AttributeValue.(string)
+	var ok bool
+
+	idAttr := respPayload.TemplateAttribute.GetTag(kmip14.TagUniqueIdentifier)
+
+	req.IDPlaceholder, ok = idAttr.AttributeValue.(string)
+	if !ok {
+		return nil, merry.Errorf("invalid response returned by CreateHandler: unique identifier tag in attributes should have been a string, was %t", idAttr.AttributeValue)
+	}
 
 	return &ResponseBatchItem{
 		ResponsePayload: respPayload,

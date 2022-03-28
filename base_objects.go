@@ -1,9 +1,10 @@
 package kmip
 
 import (
+	"math/big"
+
 	"github.com/gemalto/kmip-go/kmip14"
 	"github.com/gemalto/kmip-go/ttlv"
-	"math/big"
 )
 
 // 2.1 Base Objects
@@ -192,7 +193,7 @@ type KeyValue struct {
 // · TR-31.
 // · Extensions.
 //
-//The following encoding options are currently defined:
+// The following encoding options are currently defined:
 //
 // · No Encoding (i.e., the wrapped un-encoded value of the Byte String Key Material field in the Key Value structure).
 // · TTLV Encoding (i.e., the wrapped TTLV-encoded Key Value structure).
@@ -396,9 +397,9 @@ type TransparentECPublicKey struct {
 //
 // The Template-Attribute, Common Template-Attribute, Private Key Template-Attribute, and Public Key
 // Template-Attribute structures are defined identically as follows:
-//type TemplateAttribute struct {
+// type TemplateAttribute struct {
 //	Attribute []Attribute
-//}
+// }
 
 type TemplateAttribute struct {
 	Name      []Name
@@ -411,11 +412,13 @@ func (t *TemplateAttribute) Get(s string) *Attribute {
 	if t == nil {
 		return nil
 	}
+
 	for i := range t.Attribute {
 		if t.Attribute[i].AttributeName == s {
 			return &t.Attribute[i]
 		}
 	}
+
 	return nil
 }
 
@@ -431,6 +434,7 @@ func (t *TemplateAttribute) GetIdx(s string, idx int) *Attribute {
 			return &t.Attribute[i]
 		}
 	}
+
 	return nil
 }
 
@@ -450,7 +454,9 @@ func (t *TemplateAttribute) GetAll(s string) []Attribute {
 	if t == nil {
 		return nil
 	}
+
 	var ret []Attribute
+
 	for i := range t.Attribute {
 		if t.Attribute[i].AttributeName == s {
 			ret = append(ret, t.Attribute[i])

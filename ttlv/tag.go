@@ -1,8 +1,10 @@
 package ttlv
 
-const TagNone = Tag(0)
-const tagAttributeName Tag = 0x42000a
-const tagAttributeValue Tag = 0x42000b
+const (
+	TagNone               = Tag(0)
+	tagAttributeName  Tag = 0x42000a
+	tagAttributeValue Tag = 0x42000b
+)
 
 // Tag
 // 9.1.3.1

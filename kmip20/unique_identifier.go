@@ -43,5 +43,6 @@ func (u UniqueIdentifierValue) MarshalTTLV(e *ttlv.Encoder, tag ttlv.Tag) error 
 	case u.Index != 0:
 		e.EncodeInteger(tag, u.Index)
 	}
+
 	return nil
 }

@@ -59,10 +59,10 @@
     "Protection Storage Masks": "0x42015F",
     "Interop Function": "0x420160",
     "Interop Identifier": "0x420161",
-    "Adjustment Value": "420162",
-    "Common Protection Storage Masks": "420163",
-    "Private Protection Storage Masks": "420164",
-    "Public Protection Storage Masks": "420165"
+    "Adjustment Value": "0x420162",
+    "Common Protection Storage Masks": "0x420163",
+    "Private Protection Storage Masks": "0x420164",
+    "Public Protection Storage Masks": "0x420165"
   },
   "enums": [
     {

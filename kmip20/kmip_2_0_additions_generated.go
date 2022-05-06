@@ -6,10 +6,6 @@ import (
 )
 
 const (
-	TagAdjustmentValue                    ttlv.Tag = 0x066942
-	TagCommonProtectionStorageMasks       ttlv.Tag = 0x066943
-	TagPrivateProtectionStorageMasks      ttlv.Tag = 0x066944
-	TagPublicProtectionStorageMasks       ttlv.Tag = 0x066945
 	TagAttributes                         ttlv.Tag = 0x420125
 	TagCommonAttributes                   ttlv.Tag = 0x420126
 	TagPrivateKeyAttributes               ttlv.Tag = 0x420127
@@ -69,6 +65,10 @@ const (
 	TagProtectionStorageMasks             ttlv.Tag = 0x42015f
 	TagInteropFunction                    ttlv.Tag = 0x420160
 	TagInteropIdentifier                  ttlv.Tag = 0x420161
+	TagAdjustmentValue                    ttlv.Tag = 0x420162
+	TagCommonProtectionStorageMasks       ttlv.Tag = 0x420163
+	TagPrivateProtectionStorageMasks      ttlv.Tag = 0x420164
+	TagPublicProtectionStorageMasks       ttlv.Tag = 0x420165
 )
 
 // Credential Type Enumeration
@@ -1956,10 +1956,6 @@ func (p ProtectionStorageMask) String() string {
 func RegisterGeneratedDefinitions(r *ttlv.Registry) {
 
 	tags := map[ttlv.Tag]string{
-		TagAdjustmentValue:                    "Adjustment Value",
-		TagCommonProtectionStorageMasks:       "Common Protection Storage Masks",
-		TagPrivateProtectionStorageMasks:      "Private Protection Storage Masks",
-		TagPublicProtectionStorageMasks:       "Public Protection Storage Masks",
 		TagAttributes:                         "Attributes",
 		TagCommonAttributes:                   "Common Attributes",
 		TagPrivateKeyAttributes:               "Private Key Attributes",
@@ -2019,6 +2015,10 @@ func RegisterGeneratedDefinitions(r *ttlv.Registry) {
 		TagProtectionStorageMasks:             "Protection Storage Masks",
 		TagInteropFunction:                    "Interop Function",
 		TagInteropIdentifier:                  "Interop Identifier",
+		TagAdjustmentValue:                    "Adjustment Value",
+		TagCommonProtectionStorageMasks:       "Common Protection Storage Masks",
+		TagPrivateProtectionStorageMasks:      "Private Protection Storage Masks",
+		TagPublicProtectionStorageMasks:       "Public Protection Storage Masks",
 	}
 
 	for v, name := range tags {

@@ -16,7 +16,14 @@ type GetRequestPayload struct {
 type GetResponsePayload struct {
 	ObjectType       kmip14.ObjectType
 	UniqueIdentifier string
-	Key              string
+	Certificate      *Certificate
+	SymmetricKey     *SymmetricKey
+	PrivateKey       *PrivateKey
+	PublicKey        *PublicKey
+	SplitKey         *SplitKey
+	Template         *Template
+	SecretData       *SecretData
+	OpaqueObject     *OpaqueObject
 }
 
 type GetHandler struct {

@@ -125,13 +125,11 @@ type AttestationCredentialValue struct {
 //
 // The Key Block SHALL contain a Key Wrapping Data structure if the key in the Key Value field is
 // wrapped (i.e., encrypted, or MACed/signed, or both).
-//
-// TODO: Unmarshaler impl which unmarshals correct KeyValue type.
+
 type KeyBlock struct {
-	KeyFormatType      kmip14.KeyFormatType
-	KeyCompressionType kmip14.KeyCompressionType `ttlv:",omitempty"`
-	// KeyValue should be either []byte or KeyValue
-	KeyValue               interface{}                   `ttlv:",omitempty"` // should be either a []byte or KeyValue
+	KeyFormatType          kmip14.KeyFormatType
+	KeyCompressionType     kmip14.KeyCompressionType     `ttlv:",omitempty"`
+	KeyValue               KeyValue                      `ttlv:",omitempty"`
 	CryptographicAlgorithm kmip14.CryptographicAlgorithm `ttlv:",omitempty"`
 	CryptographicLength    int                           `ttlv:",omitempty"`
 	KeyWrappingData        *KeyWrappingData

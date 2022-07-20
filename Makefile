@@ -92,7 +92,7 @@ update:
 tools: kmipgen
 	go install mvdan.cc/gofumpt@latest
 	go install golang.org/x/tools/cmd/cover@latest
-	sh -c "$$(wget -O - -q https://install.goreleaser.com/github.com/golangci/golangci-lint.sh || echo exit 2)" -- -b $(shell go env GOPATH)/bin $(GOLANGCI_LINT_VERSION)
+	sh -c "$$(wget -O - -q https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh || echo exit 2)" -- -b $(shell go env GOPATH)/bin $(GOLANGCI_LINT_VERSION)
 
 pykmip-server: up
 	$(COMPOSE) exec pykmip-server tail -f server.log

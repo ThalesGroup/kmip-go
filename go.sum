@@ -11,6 +11,8 @@ github.com/ansel1/merry/v2 v2.0.1 h1:WeiKZdslHPAPFYxTtgX7clC2Vh75NCoWs5OjCZbIA0A
 github.com/ansel1/merry/v2 v2.0.1/go.mod h1:dD5OhpiPrVkvgseRYd+xgYlx7s6ytU3v9BTTJlDA7FM=
 github.com/ansel1/vespucci/v4 v4.1.1/go.mod h1:zzdrO4IgBfgcGMbGTk/qNGL8JPslmW3nPpcBHKReFYY=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
+github.com/baum/kmip-go v0.0.0-20220714190649-7b37ecf92eb2 h1:36jcWIS7S1M2yZ/GsXqqIfbRvO+1dg4v+9VhGrwsr84=
+github.com/baum/kmip-go v0.0.0-20220714190649-7b37ecf92eb2/go.mod h1:5WlKRqL5dfI68V56W+4ZmlPSL+TSfqQrKJYI8CSJz+E=
 github.com/benbjohnson/clock v1.1.0 h1:Q92kusRqC1XV2MjkWETPvjJVqKetz1OzxZB7mHJLju8=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=

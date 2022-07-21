@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/ansel1/merry v1.6.2
+	github.com/baum/kmip-go v0.0.0-20220714190649-7b37ecf92eb2
 	github.com/gemalto/flume v0.13.0
 	github.com/google/uuid v1.3.0
 	github.com/stretchr/testify v1.7.0

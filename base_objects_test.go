@@ -2,6 +2,7 @@ package kmip
 
 import (
 	"bufio"
+	"crypto/rand"
 	"crypto/tls"
 	"testing"
 
@@ -369,4 +370,71 @@ func v(tag ttlv.Tag, val interface{}) ttlv.Value {
 
 func s(tag ttlv.Tag, vals ...ttlv.Value) ttlv.Value {
 	return ttlv.NewStruct(tag, vals...)
+}
+
+func TestGetResponsePayload_unmarshal(t *testing.T) {
+	uniqueIdentifier := uuid.NewString()
+	cryptographicLength := 256
+	keyMaterial := RandomBytes(32)
+
+	tests := []struct {
+		name   string
+		input  ttlv.Value
+		expect GetResponsePayload
+	}{
+		{
+			name: "SymmetricKey",
+
+			input: s(kmip14.TagResponsePayload,
+				v(kmip14.TagObjectType, kmip14.ObjectTypeSymmetricKey),
+				v(kmip14.TagUniqueIdentifier, uniqueIdentifier),
+				s(kmip14.TagSymmetricKey,
+					s(kmip14.TagKeyBlock,
+						v(kmip14.TagKeyFormatType, kmip14.KeyFormatTypeRaw),
+						s(kmip14.TagKeyValue,
+							v(kmip14.TagKeyMaterial, keyMaterial),
+						),
+						v(kmip14.TagCryptographicLength, cryptographicLength),
+						v(kmip14.TagCryptographicAlgorithm, kmip14.CryptographicAlgorithmAES),
+					),
+				),
+			),
+
+			expect: GetResponsePayload{
+				ObjectType:       kmip14.ObjectTypeSymmetricKey,
+				UniqueIdentifier: uniqueIdentifier,
+				SymmetricKey: &SymmetricKey{
+					KeyBlock: KeyBlock{
+						KeyFormatType: kmip14.KeyFormatTypeRaw,
+						KeyValue: &KeyValue{
+							KeyMaterial: keyMaterial,
+						},
+						CryptographicLength:    cryptographicLength,
+						CryptographicAlgorithm: kmip14.CryptographicAlgorithmAES,
+					},
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			inputTTLV, err := ttlv.Marshal(test.input)
+			require.NoError(t, err)
+
+			var actualGRP GetResponsePayload
+			err = ttlv.Unmarshal(inputTTLV, &actualGRP)
+			require.NoError(t, err)
+
+			require.Equal(t, test.expect, actualGRP)
+		})
+	}
+}
+
+func RandomBytes(numBytes int) []byte {
+	randomBytes := make([]byte, numBytes)
+	if _, err := rand.Read(randomBytes); err != nil {
+		panic(err)
+	}
+	return randomBytes
 }

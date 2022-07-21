@@ -129,7 +129,7 @@ type AttestationCredentialValue struct {
 type KeyBlock struct {
 	KeyFormatType          kmip14.KeyFormatType
 	KeyCompressionType     kmip14.KeyCompressionType     `ttlv:",omitempty"`
-	KeyValue               *KeyValue                      `ttlv:",omitempty"`
+	KeyValue               *KeyValue                     `ttlv:",omitempty"`
 	CryptographicAlgorithm kmip14.CryptographicAlgorithm `ttlv:",omitempty"`
 	CryptographicLength    int                           `ttlv:",omitempty"`
 	KeyWrappingData        *KeyWrappingData

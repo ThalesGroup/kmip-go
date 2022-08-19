@@ -23,7 +23,7 @@ type QueryResponsePayload struct {
 	VendorIdentification     string
 	ServerInformation        []ServerInformation
 	ApplicationNamespace     []string
-	ExtensionInformation     string
+	ExtensionInformation     []ExtensionInformation
 	AttestationType          kmip14.AttestationType
 	RNGParameters            string
 	ProfileInformation       []ProfileName

@@ -22,7 +22,7 @@ type QueryResponsePayload struct {
 	ObjectType               []ObjectType
 	VendorIdentification     string
 	ServerInformation        string
-	ApplicationNamespace     string
+	ApplicationNamespace     []string
 	ExtensionInformation     string
 	AttestationType          kmip14.AttestationType
 	RNGParameters            string

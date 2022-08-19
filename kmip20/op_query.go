@@ -25,7 +25,7 @@ type QueryResponsePayload struct {
 	ApplicationNamespace     []string
 	ExtensionInformation     []ExtensionInformation
 	AttestationType          kmip14.AttestationType
-	RNGParameters            string
+	RNGParameters            []RNGParameters
 	ProfileInformation       []ProfileName
 	ValidationInformation    []kmip14.ValidationAuthorityType
 	CapabilityInformation    []string

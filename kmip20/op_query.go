@@ -21,7 +21,7 @@ type QueryResponsePayload struct {
 	Operation                []kmip14.Operation
 	ObjectType               []ObjectType
 	VendorIdentification     string
-	ServerInformation        string
+	ServerInformation        []ServerInformation
 	ApplicationNamespace     []string
 	ExtensionInformation     string
 	AttestationType          kmip14.AttestationType

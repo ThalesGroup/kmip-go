@@ -19,7 +19,7 @@ type QueryRequestPayload struct {
 
 type QueryResponsePayload struct {
 	Operation                []kmip14.Operation
-	ObjectType               ObjectType
+	ObjectType               []ObjectType
 	VendorIdentification     string
 	ServerInformation        string
 	ApplicationNamespace     string

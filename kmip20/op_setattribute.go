@@ -11,7 +11,7 @@ import (
 // Table 296
 
 type SetAttributeRequestPayload struct {
-	UniqueIdentifier UniqueIdentifierValue
+	UniqueIdentifier *UniqueIdentifierValue
 	AttributeName    string
 	AttributeValue   string
 }

@@ -10,7 +10,7 @@ import (
 // GetRequestPayload ////////////////////////////////////////
 //
 type GetRequestPayload struct {
-	UniqueIdentifier UniqueIdentifierValue
+	UniqueIdentifier *UniqueIdentifierValue
 }
 
 // GetResponsePayload

@@ -322,7 +322,7 @@ func (dec *Decoder) unmarshal(val reflect.Value, ttlv TTLV) error {
 		}
 
 		val.SetBool(ttlv.ValueBoolean())
-	// nolint:dupl
+	//nolint:dupl
 	case TypeEnumeration:
 		switch val.Kind() {
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32:
@@ -342,7 +342,7 @@ func (dec *Decoder) unmarshal(val reflect.Value, ttlv TTLV) error {
 		default:
 			return typeMismatchErr()
 		}
-	// nolint:dupl
+	//nolint:dupl
 	case TypeInteger:
 		switch val.Kind() {
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32:

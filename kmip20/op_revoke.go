@@ -2,6 +2,7 @@ package kmip20
 
 import (
 	"context"
+	"time"
 
 	"github.com/gemalto/kmip-go"
 	"github.com/gemalto/kmip-go/kmip14"
@@ -11,14 +12,14 @@ import (
 
 // Table 269
 
-type RevocationReasonStruct struct {
+type RevocationReason struct {
 	RevocationReasonCode kmip14.RevocationReasonCode
 }
 
 type RevokeRequestPayload struct {
-	UniqueIdentifier         UniqueIdentifierValue
-	RevocationReason         RevocationReasonStruct
-	CompromiseOccurrenceDate []byte
+	UniqueIdentifier         *UniqueIdentifierValue
+	RevocationReason         RevocationReason
+	CompromiseOccurrenceDate *time.Time
 }
 
 // Table 270

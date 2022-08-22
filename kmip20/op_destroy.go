@@ -11,7 +11,7 @@ import (
 // Table 193
 
 type DestroyRequestPayload struct {
-	UniqueIdentifier UniqueIdentifierValue
+	UniqueIdentifier *UniqueIdentifierValue
 }
 
 // Table 194

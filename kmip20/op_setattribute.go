@@ -12,16 +12,13 @@ import (
 
 type SetAttributeRequestPayload struct {
 	UniqueIdentifier *UniqueIdentifierValue
-	AttributeName    string
-	AttributeValue   string
+	NewAttribute     Attributes `ttlv:"DerivationData"`
 }
 
 // Table 297
 
 type SetAttributeResponsePayload struct {
 	UniqueIdentifier string
-	AttributeName    string
-	AttributeValue   string
 }
 
 type SetAttributeHandler struct {

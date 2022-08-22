@@ -11,7 +11,7 @@ import (
 // Table 210
 
 type ActivateRequestPayload struct {
-	UniqueIdentifier UniqueIdentifierValue
+	UniqueIdentifier *UniqueIdentifierValue
 }
 
 // Table 211

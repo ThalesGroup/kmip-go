@@ -36,7 +36,7 @@ func (h *GetHandler) HandleItem(ctx context.Context, req *kmip.Request) (*kmip.R
 		return nil, err
 	}
 
-	//req.Key = respPayload.Key
+	// req.Key = respPayload.Key
 	req.IDPlaceholder = respPayload.UniqueIdentifier
 
 	return &kmip.ResponseBatchItem{

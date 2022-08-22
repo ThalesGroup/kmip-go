@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math"
 	"math/big"
 	"reflect"
@@ -543,7 +542,7 @@ func TestEncoder_EncodeValue(t *testing.T) {
 		},
 		{
 			name:     "ptrtonil",
-			v:        func() *string { var s *string; s = nil; return s }(), // nolint:gosimple
+			v:        func() *string { var s *string; s = nil; return s }(), //nolint:gosimple
 			expected: nil,
 		},
 		{
@@ -553,7 +552,7 @@ func TestEncoder_EncodeValue(t *testing.T) {
 		},
 		{
 			name:     "nilinterface",
-			v:        func() io.Writer { var i io.Writer; i = nil; return i }(), // nolint:gosimple
+			v:        func() io.Writer { var i io.Writer; i = nil; return i }(), //nolint:gosimple
 			expected: nil,
 		},
 		{
@@ -1524,7 +1523,7 @@ func parseTime(s string) time.Time {
 }
 
 func BenchmarkEncodeSlice(b *testing.B) {
-	enc := NewEncoder(ioutil.Discard)
+	enc := NewEncoder(io.Discard)
 
 	type Attribute struct {
 		AttributeValue string
@@ -1620,14 +1619,14 @@ func BenchmarkMarshal_struct(b *testing.B) {
 }
 
 func BenchmarkEncoder_Encode_interval(b *testing.B) {
-	enc := NewEncoder(ioutil.Discard)
+	enc := NewEncoder(io.Discard)
 	for i := 0; i < b.N; i++ {
 		_ = enc.EncodeValue(TagCertificateRequest, time.Minute)
 	}
 }
 
 func BenchmarkEncoder_EncodeByteString(b *testing.B) {
-	enc := NewEncoder(ioutil.Discard)
+	enc := NewEncoder(io.Discard)
 	for i := 0; i < b.N; i++ {
 		enc.EncodeTextString(TagCertificateIssuer, "al;kjsaflksjdflakjsdfl;aksjdflaksjdflaksjdfl;ksjd")
 		require.NoError(b, enc.Flush())
@@ -1635,7 +1634,7 @@ func BenchmarkEncoder_EncodeByteString(b *testing.B) {
 }
 
 func BenchmarkEncoder_EncodeInt(b *testing.B) {
-	enc := NewEncoder(ioutil.Discard)
+	enc := NewEncoder(io.Discard)
 	for i := 0; i < b.N; i++ {
 		enc.EncodeInteger(TagCertificateIssuer, 8)
 		require.NoError(b, enc.Flush())

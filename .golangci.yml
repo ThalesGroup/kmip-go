@@ -120,7 +120,6 @@ linters:
     - goprintffuncname
     - gosec
     - grouper
-    - ifshort
     - importas
 #    - ireturn              # there are valid use cases for this pattern.  too strict.
 ##    - lll                 # checks line length.  not enforced

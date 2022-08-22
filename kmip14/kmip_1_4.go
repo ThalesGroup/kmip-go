@@ -12,7 +12,7 @@ import (
 	"github.com/gemalto/kmip-go/ttlv"
 )
 
-// nolint:gochecknoinits
+//nolint:gochecknoinits
 func init() {
 	Register(&ttlv.DefaultRegistry)
 }

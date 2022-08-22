@@ -10,7 +10,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -112,7 +111,7 @@ xml format:
 	buf := bytes.NewBuffer(nil)
 
 	if inFile != "" {
-		file, err := ioutil.ReadFile(inFile)
+		file, err := os.ReadFile(inFile)
 		if err != nil {
 			fail("error reading input file", err)
 		}

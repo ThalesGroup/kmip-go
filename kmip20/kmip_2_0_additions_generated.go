@@ -1614,7 +1614,6 @@ func (i InteropFunction) String() string {
 }
 
 // NIST Key Type Enumeration
-//
 type NISTKeyType uint32
 
 const (
@@ -1686,7 +1685,6 @@ func (n NISTKeyType) String() string {
 }
 
 // PKCS#11 Function Enumeration
-//
 type PKCS_11Function uint32
 
 const ()
@@ -1718,7 +1716,6 @@ func (p PKCS_11Function) String() string {
 }
 
 // PKCS#11 Return Code Enumeration
-//
 type PKCS_11ReturnCode uint32
 
 const ()
@@ -1750,7 +1747,6 @@ func (p PKCS_11ReturnCode) String() string {
 }
 
 // Protection Level Enumeration
-//
 type ProtectionLevel uint32
 
 const (
@@ -1788,7 +1784,6 @@ func (p ProtectionLevel) String() string {
 }
 
 // Ticket Type Enumeration
-//
 type TicketType uint32
 
 const (
@@ -1824,7 +1819,6 @@ func (t TicketType) String() string {
 }
 
 // Unique Identifier Enumeration
-//
 type UniqueIdentifier uint32
 
 const (
@@ -1892,7 +1886,6 @@ func (u UniqueIdentifier) String() string {
 }
 
 // Protection Storage Mask Bit Mask
-//
 type ProtectionStorageMask uint32
 
 const (

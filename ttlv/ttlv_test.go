@@ -544,7 +544,7 @@ func TestTTLV_UnmarshalJSON(t *testing.T) {
 		{
 			name: "integermask",
 			inputs: []string{
-				//`{"tag":"CryptographicUsageMask","type":"Integer","value":"0x00000005"}`,
+				// `{"tag":"CryptographicUsageMask","type":"Integer","value":"0x00000005"}`,
 				`{"tag":"CryptographicUsageMask","type":"Integer","value":"Decrypt|Export"}`,
 				`{"tag":"CryptographicUsageMask","type":"Integer","value":"Decrypt|0x00000040"}`,
 				`{"tag":"CryptographicUsageMask","type":"Integer","value":"0x00000048"}`,
@@ -981,7 +981,7 @@ func TestTTLV_UnmarshalXML(t *testing.T) {
 		{
 			name: "integermask",
 			inputs: []string{
-				//`{"tag":"CryptographicUsageMask","type":"Integer","value":"0x00000005"}`,
+				// `{"tag":"CryptographicUsageMask","type":"Integer","value":"0x00000005"}`,
 				`<CryptographicUsageMask type="Integer" value="0x00000048"/>`,
 				`<CryptographicUsageMask type="Integer" value="72"/>`,
 				`<CryptographicUsageMask type="Integer" value="Decrypt Export"/>`,

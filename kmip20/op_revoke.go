@@ -34,6 +34,7 @@ type RevokeHandler struct {
 
 func (h *RevokeHandler) HandleItem(ctx context.Context, req *kmip.Request) (*kmip.ResponseBatchItem, error) {
 	var payload RevokeRequestPayload
+
 	err := req.DecodePayload(&payload)
 	if err != nil {
 		return nil, err

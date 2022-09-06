@@ -26,6 +26,7 @@ type LocateHandler struct {
 
 func (h *LocateHandler) HandleItem(ctx context.Context, req *kmip.Request) (*kmip.ResponseBatchItem, error) {
 	var payload LocateRequestPayload
+
 	err := req.DecodePayload(&payload)
 	if err != nil {
 		return nil, err

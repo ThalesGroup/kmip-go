@@ -1,3 +1,4 @@
+//nolint:dupl
 package kmip20
 
 import (

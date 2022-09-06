@@ -27,6 +27,7 @@ type SetAttributeHandler struct {
 
 func (h *SetAttributeHandler) HandleItem(ctx context.Context, req *kmip.Request) (*kmip.ResponseBatchItem, error) {
 	var payload SetAttributeRequestPayload
+
 	err := req.DecodePayload(&payload)
 	if err != nil {
 		return nil, err

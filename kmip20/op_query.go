@@ -118,6 +118,7 @@ type QueryHandler struct {
 
 func (h *QueryHandler) HandleItem(ctx context.Context, req *kmip.Request) (*kmip.ResponseBatchItem, error) {
 	var payload QueryRequestPayload
+
 	err := req.DecodePayload(&payload)
 	if err != nil {
 		return nil, err

@@ -8,7 +8,6 @@ import (
 )
 
 // GetRequestPayload ////////////////////////////////////////
-//
 type GetRequestPayload struct {
 	UniqueIdentifier *UniqueIdentifierValue
 }
@@ -26,6 +25,7 @@ type GetHandler struct {
 
 func (h *GetHandler) HandleItem(ctx context.Context, req *kmip.Request) (*kmip.ResponseBatchItem, error) {
 	var payload GetRequestPayload
+
 	err := req.DecodePayload(&payload)
 	if err != nil {
 		return nil, err

@@ -1,3 +1,4 @@
+//nolint:dupl
 package kmip20
 
 import (
@@ -26,6 +27,7 @@ type ActivateHandler struct {
 
 func (h *ActivateHandler) HandleItem(ctx context.Context, req *kmip.Request) (*kmip.ResponseBatchItem, error) {
 	var payload ActivateRequestPayload
+
 	err := req.DecodePayload(&payload)
 	if err != nil {
 		return nil, err

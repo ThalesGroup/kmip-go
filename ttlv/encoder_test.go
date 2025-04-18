@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/gemalto/kmip-go/kmip14"
-	. "github.com/gemalto/kmip-go/ttlv"
+	. "github.com/gemalto/kmip-go/kmip14" //nolint:revive
+	. "github.com/gemalto/kmip-go/ttlv"   //nolint:revive
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -542,7 +542,7 @@ func TestEncoder_EncodeValue(t *testing.T) {
 		},
 		{
 			name:     "ptrtonil",
-			v:        func() *string { var s *string; s = nil; return s }(), //nolint:gosimple
+			v:        func() *string { s := (*string)(nil); return s }(),
 			expected: nil,
 		},
 		{
@@ -552,7 +552,7 @@ func TestEncoder_EncodeValue(t *testing.T) {
 		},
 		{
 			name:     "nilinterface",
-			v:        func() io.Writer { var i io.Writer; i = nil; return i }(), //nolint:gosimple
+			v:        func() io.Writer { i := (io.Writer)(nil); return i }(),
 			expected: nil,
 		},
 		{
@@ -617,7 +617,7 @@ func TestEncoder_EncodeValue(t *testing.T) {
 		// marshalable
 		{
 			name:     "marshalable",
-			v:        MarshalerFunc(func(e *Encoder, tag Tag) error { return e.EncodeValue(TagArchiveDate, 5) }),
+			v:        MarshalerFunc(func(e *Encoder, _ Tag) error { return e.EncodeValue(TagArchiveDate, 5) }),
 			expected: Value{Tag: TagArchiveDate, Value: int32(5)},
 		},
 		{

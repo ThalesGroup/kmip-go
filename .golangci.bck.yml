@@ -84,7 +84,7 @@ linters-settings:
     allow-assign-and-anything: true
 
 linters:
-  # to try out individual linters: golangci-lint run -E gocyclo,gosimple
+  # to try out individual linters: golangci-lint run -E gocyclo
   enable:
     # default linters
     - staticcheck

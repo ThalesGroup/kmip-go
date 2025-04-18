@@ -168,6 +168,7 @@ xml format:
 			}
 
 			printTTLV(outFormat, raw, count)
+
 			count++
 		}
 
@@ -194,6 +195,7 @@ xml format:
 
 		for len(raw) > 0 {
 			printTTLV(outFormat, raw, count)
+
 			count++
 			raw = raw.Next()
 		}

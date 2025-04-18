@@ -52,7 +52,6 @@ linters:
     - unused
     - wastedassign
     - whitespace
-    - wsl
   settings:
     depguard:
       rules:
@@ -131,8 +130,6 @@ linters:
 issues:
   new: false
 formatters:
-  enable:
-    - gofumpt
   exclusions:
     generated: lax
     paths:

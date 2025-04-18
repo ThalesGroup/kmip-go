@@ -11,7 +11,7 @@ type UniqueIdentifierValue struct {
 	Index int32
 }
 
-func (u *UniqueIdentifierValue) UnmarshalTTLV(d *ttlv.Decoder, v ttlv.TTLV) error {
+func (u *UniqueIdentifierValue) UnmarshalTTLV(_ *ttlv.Decoder, v ttlv.TTLV) error {
 	if len(v) == 0 {
 		return nil
 	}

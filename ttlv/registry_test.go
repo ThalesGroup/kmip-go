@@ -3,8 +3,8 @@ package ttlv_test
 import (
 	"testing"
 
-	. "github.com/gemalto/kmip-go/kmip14"
-	. "github.com/gemalto/kmip-go/ttlv"
+	. "github.com/gemalto/kmip-go/kmip14" //nolint:revive
+	. "github.com/gemalto/kmip-go/ttlv"   //nolint:revive
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

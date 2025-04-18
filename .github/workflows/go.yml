@@ -14,24 +14,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go: ['v1.18.x', 'oldstable', 'stable']
+        go: ['v1.22.x', 'oldstable', 'stable']
     steps:
-    - uses: actions/setup-go@v3
+    - uses: golangci/golangci-lint-action@v6
+    - uses: actions/setup-go@v5
       with:
         go-version: ${{ matrix.go }}
         check-latest: true
-    - uses: actions/checkout@v2
-    - run: |
-        pwd
-        echo ${HOME}
-        echo ${GITHUB_WORKSPACE}
-        echo ${GOPATH}
-        echo ${GOROOT}
-        mkdir -p $GOPATH/bin
-        echo 'export PATH=$PATH:$GOPATH/bin' > runme.sh
-        echo 'make tools all' >> runme.sh
-        chmod +x runme.sh
-        ./runme.sh
+    - uses: actions/checkout@v4
+    - run: make all
       env:
         GOPATH: /home/runner/work/go
 

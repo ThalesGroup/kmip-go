@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"crypto/rand"
 	"crypto/tls"
+	"os"
 	"testing"
 
 	"github.com/gemalto/kmip-go/kmip14"
@@ -12,6 +13,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+var kmipServerAddr = "127.0.0.1:5696"
+
+func init() {
+	// check env var for value of kmipServerAddr
+	if addr := os.Getenv("KMIP_SERVER_ADDR"); addr != "" {
+		kmipServerAddr = addr
+	}
+}
 
 // clientConn returns a connection to the test kmip server.  Should be closed at end of test.
 func clientConn(t *testing.T) *tls.Conn {
@@ -30,7 +40,7 @@ func clientConn(t *testing.T) *tls.Conn {
 		},
 	}
 
-	conn, err := tls.Dial("tcp", "127.0.0.1:5696", tlsConfig)
+	conn, err := tls.Dial("tcp", kmipServerAddr, tlsConfig)
 	require.NoError(t, err)
 
 	return conn

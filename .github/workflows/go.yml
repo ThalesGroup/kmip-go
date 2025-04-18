@@ -16,13 +16,13 @@ jobs:
       matrix:
         go: ['v1.22.x', 'oldstable', 'stable']
     steps:
-    - uses: golangci/golangci-lint-action@v6
     - uses: actions/setup-go@v5
       with:
         go-version: ${{ matrix.go }}
         check-latest: true
     - uses: actions/checkout@v4
-    - run: make all
+    - run: make build up test
       env:
         GOPATH: /home/runner/work/go
+    - uses: golangci/golangci-lint-action@v7
 

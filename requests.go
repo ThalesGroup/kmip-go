@@ -284,7 +284,7 @@ func (c *conn) serve(ctx context.Context) {
 		// if d := c.server.WriteTimeout; d != 0 {
 		// 	c.rwc.SetWriteDeadline(time.Now().Add(d))
 		// }
-		if err := tlsConn.Handshake(); err != nil {
+		if err := tlsConn.HandshakeContext(ctx); err != nil {
 			serverLog.Error("kmip: TLS handshake error", "remoteAddr", c.rwc.RemoteAddr(), "error", err)
 			return
 		}

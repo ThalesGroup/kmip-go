@@ -116,7 +116,7 @@ linters:
           - gocyclo
           - gosec
           - nlreturn
-          - wsl
+          - noctx
         path: _test\.go
       - linters:
           - forbidigo
@@ -129,6 +129,7 @@ linters:
       - examples$
 issues:
   new: false
+  fix: true
 formatters:
   exclusions:
     generated: lax

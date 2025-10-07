@@ -15,6 +15,7 @@ require (
 require (
 	github.com/ansel1/merry/v2 v2.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/go-errors/errors v1.5.1 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
